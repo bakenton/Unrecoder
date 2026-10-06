@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve as pathResolve } from 'node:path';
 import {
-  prepare, cellById, digitOf, labelFor, keyLabels, areAdjacent, tokenOfCells, findOccurrences, nextOccurrence,
+  prepare, cellById, numberOf, areAdjacent, tokenOfCells, findOccurrences, nextOccurrence,
   parses, pickedKeys, realPick, samePick, likeness, isLocked, minCell, meaningsOf, isAmbiguous, judgeReading,
   renderSentence, resolve, applyCrew, spendIntuition, gainIntuition, ORDERS, MAX_TRIES,
 } from './engine.js';
@@ -22,7 +22,7 @@ const sel = (...rows) => Object.fromEntries(rows.map((w, i) => [i, Array.isArray
 test('the matrix is a full 10x10 table with unique phrases and every letter once', () => {
   const ids = Object.keys(act.matrix.cells).sort();
   assert.equal(ids.length, 100);
-  assert.deepEqual(ids, [...Array(100).keys()].map((i) => String(i).padStart(2, '0')));
+  assert.deepEqual(ids, [...'0123456789'].flatMap((d) => [...'abcdefghij'].map((l) => d + l)));
   const phrases = Object.values(act.matrix.cells).filter((c) => c.kind !== 'letter').map((c) => c.text);
   assert.equal(new Set(phrases).size, phrases.length, 'two cells carry the same phrase');
   const letters = Object.values(act.matrix.cells).filter((c) => c.kind === 'letter').map((c) => c.text);
@@ -34,43 +34,9 @@ test('the matrix has all three cell types: phrases, letters and the number marke
   for (const k of ['who', 'place', 'action', 'thing', 'state', 'marker', 'letter']) assert.ok(kinds.has(k), k);
 });
 
-test('rings: 10 unique labels each, rows and columns disjoint', () => {
-  const { rows, cols } = act.rings;
-  assert.equal(new Set(rows).size, 10);
-  assert.equal(new Set(cols).size, 10);
-  assert.equal(rows.filter((l) => cols.includes(l)).length, 0);
-});
-
-test('the indicator label is digit 0 and the rest follow in ring order', () => {
-  const { rows } = act.rings;
-  assert.equal(digitOf(rows, 'RA', 'RA'), 0);
-  assert.equal(digitOf(rows, 'RA', 'TU'), 1);
-  assert.equal(digitOf(rows, 'RA', 'MI'), 9); // wraps around the ring
-  assert.equal(labelFor(rows, 'RA', 0), 'RA');
-  assert.equal(labelFor(rows, 'RA', 9), 'MI');
-  for (let d = 0; d < 10; d++) assert.equal(digitOf(rows, 'BE', labelFor(rows, 'BE', d)), d);
-});
-
-test('every transmission has its own key: a permutation of the same rings', () => {
-  const keys = txs.map((tx) => JSON.stringify(keyLabels(tx)));
-  assert.equal(new Set(keys).size, txs.length, 'two transmissions share a key');
-  for (const tx of txs) {
-    const k = keyLabels(tx);
-    assert.deepEqual([...k.rows].sort(), [...act.rings.rows].sort());
-    assert.deepEqual([...k.cols].sort(), [...act.rings.cols].sort());
-  }
-});
-
-test('the same pair of labels means a different cell under a different key', () => {
-  const [a, b] = bridge.cells[0];
-  const first = tokenOfCells(bridge, a, b).id;
-  const moved = tokenOfCells({ ...bridge, indicator: member.indicator }, a, b).id;
-  assert.notEqual(first, moved);
-});
-
-test('the cell contents do not depend on the key', () => {
-  assert.equal(cellById(bridge, '18').text, 'team');
-  assert.equal(cellById(hut, '18').text, 'team');
+test('the same cell has the same content in every transmission', () => {
+  assert.equal(cellById(bridge, '1i').text, 'team');
+  assert.equal(cellById(hut, '1i').text, 'team');
 });
 
 // ---------- the dump ----------
@@ -89,7 +55,7 @@ test('real keys sit in the dump as adjacent cells that spell their cell id', () 
 });
 
 test('no accidental key pairs: only the intended keys exist, horizontal and vertical', () => {
-  const expected = { 'T01-bridge': 10, 'T02-member': 10, 'T03-hut': 12 };
+  const expected = { 'T01-bridge': 5, 'T02-member': 8, 'T03-hut': 11 };
   for (const tx of txs) {
     const occ = findOccurrences(tx);
     assert.equal(occ.length, expected[tx.id], tx.id);
@@ -107,13 +73,14 @@ test('a key can be read in either order', () => {
 });
 
 test('likeness counts picks that are exactly a real key pair, not which', () => {
-  const real = realPicks(bridge);
-  assert.equal(likeness(bridge, real), 5);
-  assert.ok(isLocked(bridge, real));
-  const decoy = findOccurrences(bridge).find((o) => !bridge.cipher.includes(o.id));
+  const real = realPicks(member); // this message has decoys
+  assert.equal(likeness(member, real), 5);
+  assert.ok(isLocked(member, real));
+  const decoy = findOccurrences(member).find((o) => !member.cipher.includes(o.id) && cellById(member, o.id).kind === 'who');
   const picks = [{ a: decoy.a, b: decoy.b }, ...real.slice(1)];
-  assert.equal(likeness(bridge, picks), 4);
-  assert.ok(!isLocked(bridge, picks));
+  assert.equal(likeness(member, picks), 4);
+  assert.ok(!isLocked(member, picks));
+  assert.ok(isLocked(bridge, realPicks(bridge)), 'the first message has no decoys');
 });
 
 test('parses: real picks parse, missing picks do not, reading order decides', () => {
@@ -126,7 +93,7 @@ test('a number must directly follow its marker in the dump', () => {
   const real = realPicks(member); // who, marker, number, state, place
   const occ = findOccurrences(member);
   const next = nextOccurrence(member, real[1]);
-  assert.equal(next.id, member.cipher[2]); // 06 follows marker "number"
+  assert.equal(next.id, member.cipher[2]); // number 06 follows marker "number"
   const other = occ.find((o) => o.id !== member.cipher[2] && !member.cipher.includes(o.id));
   const bad = [real[0], real[1], { a: other.a, b: other.b }, real[3], real[4]];
   assert.ok(!parses(member, bad), 'any pair is not a number; it must be the one after the marker');
@@ -181,7 +148,9 @@ test('only the broken/repaired phrase is ambiguous in the bridge message', () =>
 });
 
 test('a number slot reads the cell number itself; letters read as letters', () => {
-  assert.deepEqual(meaningsOf(member, 2, '06'), ['06']);
+  assert.deepEqual(meaningsOf(member, 2, '0g'), ['06']);
+  assert.equal(numberOf('0g'), '06');
+  assert.equal(numberOf('9j'), '99');
   assert.deepEqual(meaningsOf(hut, 3, hut.cipher[3]), ['H']);
   assert.deepEqual(meaningsOf(member, 1, member.cipher[1]), ['number']);
 });
@@ -201,7 +170,7 @@ test('judgeReading and renderSentence on the bridge message', () => {
 });
 
 test('a misread key makes the reading wrong even if the words look plausible', () => {
-  const keys = ['18', '64', '75', '58', '26']; // CP3 instead of CP4
+  const keys = ['1i', '6e', '7f', '5i', '2g']; // CP3 instead of CP4
   assert.equal(judgeReading(bridge, sel('team', 'CP3', 'reached', 'bridge', 'broken'), keys), 'wrong');
   assert.equal(judgeReading(bridge, A, bridge.cipher), 'correct');
 });

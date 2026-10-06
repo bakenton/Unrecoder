@@ -1,10 +1,12 @@
-"""Generates content/campaign/act1.json: the 10x10 matrix, label rings and three transmissions.
+"""Generates content/campaign/act1.json: the 10x10 matrix and three transmissions.
 
 Run from the repository root:  python content/tools/generate_act1.py
-Everything is seeded; the script verifies that every dump has exactly the intended key pairs
-(no accidental ones) and is solvable by Likeness feedback within MAX_TRIES.
+
+Matrix: row digits 0-9, column letters a-j. A key in the noise is a digit touching a letter a-j
+(side by side or stacked, either order); together they name a cell such as "7c".
+Every dump is verified to contain exactly the intended keys (no accidental ones) and to be
+solvable by Likeness feedback within MAX_TRIES. Everything is seeded.
 """
-import itertools
 import json
 import random
 import sys
@@ -15,19 +17,24 @@ ROOT = Path(__file__).resolve().parents[2]
 OUT = ROOT / "content" / "campaign" / "act1.json"
 COLS, ROWS = 12, 8
 MAX_TRIES = 5
+COL_LETTERS = "abcdefghij"
+DIGITS = "0123456789"
 
-ROW_RING = ["KO", "MI", "RA", "TU", "BE", "NO", "SA", "LI", "PE", "DU"]
-COL_RING = ["ZA", "FY", "HO", "VE", "GI", "XU", "JA", "WE", "YO", "QI"]
 
-# --- the matrix: contents are fixed for the whole game, only the labels move ---
-EXPLICIT = {
+def cid(old):
+    """'18' (row 1, column 8) -> '1i'."""
+    return old[0] + COL_LETTERS[int(old[1])]
+
+
+# --- the matrix: contents are fixed for the whole game ---
+EXPLICIT = {cid(k): v for k, v in {
     "18": ("who", "team"), "52": ("who", "leader"), "83": ("who", "member"),
     "29": ("place", "CP4"), "64": ("place", "CP3"), "07": ("place", "base"), "41": ("place", "CP2"),
     "75": ("action", "reached"), "33": ("action", "left"), "90": ("action", "stopped"), "16": ("action", "found"),
     "58": ("thing", "bridge"), "12": ("thing", "tent"), "47": ("thing", "rope"), "81": ("thing", "camp"),
     "26": ("state", "broken / repaired"), "69": ("state", "injured"), "04": ("state", "safe"), "95": ("state", "tired"),
     "50": ("marker", "number"), "23": ("marker", "spell"),
-}
+}.items()}
 FILL = (
     [("who", w) for w in ["medic", "guide", "porter"]]
     + [("place", w) for w in ["CP1", "south ridge", "glacier", "ridge", "hut", "pass", "camp site", "cave", "river", "slope", "summit", "valley"]]
@@ -39,66 +46,58 @@ FILL = (
 )
 
 
+def cell(kind, text):
+    return {"kind": kind, "text": text, "meanings": [m.strip() for m in text.split("/")]}
+
+
 def build_matrix(seed=7):
     r = random.Random(seed)
-    free = [f"{i:02d}" for i in range(100) if f"{i:02d}" not in EXPLICIT]
+    all_ids = [d + c for d in DIGITS for c in COL_LETTERS]
+    free = [i for i in all_ids if i not in EXPLICIT]
     assert len(free) == len(FILL), (len(free), len(FILL))
-    r.shuffle(FILL)
-    cells = {}
-    for cid, (kind, text) in EXPLICIT.items():
-        cells[cid] = cell(kind, text)
-    for cid, (kind, text) in zip(free, FILL):
-        cells[cid] = cell(kind, text)
+    fill = FILL[:]
+    r.shuffle(fill)
+    cells = {i: cell(*EXPLICIT[i]) for i in EXPLICIT}
+    cells.update({i: cell(*f) for i, f in zip(free, fill)})
     return dict(sorted(cells.items()))
 
 
-def cell(kind, text):
-    meanings = [m.strip() for m in text.split("/")]
-    return {"kind": kind, "text": text, "meanings": meanings}
-
-
 MATRIX = build_matrix()
-LETTER_ID = {c["text"]: cid for cid, c in MATRIX.items() if c["kind"] == "letter"}
+LETTER_ID = {c["text"]: i for i, c in MATRIX.items() if c["kind"] == "letter"}
 
 
-def label_for(ring, start, digit):
-    return ring[(ring.index(start) + digit) % 10]
+def is_key_pair(x, y):
+    """Returns the cell id if x, y are a row digit and a column letter (either order)."""
+    for d, l in ((x, y), (y, x)):
+        if d in DIGITS and l in COL_LETTERS:
+            return d + l
+    return None
 
 
-def digit_of(ring, start, label):
-    return (ring.index(label) - ring.index(start)) % 10
-
-
-NEUTRAL = [a + b for a in "BCDFGHKLMNPRSTVWZ" for b in "AEIOU"]
-NEUTRAL = [x for x in NEUTRAL if x not in ROW_RING and x not in COL_RING]
-JUNK_POOL = NEUTRAL * 3 + ROW_RING + COL_RING  # ring labels as "false friends", never forming a pair
-
-
-def pairs_in(dump, key):
-    """All adjacent (row label, col label) pairs -> [(cell id, a, b)]."""
+def pairs_in(dump):
     out = []
     n = len(dump)
     for i in range(n):
         for j in (i + 1, i + COLS):
-            if j >= n or (j == i + 1 and (i % COLS) == COLS - 1):
+            if j >= n or (j == i + 1 and i % COLS == COLS - 1):
                 continue
-            a, b = dump[i], dump[j]
-            for x, y in ((a, b), (b, a)):
-                if x in ROW_RING and y in COL_RING:
-                    cid = f"{digit_of(ROW_RING, key['row'], x)}{digit_of(COL_RING, key['col'], y)}"
-                    out.append((cid, i, j))
-                    break
+            k = is_key_pair(dump[i], dump[j])
+            if k:
+                out.append((k, i, j))
     return out
 
 
-def build_dump(seed, key, tokens):
-    """tokens: list of cell ids in intended reading order. Returns (dump, {id: (a, b)}) or None."""
+NOISE_LETTERS = "klmnopqrstuvwxyz"
+
+
+def build_dump(seed, tokens, friends):
+    """tokens: cell ids in intended reading order. `friends` = chance a junk cell is a column letter a-j."""
     r = random.Random(seed)
     n = COLS * ROWS
     grid = [None] * n
     place = {}
     anchors = sorted(r.sample(range(n), len(tokens)))
-    for cid, a in zip(tokens, anchors):
+    for t, a in zip(tokens, anchors):
         opts = []
         if a % COLS < COLS - 1:
             opts.append(a + 1)
@@ -109,28 +108,50 @@ def build_dump(seed, key, tokens):
         b = r.choice(opts)
         if grid[a] is not None or grid[b] is not None or b in anchors:
             return None
-        row_label = label_for(ROW_RING, key["row"], int(cid[0]))
-        col_label = label_for(COL_RING, key["col"], int(cid[1]))
-        pair = [row_label, col_label]
+        pair = [t[0], t[1]]
         if r.random() < 0.5:
             pair.reverse()
         grid[a], grid[b] = pair
-        place[cid] = (a, b)
+        place[t] = (a, b)
+    def neighbours(i):
+        out = []
+        if i % COLS > 0:
+            out.append(i - 1)
+        if i % COLS < COLS - 1:
+            out.append(i + 1)
+        if i - COLS >= 0:
+            out.append(i - COLS)
+        if i + COLS < n:
+            out.append(i + COLS)
+        return out
+
+    def draw():
+        roll = r.random()
+        if roll < friends:
+            return r.choice(COL_LETTERS)
+        if roll < friends + 0.45:
+            return r.choice(DIGITS)
+        return r.choice(NOISE_LETTERS)
+
+    # Fill the noise cell by cell, never completing an accidental key with an already filled neighbour.
+    # Letters k-z are always safe, so this cannot dead-end.
     for i in range(n):
         if grid[i] is None:
-            grid[i] = r.choice(JUNK_POOL)
+            for _ in range(20):
+                c = draw()
+                if not any(grid[j] is not None and is_key_pair(c, grid[j]) for j in neighbours(i)):
+                    break
+            else:
+                c = r.choice(NOISE_LETTERS)
+            grid[i] = c
     return grid, place
 
 
-def next_after(sorted_occ, pick):
-    for o in sorted_occ:
-        if min(o[1], o[2]) > min(pick[1], pick[2]):
-            return o
-    return None
+def minc(o):
+    return min(o[1], o[2])
 
 
-def combos_for(slots, occ_sorted, kinds_of):
-    """All parseable picks (lists of (id, a, b)) under the engine's rules."""
+def combos_for(slots, occ):
     out = []
 
     def rec(i, chosen):
@@ -138,14 +159,14 @@ def combos_for(slots, occ_sorted, kinds_of):
             out.append(tuple(chosen))
             return
         if slots[i] in ("number", "letter") and i > 0:
-            nxt = next_after(occ_sorted, chosen[-1])
+            nxt = next((o for o in occ if minc(o) > minc(chosen[-1])), None)
             cands = [nxt] if nxt else []
             if slots[i] == "letter":
                 cands = [c for c in cands if MATRIX[c[0]]["kind"] == "letter"]
         else:
-            cands = [o for o in occ_sorted if MATRIX[o[0]]["kind"] == slots[i]]
+            cands = [o for o in occ if MATRIX[o[0]]["kind"] == slots[i]]
         for c in cands:
-            if chosen and min(chosen[-1][1], chosen[-1][2]) >= min(c[1], c[2]):
+            if chosen and minc(chosen[-1]) >= minc(c):
                 continue
             rec(i + 1, chosen + [c])
 
@@ -174,32 +195,25 @@ def worst_case_tries(combos):
 
 
 def make_transmission(spec):
-    key = spec["key"]
-    for seed in range(spec.get("seedStart", 1), spec.get("seedStart", 1) + 300000):
-        res = build_dump(seed, key, spec["tokens"])
+    seed0 = spec.get("seedStart", 1)
+    for seed in range(seed0, seed0 + 300000):
+        res = build_dump(seed, spec["tokens"], spec["friends"])
         if not res:
             continue
         dump, place = res
-        occ = sorted(pairs_in(dump, key), key=lambda o: min(o[1], o[2]))
-        if sorted((c, a, b) for c, a, b in occ) != sorted((c, *place[c]) for c in spec["tokens"]):
-            continue
-        # intended order must equal reading order
+        occ = sorted(pairs_in(dump), key=minc)
         if [o[0] for o in occ] != spec["tokens"]:
             continue
-        combos = combos_for(spec["slots"], occ, None)
+        if sorted((c, a, b) for c, a, b in occ) != sorted((c, *place[c]) for c in spec["tokens"]):
+            continue
+        combos = combos_for(spec["slots"], occ)
         real = tuple((c, *place[c]) for c in spec["cipher"])
         if real not in combos:
             continue
         n = worst_case_tries(combos)
         if n <= MAX_TRIES:
-            tx = {k: v for k, v in spec.items() if k not in ("tokens", "key", "seedStart")}
-            tx.update({
-                "indicator": {"row": key["row"], "col": key["col"]},
-                "keyHelp": spec["keyHelp"],
-                "cols": COLS,
-                "dump": dump,
-                "cells": [list(place[c]) for c in spec["cipher"]],
-            })
+            tx = {k: v for k, v in spec.items() if k not in ("tokens", "seedStart", "friends")}
+            tx.update({"cols": COLS, "dump": dump, "cells": [list(place[c]) for c in spec["cipher"]]})
             print(f"{spec['id']}: seed {seed}, {len(combos)} parses, worst case {n} tries", file=sys.stderr)
             return tx
     raise SystemExit(f"no valid dump for {spec['id']}")
@@ -207,11 +221,11 @@ def make_transmission(spec):
 
 SPECS = [
     {
-        "id": "T01-bridge", "time": "14:32", "keyHelp": True,
-        "key": {"row": "RA", "col": "HO"},
+        "id": "T01-bridge", "time": "14:32", "friends": 0.05,
         "slots": ["who", "place", "action", "thing", "state"],
-        "tokens": ["52", "18", "64", "33", "29", "75", "58", "12", "69", "26"],
-        "cipher": ["18", "29", "75", "58", "26"],
+        # no decoys in the first message: just find the five keys and read them
+        "tokens": [cid(x) for x in ["18", "29", "75", "58", "26"]],
+        "cipher": [cid(x) for x in ["18", "29", "75", "58", "26"]],
         "clauses": [{"pattern": "The {0} {2} {1}."}, {"pattern": "The {3} is {4}."}],
         "truth": {"4": "broken"},
         "hint": "No one on the team can repair the bridge now: the only repair tech (04) is injured and stayed at CP3. So the bridge can only be broken.",
@@ -229,15 +243,14 @@ SPECS = [
         },
     },
     {
-        "id": "T02-member", "time": "15:41", "keyHelp": False, "seedStart": 5000,
-        "key": {"row": "BE", "col": "JA"},
+        "id": "T02-member", "time": "15:41", "friends": 0.10, "seedStart": 5000,
         "slots": ["who", "marker", "number", "state", "place"],
-        # decoy "spell" marker is followed by decoy number 03; the real marker "number" by 06
-        "tokens": ["52", "83", "23", "03", "50", "06", "04", "69", "07", "29"],
-        "cipher": ["83", "50", "06", "69", "29"],
+        # decoys: leader (who), safe (state), base (place)
+        "tokens": [cid(x) for x in ["52", "83", "50", "06", "04", "69", "07", "29"]],
+        "cipher": [cid(x) for x in ["83", "50", "06", "69", "29"]],
         "clauses": [{"pattern": "The {0} {2} is {3} at {4}."}],
         "truth": {},
-        "hint": "A number in the message is a crew ID: 06 is a climber. After a number marker, the next pair in the noise is the number itself.",
+        "hint": "The number marker says the next pair is a number: 06 is a crew ID (a climber). The decoys are other phrases that would also fit, so use the Likeness count.",
         "outcomes": {
             "continue": {"severity": "harm", "text": "We pushed on. 06 is getting worse. We have to stop.",
                          "crew": [{"id": "06", "status": "injured", "note": "injured, worsening"}],
@@ -254,14 +267,14 @@ SPECS = [
         },
     },
     {
-        "id": "T03-hut", "time": "17:05", "keyHelp": False, "seedStart": 9000,
-        "key": {"row": "SA", "col": "WE"},
+        "id": "T03-hut", "time": "17:05", "friends": 0.12, "seedStart": 9000,
         "slots": ["who", "action", "marker", "letter", "letter", "letter"],
-        "tokens": ["52", "18", "33", "16", "50", LETTER_ID["K"], LETTER_ID["E"], LETTER_ID["S"], "23", LETTER_ID["H"], LETTER_ID["U"], LETTER_ID["T"]],
-        "cipher": ["18", "16", "23", LETTER_ID["H"], LETTER_ID["U"], LETTER_ID["T"]],
+        # decoys: leader (who), and a second spelling KES after a "number" marker
+        "tokens": [cid("52"), cid("18"), cid("16"), cid("50"), LETTER_ID["K"], LETTER_ID["E"], LETTER_ID["S"], cid("23"), LETTER_ID["H"], LETTER_ID["U"], LETTER_ID["T"]],
+        "cipher": [cid("18"), cid("16"), cid("23"), LETTER_ID["H"], LETTER_ID["U"], LETTER_ID["T"]],
         "clauses": [{"pattern": "The {0} {1}: {3}{4}{5}."}],
         "truth": {},
-        "hint": "After the spell marker, letters follow one by one. Only one of the two spelled words makes sense for a team in the mountains.",
+        "hint": "After the spell marker the letters follow one by one. The other spelling follows a number marker, so it is not a spelled word.",
         "outcomes": {
             "continue": {"severity": "harm", "text": "We went past the hut. The weather turned. One frostbitten.",
                          "crew": [{"id": "07", "status": "injured", "note": "frostbite"}],
@@ -282,8 +295,7 @@ def main():
     act = {
         "crew": prev["crew"],
         "map": prev["map"],
-        "rings": {"rows": ROW_RING, "cols": COL_RING},
-        "matrix": {"rows": 10, "cols": 10, "cells": MATRIX},
+        "matrix": {"rows": DIGITS, "cols": COL_LETTERS, "cells": MATRIX},
         "transmissions": [make_transmission(s) for s in SPECS],
     }
     OUT.write_text(json.dumps(act, ensure_ascii=False, indent=1), encoding="utf-8")

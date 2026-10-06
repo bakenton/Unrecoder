@@ -100,219 +100,193 @@
    }
   ]
  },
- "rings": {
-  "rows": [
-   "KO",
-   "MI",
-   "RA",
-   "TU",
-   "BE",
-   "NO",
-   "SA",
-   "LI",
-   "PE",
-   "DU"
-  ],
-  "cols": [
-   "ZA",
-   "FY",
-   "HO",
-   "VE",
-   "GI",
-   "XU",
-   "JA",
-   "WE",
-   "YO",
-   "QI"
-  ]
- },
  "matrix": {
-  "rows": 10,
-  "cols": 10,
+  "rows": "0123456789",
+  "cols": "abcdefghij",
   "cells": {
-   "00": {
+   "0a": {
     "kind": "state",
     "text": "windy",
     "meanings": [
      "windy"
     ]
    },
-   "01": {
+   "0b": {
     "kind": "who",
     "text": "medic",
     "meanings": [
      "medic"
     ]
    },
-   "02": {
+   "0c": {
     "kind": "state",
     "text": "cold",
     "meanings": [
      "cold"
     ]
    },
-   "03": {
+   "0d": {
     "kind": "thing",
     "text": "map",
     "meanings": [
      "map"
     ]
    },
-   "04": {
+   "0e": {
     "kind": "state",
     "text": "safe",
     "meanings": [
      "safe"
     ]
    },
-   "05": {
+   "0f": {
     "kind": "letter",
     "text": "E",
     "meanings": [
      "E"
     ]
    },
-   "06": {
+   "0g": {
     "kind": "letter",
     "text": "I",
     "meanings": [
      "I"
     ]
    },
-   "07": {
+   "0h": {
     "kind": "place",
     "text": "base",
     "meanings": [
      "base"
     ]
    },
-   "08": {
+   "0i": {
     "kind": "thing",
     "text": "stove",
     "meanings": [
      "stove"
     ]
    },
-   "09": {
+   "0j": {
     "kind": "service",
     "text": "say again",
     "meanings": [
      "say again"
     ]
    },
-   "10": {
+   "1a": {
     "kind": "action",
     "text": "climbed",
     "meanings": [
      "climbed"
     ]
    },
-   "11": {
+   "1b": {
     "kind": "service",
     "text": "understood",
     "meanings": [
      "understood"
     ]
    },
-   "12": {
+   "1c": {
     "kind": "thing",
     "text": "tent",
     "meanings": [
      "tent"
     ]
    },
-   "13": {
+   "1d": {
     "kind": "thing",
     "text": "sample",
     "meanings": [
      "sample"
     ]
    },
-   "14": {
+   "1e": {
     "kind": "letter",
     "text": "G",
     "meanings": [
      "G"
     ]
    },
-   "15": {
+   "1f": {
     "kind": "thing",
     "text": "boots",
     "meanings": [
      "boots"
     ]
    },
-   "16": {
+   "1g": {
     "kind": "action",
     "text": "found",
     "meanings": [
      "found"
     ]
    },
-   "17": {
+   "1h": {
     "kind": "thing",
     "text": "food",
     "meanings": [
      "food"
     ]
    },
-   "18": {
+   "1i": {
     "kind": "who",
     "text": "team",
     "meanings": [
      "team"
     ]
    },
-   "19": {
+   "1j": {
     "kind": "letter",
     "text": "O",
     "meanings": [
      "O"
     ]
    },
-   "20": {
+   "2a": {
     "kind": "state",
     "text": "snowing",
     "meanings": [
      "snowing"
     ]
    },
-   "21": {
+   "2b": {
     "kind": "action",
     "text": "resting",
     "meanings": [
      "resting"
     ]
    },
-   "22": {
+   "2c": {
     "kind": "state",
     "text": "ready",
     "meanings": [
      "ready"
     ]
    },
-   "23": {
+   "2d": {
     "kind": "marker",
     "text": "spell",
     "meanings": [
      "spell"
     ]
    },
-   "24": {
+   "2e": {
     "kind": "place",
     "text": "cave",
     "meanings": [
      "cave"
     ]
    },
-   "25": {
+   "2f": {
     "kind": "place",
     "text": "summit",
     "meanings": [
      "summit"
     ]
    },
-   "26": {
+   "2g": {
     "kind": "state",
     "text": "broken / repaired",
     "meanings": [
@@ -320,511 +294,511 @@
      "repaired"
     ]
    },
-   "27": {
+   "2h": {
     "kind": "thing",
     "text": "fuel",
     "meanings": [
      "fuel"
     ]
    },
-   "28": {
+   "2i": {
     "kind": "action",
     "text": "moving",
     "meanings": [
      "moving"
     ]
    },
-   "29": {
+   "2j": {
     "kind": "place",
     "text": "CP4",
     "meanings": [
      "CP4"
     ]
    },
-   "30": {
+   "3a": {
     "kind": "letter",
     "text": "J",
     "meanings": [
      "J"
     ]
    },
-   "31": {
+   "3b": {
     "kind": "thing",
     "text": "gloves",
     "meanings": [
      "gloves"
     ]
    },
-   "32": {
+   "3c": {
     "kind": "state",
     "text": "hungry",
     "meanings": [
      "hungry"
     ]
    },
-   "33": {
+   "3d": {
     "kind": "action",
     "text": "left",
     "meanings": [
      "left"
     ]
    },
-   "34": {
+   "3e": {
     "kind": "who",
     "text": "guide",
     "meanings": [
      "guide"
     ]
    },
-   "35": {
+   "3f": {
     "kind": "letter",
     "text": "Z",
     "meanings": [
      "Z"
     ]
    },
-   "36": {
+   "3g": {
     "kind": "state",
     "text": "wet",
     "meanings": [
      "wet"
     ]
    },
-   "37": {
+   "3h": {
     "kind": "action",
     "text": "searching",
     "meanings": [
      "searching"
     ]
    },
-   "38": {
+   "3i": {
     "kind": "action",
     "text": "waiting",
     "meanings": [
      "waiting"
     ]
    },
-   "39": {
+   "3j": {
     "kind": "letter",
     "text": "S",
     "meanings": [
      "S"
     ]
    },
-   "40": {
+   "4a": {
     "kind": "action",
     "text": "returning",
     "meanings": [
      "returning"
     ]
    },
-   "41": {
+   "4b": {
     "kind": "place",
     "text": "CP2",
     "meanings": [
      "CP2"
     ]
    },
-   "42": {
+   "4c": {
     "kind": "letter",
     "text": "T",
     "meanings": [
      "T"
     ]
    },
-   "43": {
+   "4d": {
     "kind": "letter",
     "text": "W",
     "meanings": [
      "W"
     ]
    },
-   "44": {
+   "4e": {
     "kind": "letter",
     "text": "N",
     "meanings": [
      "N"
     ]
    },
-   "45": {
+   "4f": {
     "kind": "letter",
     "text": "Y",
     "meanings": [
      "Y"
     ]
    },
-   "46": {
+   "4g": {
     "kind": "service",
     "text": "stand by",
     "meanings": [
      "stand by"
     ]
    },
-   "47": {
+   "4h": {
     "kind": "thing",
     "text": "rope",
     "meanings": [
      "rope"
     ]
    },
-   "48": {
+   "4i": {
     "kind": "letter",
     "text": "M",
     "meanings": [
      "M"
     ]
    },
-   "49": {
+   "4j": {
     "kind": "thing",
     "text": "blanket",
     "meanings": [
      "blanket"
     ]
    },
-   "50": {
+   "5a": {
     "kind": "marker",
     "text": "number",
     "meanings": [
      "number"
     ]
    },
-   "51": {
+   "5b": {
     "kind": "letter",
     "text": "V",
     "meanings": [
      "V"
     ]
    },
-   "52": {
+   "5c": {
     "kind": "who",
     "text": "leader",
     "meanings": [
      "leader"
     ]
    },
-   "53": {
+   "5d": {
     "kind": "thing",
     "text": "sled",
     "meanings": [
      "sled"
     ]
    },
-   "54": {
+   "5e": {
     "kind": "action",
     "text": "camped",
     "meanings": [
      "camped"
     ]
    },
-   "55": {
+   "5f": {
     "kind": "letter",
     "text": "K",
     "meanings": [
      "K"
     ]
    },
-   "56": {
+   "5g": {
     "kind": "letter",
     "text": "H",
     "meanings": [
      "H"
     ]
    },
-   "57": {
+   "5h": {
     "kind": "who",
     "text": "porter",
     "meanings": [
      "porter"
     ]
    },
-   "58": {
+   "5i": {
     "kind": "thing",
     "text": "bridge",
     "meanings": [
      "bridge"
     ]
    },
-   "59": {
+   "5j": {
     "kind": "letter",
     "text": "B",
     "meanings": [
      "B"
     ]
    },
-   "60": {
+   "6a": {
     "kind": "letter",
     "text": "X",
     "meanings": [
      "X"
     ]
    },
-   "61": {
+   "6b": {
     "kind": "thing",
     "text": "radio",
     "meanings": [
      "radio"
     ]
    },
-   "62": {
+   "6c": {
     "kind": "service",
     "text": "radio check",
     "meanings": [
      "radio check"
     ]
    },
-   "63": {
+   "6d": {
     "kind": "letter",
     "text": "D",
     "meanings": [
      "D"
     ]
    },
-   "64": {
+   "6e": {
     "kind": "place",
     "text": "CP3",
     "meanings": [
      "CP3"
     ]
    },
-   "65": {
+   "6f": {
     "kind": "letter",
     "text": "F",
     "meanings": [
      "F"
     ]
    },
-   "66": {
+   "6g": {
     "kind": "thing",
     "text": "tarp",
     "meanings": [
      "tarp"
     ]
    },
-   "67": {
+   "6h": {
     "kind": "letter",
     "text": "Q",
     "meanings": [
      "Q"
     ]
    },
-   "68": {
+   "6i": {
     "kind": "state",
     "text": "low battery",
     "meanings": [
      "low battery"
     ]
    },
-   "69": {
+   "6j": {
     "kind": "state",
     "text": "injured",
     "meanings": [
      "injured"
     ]
    },
-   "70": {
+   "7a": {
     "kind": "place",
     "text": "valley",
     "meanings": [
      "valley"
     ]
    },
-   "71": {
+   "7b": {
     "kind": "letter",
     "text": "R",
     "meanings": [
      "R"
     ]
    },
-   "72": {
+   "7c": {
     "kind": "thing",
     "text": "compass",
     "meanings": [
      "compass"
     ]
    },
-   "73": {
+   "7d": {
     "kind": "service",
     "text": "no reply",
     "meanings": [
      "no reply"
     ]
    },
-   "74": {
+   "7e": {
     "kind": "place",
     "text": "CP1",
     "meanings": [
      "CP1"
     ]
    },
-   "75": {
+   "7f": {
     "kind": "action",
     "text": "reached",
     "meanings": [
      "reached"
     ]
    },
-   "76": {
+   "7g": {
     "kind": "letter",
     "text": "U",
     "meanings": [
      "U"
     ]
    },
-   "77": {
+   "7h": {
     "kind": "thing",
     "text": "flare",
     "meanings": [
      "flare"
     ]
    },
-   "78": {
+   "7i": {
     "kind": "place",
     "text": "glacier",
     "meanings": [
      "glacier"
     ]
    },
-   "79": {
+   "7j": {
     "kind": "action",
     "text": "crossed",
     "meanings": [
      "crossed"
     ]
    },
-   "80": {
+   "8a": {
     "kind": "place",
     "text": "pass",
     "meanings": [
      "pass"
     ]
    },
-   "81": {
+   "8b": {
     "kind": "thing",
     "text": "camp",
     "meanings": [
      "camp"
     ]
    },
-   "82": {
+   "8c": {
     "kind": "letter",
     "text": "A",
     "meanings": [
      "A"
     ]
    },
-   "83": {
+   "8d": {
     "kind": "who",
     "text": "member",
     "meanings": [
      "member"
     ]
    },
-   "84": {
+   "8e": {
     "kind": "letter",
     "text": "C",
     "meanings": [
      "C"
     ]
    },
-   "85": {
+   "8f": {
     "kind": "place",
     "text": "river",
     "meanings": [
      "river"
     ]
    },
-   "86": {
+   "8g": {
     "kind": "place",
     "text": "south ridge",
     "meanings": [
      "south ridge"
     ]
    },
-   "87": {
+   "8h": {
     "kind": "thing",
     "text": "ice axe",
     "meanings": [
      "ice axe"
     ]
    },
-   "88": {
+   "8i": {
     "kind": "letter",
     "text": "L",
     "meanings": [
      "L"
     ]
    },
-   "89": {
+   "8j": {
     "kind": "place",
     "text": "hut",
     "meanings": [
      "hut"
     ]
    },
-   "90": {
+   "9a": {
     "kind": "action",
     "text": "stopped",
     "meanings": [
      "stopped"
     ]
    },
-   "91": {
+   "9b": {
     "kind": "service",
     "text": "over",
     "meanings": [
      "over"
     ]
    },
-   "92": {
+   "9c": {
     "kind": "place",
     "text": "slope",
     "meanings": [
      "slope"
     ]
    },
-   "93": {
+   "9d": {
     "kind": "letter",
     "text": "P",
     "meanings": [
      "P"
     ]
    },
-   "94": {
+   "9e": {
     "kind": "place",
     "text": "camp site",
     "meanings": [
      "camp site"
     ]
    },
-   "95": {
+   "9f": {
     "kind": "state",
     "text": "tired",
     "meanings": [
      "tired"
     ]
    },
-   "96": {
+   "9g": {
     "kind": "place",
     "text": "ridge",
     "meanings": [
      "ridge"
     ]
    },
-   "97": {
+   "9h": {
     "kind": "service",
     "text": "out",
     "meanings": [
      "out"
     ]
    },
-   "98": {
+   "9i": {
     "kind": "action",
     "text": "descending",
     "meanings": [
      "descending"
     ]
    },
-   "99": {
+   "9j": {
     "kind": "state",
     "text": "lost",
     "meanings": [
@@ -837,7 +811,6 @@
   {
    "id": "T01-bridge",
    "time": "14:32",
-   "keyHelp": true,
    "slots": [
     "who",
     "place",
@@ -846,11 +819,11 @@
     "state"
    ],
    "cipher": [
-    "18",
-    "29",
-    "75",
-    "58",
-    "26"
+    "1i",
+    "2j",
+    "7f",
+    "5i",
+    "2g"
    ],
    "clauses": [
     {
@@ -910,136 +883,131 @@
      "crew": []
     }
    },
-   "indicator": {
-    "row": "RA",
-    "col": "HO"
-   },
    "cols": 12,
    "dump": [
-    "GA",
-    "LU",
-    "TI",
-    "MA",
-    "GA",
-    "WI",
-    "LI",
-    "TO",
-    "PE",
-    "HI",
-    "DA",
-    "BA",
-    "GE",
-    "HE",
-    "NA",
-    "FA",
-    "JA",
-    "HI",
-    "GI",
-    "HA",
-    "NI",
-    "ZA",
-    "PU",
-    "LE",
-    "WI",
-    "TO",
-    "LU",
-    "HE",
-    "FO",
-    "LA",
-    "KU",
-    "FE",
-    "ZI",
-    "TU",
-    "BU",
-    "TI",
-    "BI",
-    "WO",
-    "PE",
-    "JA",
-    "LE",
-    "CE",
-    "HU",
-    "KI",
-    "LO",
-    "FU",
-    "HI",
-    "ME",
-    "HU",
-    "ZI",
-    "SU",
-    "XU",
-    "NO",
-    "BE",
-    "FY",
-    "LE",
-    "NI",
-    "NU",
-    "WE",
-    "HU",
-    "PO",
-    "VA",
-    "KE",
-    "DA",
-    "KE",
-    "WA",
-    "HU",
-    "KU",
-    "LA",
-    "SO",
-    "DU",
-    "TI",
-    "RE",
-    "WU",
-    "KA",
-    "VI",
-    "GE",
-    "BA",
-    "TO",
-    "ZA",
-    "NI",
-    "FA",
-    "TA",
-    "GI",
-    "FY",
-    "PE",
-    "BA",
-    "RE",
-    "ZU",
-    "YO",
-    "BE",
-    "LI",
-    "CI",
-    "BA",
-    "RU",
-    "TU"
+    "w",
+    "o",
+    "2",
+    "w",
+    "m",
+    "9",
+    "s",
+    "6",
+    "x",
+    "9",
+    "2",
+    "n",
+    "h",
+    "t",
+    "6",
+    "x",
+    "1",
+    "u",
+    "k",
+    "p",
+    "u",
+    "n",
+    "q",
+    "s",
+    "g",
+    "n",
+    "w",
+    "u",
+    "i",
+    "s",
+    "2",
+    "j",
+    "l",
+    "1",
+    "8",
+    "t",
+    "o",
+    "u",
+    "2",
+    "w",
+    "n",
+    "s",
+    "3",
+    "x",
+    "t",
+    "k",
+    "u",
+    "f",
+    "j",
+    "o",
+    "5",
+    "5",
+    "s",
+    "k",
+    "k",
+    "s",
+    "t",
+    "u",
+    "2",
+    "7",
+    "s",
+    "6",
+    "0",
+    "o",
+    "3",
+    "s",
+    "2",
+    "n",
+    "r",
+    "i",
+    "5",
+    "2",
+    "3",
+    "y",
+    "1",
+    "2",
+    "9",
+    "4",
+    "1",
+    "v",
+    "x",
+    "x",
+    "r",
+    "t",
+    "r",
+    "t",
+    "x",
+    "g",
+    "k",
+    "1",
+    "4",
+    "0",
+    "x",
+    "9",
+    "2",
+    "8"
    ],
    "cells": [
     [
-     21,
-     33
+     16,
+     28
     ],
     [
-     53,
-     54
+     30,
+     31
     ],
     [
-     58,
+     47,
+     59
+    ],
+    [
+     69,
      70
     ],
     [
-     79,
-     91
-    ],
-    [
-     89,
-     90
+     75,
+     87
     ]
    ]
   },
   {
    "id": "T02-member",
    "time": "15:41",
-   "keyHelp": false,
    "slots": [
     "who",
     "marker",
@@ -1048,11 +1016,11 @@
     "place"
    ],
    "cipher": [
-    "83",
-    "50",
-    "06",
-    "69",
-    "29"
+    "8d",
+    "5a",
+    "0g",
+    "6j",
+    "2j"
    ],
    "clauses": [
     {
@@ -1060,7 +1028,7 @@
     }
    ],
    "truth": {},
-   "hint": "A number in the message is a crew ID: 06 is a climber. After a number marker, the next pair in the noise is the number itself.",
+   "hint": "The number marker says the next pair is a number: 06 is a crew ID (a climber). The decoys are other phrases that would also fit, so use the Likeness count.",
    "outcomes": {
     "continue": {
      "severity": "harm",
@@ -1120,136 +1088,131 @@
      ]
     }
    },
-   "indicator": {
-    "row": "BE",
-    "col": "JA"
-   },
    "cols": 12,
    "dump": [
-    "WA",
-    "PO",
-    "PA",
-    "VO",
-    "NU",
-    "SI",
-    "WI",
-    "NE",
-    "MU",
-    "RI",
-    "TO",
-    "YO",
-    "MO",
-    "HE",
-    "XU",
-    "GU",
-    "CA",
-    "VO",
-    "RA",
-    "QI",
-    "RO",
-    "ZI",
-    "SA",
-    "DU",
-    "WO",
-    "GE",
-    "LE",
-    "FA",
-    "HU",
-    "BI",
-    "GE",
-    "NI",
-    "FA",
-    "SU",
-    "QI",
-    "GO",
-    "ZU",
-    "SI",
-    "RE",
-    "ZE",
-    "BE",
-    "QI",
-    "LU",
-    "FA",
-    "VI",
-    "FU",
-    "DE",
-    "ZE",
-    "TI",
-    "GU",
-    "LA",
-    "LU",
-    "TE",
-    "JA",
-    "DU",
-    "GO",
-    "KA",
-    "LU",
-    "LE",
-    "HI",
-    "CU",
-    "BE",
-    "HO",
-    "FA",
-    "FE",
-    "RI",
-    "ZI",
-    "BE",
-    "KA",
-    "FI",
-    "NE",
-    "RU",
-    "BU",
-    "CI",
-    "PU",
-    "XU",
-    "KO",
-    "PI",
-    "NE",
-    "ZA",
-    "VO",
-    "BE",
-    "ME",
-    "NU",
-    "SA",
-    "XU",
-    "VO",
-    "QI",
-    "RO",
-    "ZU",
-    "CA",
-    "SE",
-    "WI",
-    "VE",
-    "BI",
-    "BO"
+    "w",
+    "x",
+    "5",
+    "7",
+    "w",
+    "7",
+    "5",
+    "c",
+    "k",
+    "v",
+    "4",
+    "6",
+    "2",
+    "m",
+    "u",
+    "8",
+    "d",
+    "u",
+    "4",
+    "v",
+    "6",
+    "r",
+    "0",
+    "3",
+    "1",
+    "t",
+    "t",
+    "q",
+    "r",
+    "8",
+    "k",
+    "5",
+    "7",
+    "1",
+    "1",
+    "r",
+    "v",
+    "a",
+    "v",
+    "t",
+    "q",
+    "q",
+    "u",
+    "3",
+    "q",
+    "5",
+    "r",
+    "8",
+    "l",
+    "5",
+    "0",
+    "0",
+    "s",
+    "k",
+    "g",
+    "0",
+    "w",
+    "3",
+    "p",
+    "k",
+    "n",
+    "4",
+    "6",
+    "0",
+    "4",
+    "q",
+    "j",
+    "p",
+    "v",
+    "w",
+    "e",
+    "0",
+    "6",
+    "y",
+    "w",
+    "m",
+    "z",
+    "b",
+    "e",
+    "u",
+    "h",
+    "0",
+    "o",
+    "n",
+    "j",
+    "z",
+    "3",
+    "0",
+    "5",
+    "n",
+    "n",
+    "r",
+    "p",
+    "n",
+    "2",
+    "j"
    ],
    "cells": [
     [
-     18,
-     19
+     15,
+     16
     ],
     [
-     53,
-     54
+     37,
+     49
     ],
     [
-     61,
-     62
+     54,
+     55
     ],
     [
-     75,
-     76
+     72,
+     84
     ],
     [
-     84,
-     85
+     94,
+     95
     ]
    ]
   },
   {
    "id": "T03-hut",
    "time": "17:05",
-   "keyHelp": false,
    "slots": [
     "who",
     "action",
@@ -1259,12 +1222,12 @@
     "letter"
    ],
    "cipher": [
-    "18",
-    "16",
-    "23",
-    "56",
-    "76",
-    "42"
+    "1i",
+    "1g",
+    "2d",
+    "5g",
+    "7g",
+    "4c"
    ],
    "clauses": [
     {
@@ -1272,7 +1235,7 @@
     }
    ],
    "truth": {},
-   "hint": "After the spell marker, letters follow one by one. Only one of the two spelled words makes sense for a team in the mountains.",
+   "hint": "After the spell marker the letters follow one by one. The other spelling follows a number marker, so it is not a spelled word.",
    "outcomes": {
     "continue": {
      "severity": "harm",
@@ -1319,133 +1282,129 @@
      "crew": []
     }
    },
-   "indicator": {
-    "row": "SA",
-    "col": "WE"
-   },
    "cols": 12,
    "dump": [
-    "MO",
-    "RO",
-    "LU",
-    "KA",
-    "ZO",
-    "ZE",
-    "GE",
-    "SE",
-    "NA",
-    "QI",
-    "FU",
-    "TU",
-    "XU",
-    "GA",
-    "ZA",
-    "DU",
-    "HE",
-    "TI",
-    "ZE",
-    "BA",
-    "RU",
-    "MI",
-    "RI",
-    "KA",
-    "LI",
-    "LI",
-    "VE",
-    "RE",
-    "NE",
-    "LE",
-    "KA",
-    "MI",
-    "RE",
-    "CO",
-    "HU",
-    "CI",
-    "FU",
-    "ZU",
-    "VA",
-    "DI",
-    "CU",
-    "VO",
-    "KI",
-    "WE",
-    "KE",
-    "LE",
-    "HO",
-    "MI",
-    "GU",
-    "HO",
-    "SA",
-    "TI",
-    "DA",
-    "JA",
-    "DU",
-    "LO",
-    "TU",
-    "VA",
-    "LU",
-    "RE",
-    "BE",
-    "VA",
-    "LO",
-    "PE",
-    "FO",
-    "VE",
-    "MI",
-    "WA",
-    "GO",
-    "TU",
-    "VE",
-    "NI",
-    "KO",
-    "PA",
-    "GA",
-    "ZA",
-    "SO",
-    "NU",
-    "CE",
-    "MA",
-    "NE",
-    "MO",
-    "WU",
-    "RU",
-    "QI",
-    "KA",
-    "WU",
-    "WU",
-    "LO",
-    "PI",
-    "TI",
-    "HU",
-    "WA",
-    "NI",
-    "RU",
-    "PO"
+    "9",
+    "3",
+    "x",
+    "i",
+    "n",
+    "5",
+    "c",
+    "n",
+    "i",
+    "1",
+    "3",
+    "8",
+    "1",
+    "6",
+    "x",
+    "i",
+    "h",
+    "k",
+    "q",
+    "k",
+    "u",
+    "r",
+    "p",
+    "u",
+    "o",
+    "8",
+    "9",
+    "l",
+    "o",
+    "8",
+    "l",
+    "n",
+    "k",
+    "g",
+    "1",
+    "p",
+    "k",
+    "7",
+    "q",
+    "4",
+    "2",
+    "q",
+    "w",
+    "7",
+    "t",
+    "b",
+    "k",
+    "a",
+    "a",
+    "x",
+    "f",
+    "5",
+    "p",
+    "z",
+    "q",
+    "8",
+    "v",
+    "p",
+    "t",
+    "5",
+    "f",
+    "z",
+    "y",
+    "3",
+    "j",
+    "d",
+    "d",
+    "k",
+    "y",
+    "y",
+    "2",
+    "5",
+    "0",
+    "z",
+    "9",
+    "1",
+    "n",
+    "r",
+    "2",
+    "1",
+    "p",
+    "5",
+    "u",
+    "g",
+    "m",
+    "g",
+    "7",
+    "4",
+    "c",
+    "u",
+    "z",
+    "s",
+    "7",
+    "o",
+    "1",
+    "y"
    ],
    "cells": [
     [
-     12,
-     24
+     8,
+     9
     ],
     [
-     25,
-     26
+     33,
+     34
     ],
     [
-     63,
-     75
+     66,
+     78
     ],
     [
-     65,
-     66
+     71,
+     83
     ],
     [
-     69,
-     70
+     85,
+     86
     ],
     [
-     72,
-     84
+     87,
+     88
     ]
    ]
   }

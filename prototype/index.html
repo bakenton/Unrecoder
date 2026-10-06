@@ -14,6 +14,7 @@
         <span id="txTime"></span>
       </header>
       <div class="dump" id="dump" aria-label="Received signal"></div>
+      <div class="frame" id="frame" aria-label="Sentence to fill"></div>
       <div class="status" id="status" aria-live="polite"></div>
     </section>
 
@@ -34,12 +35,15 @@
       <p class="hint" id="hint" hidden></p>
     </section>
 
-    <section class="panel keysheet" aria-label="Key">
-      <header>
-        <span>KEY FOR THIS TRANSMISSION</span>
-        <label class="help"><input type="checkbox" id="helpToggle"> show key (training)</label>
-      </header>
-      <div id="keyInfo"></div>
+    <section class="panel guide" aria-label="How to read">
+      <header><span>HOW TO READ A TRANSMISSION</span></header>
+      <ol class="steps">
+        <li><b>Find a key in the noise:</b> a <b>digit</b> touching a <b>letter a–j</b> (side by side or one above the other, either order). Click one, then the other.</li>
+        <li><b>Look it up in the table:</b> row = the digit, column = the letter. The cell is a word, a letter, or a marker.</li>
+        <li><b>Fill the sentence in order.</b> The message reads left to right, top to bottom, and each blank has a colour: look for table cells of that colour.</li>
+        <li><b>TRY</b> checks your keys (Likeness: how many are right, not which).</li>
+      </ol>
+      <div class="kinds" id="kinds"></div>
     </section>
 
     <section class="panel map" aria-label="Route map">
@@ -48,7 +52,7 @@
     </section>
 
     <section class="panel table-sheet" aria-label="Duty radio table">
-      <header><span>DUTY RADIO TABLE — row digit + column digit = cell number</span></header>
+      <header><span>DUTY RADIO TABLE — row digit + column letter</span></header>
       <div id="codeTable"></div>
     </section>
 

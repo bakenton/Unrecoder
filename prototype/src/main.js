@@ -1,5 +1,5 @@
 import {
-  ORDERS, MAX_INTUITION, MAX_TRIES, prepare, cellById, keyLabels, tokenOfCells, areAdjacent, overlaps, parses,
+  ORDERS, MAX_INTUITION, MAX_TRIES, prepare, cellById, numberOf, tokenOfCells, areAdjacent, overlaps, parses,
   pickedKeys, likeness, isLocked, realPick, samePick, sortPicks, meaningsOf, judgeReading, renderSentence,
   resolve, applyCrew, spendIntuition, gainIntuition,
 } from './core/engine.js';
@@ -55,11 +55,9 @@ function begin() {
     selection: {}, // message index -> words
     hedge: {}, // message index -> bool
     order: null,
-    help: tx.keyHelp, // training mode: show the key and decode picks
   };
   $('result').hidden = true;
   $('hint').hidden = true;
-  $('helpToggle').checked = state.help;
   $('txId').textContent = tx.id.split('-')[0].replace('T', 'No.');
   $('txTime').textContent = `RECEIVED ${tx.time}`;
   renderAll();
@@ -71,7 +69,8 @@ function renderAll() {
   renderBoard();
   renderIntuition();
   renderCrew();
-  renderKey();
+  renderFrame();
+  renderGuide();
   renderMatrix();
   renderMap();
   renderOrders();
@@ -154,7 +153,7 @@ function renderStatus() {
   if (state.phase === 'find') {
     el.classList.remove('hedge');
     el.textContent = state.note || (state.likeness === null
-      ? `Find the keys in the noise: a row label next to a column label (either order, side by side or stacked). Message: ${tx.slots.length} keys.`
+      ? `Find ${tx.slots.length} keys: a digit touching a letter a-j. Click one, then the other.`
       : `Likeness ${state.likeness}/${tx.slots.length} — ${state.tries} ${state.tries === 1 ? 'try' : 'tries'} left.`);
     return;
   }
@@ -180,7 +179,11 @@ function btn(label, onClick, disabled = false, cls = '') {
   return b;
 }
 
-const SLOT_LABEL = { who: 'who', place: 'place', action: 'action', thing: 'thing', state: 'state', marker: 'marker', number: 'number', letter: 'letter' };
+const SLOT_HELP = {
+  who: 'who is it about?', place: 'where?', action: 'what happened?', thing: 'about what?', state: 'in what state?',
+  marker: 'announces a number or spelling', number: 'the pair right after the marker', letter: 'next letter of the word',
+};
+const KIND_NAMES = { who: 'who', place: 'place', action: 'action', thing: 'thing', state: 'state', marker: 'marker', letter: 'letter', service: 'service' };
 
 function renderBoard() {
   const finding = state.phase === 'find';
@@ -194,19 +197,15 @@ function renderBoard() {
   tx.slots.forEach((slot, k) => {
     const p = sorted[k];
     const chip = document.createElement('div');
-    chip.className = 'pick' + (p ? ' filled' : '');
+    chip.className = `pick kind-${slot}` + (p ? ' filled' : '');
     let main = '···';
-    let sub = '';
+    let sub = SLOT_HELP[slot];
     if (p) {
       const t = tokenOfCells(tx, p.a, p.b);
-      if (state.help || !finding) {
-        main = t.id;
-        sub = slot === 'number' ? `number ${t.id}` : (t.cell?.text ?? '');
-      } else {
-        main = `${tx.dump[p.a]}·${tx.dump[p.b]}`;
-      }
+      main = t.id;
+      sub = slot === 'number' ? `number ${numberOf(t.id)}` : (t.cell?.text ?? '');
     }
-    chip.innerHTML = `<div class="type">${SLOT_LABEL[slot]}</div><div class="k">${main}</div><div class="m">${sub}</div>`;
+    chip.innerHTML = `<div class="type">${k + 1}. ${slot}</div><div class="k">${main}</div><div class="m">${sub}</div>`;
     picks.append(chip);
   });
   if (sorted.length > tx.slots.length) {
@@ -223,7 +222,7 @@ function renderBoard() {
       btn('Clear', () => { state.picks = []; state.note = ''; renderAll(); }, state.picks.length === 0),
       btn('Move on with this reading', enterRead, state.likeness === null || state.picks.length !== tx.slots.length),
     );
-    $('legend').textContent = 'Decode the labels with the key (ring + indicator), find the cell in the table, and pick only keys that fit the message: ' + tx.slots.join(' → ') + '. TRY tells you how many keys are right, not which. Numbers and spelled letters follow their marker directly.';
+    $('legend').textContent = 'Mark the keys in reading order: ' + tx.slots.join(' → ') + '. A number or a spelled letter is the pair right after its marker.';
   } else {
     renderReadBox();
     $('legend').textContent = 'Ambiguous phrases have several meanings. Choose from the crew and map context, or HEDGE to hold both.';
@@ -239,9 +238,9 @@ function tryPicks() {
     state.note = `The message has ${tx.slots.length} keys; you marked ${state.picks.length}. (No try used.)`;
     return renderAll();
   }
-  if (state.help && !parses(tx, state.picks)) {
+  if (!parses(tx, state.picks)) {
     const have = sortPicks(state.picks).map((p) => tokenOfCells(tx, p.a, p.b).cell?.kind).join(' → ');
-    state.note = `Doesn't parse. Need ${tx.slots.join(' → ')} in reading order (left to right, top to bottom); you have: ${have}. A number or letter must be the pair right after its marker. (No try used.)`;
+    state.note = `Does not fit the message yet. Need ${tx.slots.join(' → ')} in reading order; you have: ${have}. (No try used.)`;
     return renderAll();
   }
   state.note = '';
@@ -280,10 +279,11 @@ function renderReadBox() {
   keysFound().forEach((id, i) => {
     const meanings = meaningsOf(tx, i, id);
     if (tx.slots[i] === 'number') {
-      const m = state.crew.find((c) => c.id === id);
+      const n = numberOf(id);
+      const m = state.crew.find((c) => c.id === n);
       const note = document.createElement('div');
       note.className = 'readnote';
-      note.textContent = m ? `Number ${id} = crew member ${id}: ${m.role} (${m.status}).` : `Number ${id}: no crew member has this ID.`;
+      note.textContent = m ? `Number ${n} = crew member ${n}: ${m.role} (${m.status}).` : `Number ${n}: no crew member has this ID.`;
       box.append(note);
     }
     if (meanings.length < 2) return;
@@ -331,33 +331,53 @@ function renderCrew() {
   }));
 }
 
-function renderKey() {
-  const root = $('keyInfo');
-  const labels = keyLabels(tx);
-  const ring = (name, list, start) => `<div class="ring"><b>${name}</b> ${list.map((l) => `<span class="lbl${l === start ? ' start' : ''}">${l}</span>`).join('')}</div>`;
-  const digits = (name, list) => `<div class="ring digits"><b>${name}</b> ${list.map((l, d) => `<span class="lbl"><i>${d}</i>${l}</span>`).join('')}</div>`;
-  root.innerHTML =
-    `<p class="indicator">INDICATOR: row <b>${tx.indicator.row}</b> · column <b>${tx.indicator.col}</b></p>` +
-    ring('row ring', act.rings.rows, tx.indicator.row) +
-    ring('col ring', act.rings.cols, tx.indicator.col) +
-    `<p class="rule">The indicator label is digit 0. The next labels of the ring are 1, 2, 3… and the ring wraps around.</p>` +
-    (state.help ? digits('rows', labels.rows) + digits('cols', labels.cols) : '');
+function renderGuide() {
+  $('kinds').replaceChildren(...Object.entries(KIND_NAMES).map(([k, name]) => {
+    const el = document.createElement('span');
+    el.className = `kindchip kind-${k}`;
+    el.textContent = name;
+    return el;
+  }));
+}
+
+/** The sentence with a blank for every key still to find; found keys are filled in as words. */
+function renderFrame() {
+  const sorted = sortPicks(state.picks);
+  const words = {};
+  sorted.forEach((p, k) => {
+    if (k >= tx.slots.length) return;
+    const t = tokenOfCells(tx, p.a, p.b);
+    words[k] = tx.slots[k] === 'number' ? numberOf(t.id) : (t.cell?.meanings.join(' / ') ?? '?');
+  });
+  const el = $('frame');
+  el.replaceChildren();
+  tx.clauses.forEach((clause) => {
+    clause.pattern.split(/(\{\d+\})/).forEach((part) => {
+      const m = /^\{(\d+)\}$/.exec(part);
+      if (!m) { if (part) el.append(document.createTextNode(part)); return; }
+      const k = Number(m[1]);
+      const span = document.createElement('span');
+      span.className = `blank kind-${tx.slots[k]}` + (words[k] ? ' filled' : '');
+      span.textContent = words[k] ?? tx.slots[k];
+      el.append(span);
+    });
+    el.append(document.createTextNode(' '));
+  });
 }
 
 function renderMatrix() {
-  const labels = keyLabels(tx);
   const t = document.createElement('table');
   t.className = 'grid matrix';
   const head = document.createElement('tr');
-  head.innerHTML = '<th></th>' + [...Array(10).keys()].map((c) => `<th>${c}${state.help ? `<small>${labels.cols[c]}</small>` : ''}</th>`).join('');
+  head.innerHTML = '<th></th>' + [...'abcdefghij'].map((c, i) => `<th>${c}<small>${i}</small></th>`).join('');
   t.append(head);
   for (let r = 0; r < 10; r++) {
     const tr = document.createElement('tr');
-    let html = `<th>${r}${state.help ? `<small>${labels.rows[r]}</small>` : ''}</th>`;
-    for (let c = 0; c < 10; c++) {
+    let html = `<th>${r}</th>`;
+    for (const c of 'abcdefghij') {
       const cell = cellById(tx, `${r}${c}`);
       const multi = cell.meanings.length > 1;
-      html += `<td class="k-${cell.kind}${multi ? ' multi' : ''}" title="${r}${c}">${cell.text}</td>`;
+      html += `<td class="kind-${cell.kind}${multi ? ' multi' : ''}" title="${r}${c}">${cell.text}</td>`;
     }
     tr.innerHTML = html;
     t.append(tr);
@@ -441,10 +461,6 @@ $('hintBtn').addEventListener('click', () => {
   const h = $('hint');
   h.textContent = 'Hint: ' + tx.hint;
   h.hidden = !h.hidden;
-});
-$('helpToggle').addEventListener('change', (e) => {
-  state.help = e.target.checked;
-  renderAll();
 });
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape' && state.anchor !== null) { state.anchor = null; renderDump(); }

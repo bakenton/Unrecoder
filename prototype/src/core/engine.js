@@ -1,22 +1,21 @@
 // Pure game logic: no DOM, no fetch. Ports 1:1 to C# later.
 //
-// The code table is a fixed 10x10 matrix (like the real duty-radio-operator table): every cell holds a
-// phrase, a letter, or a service marker, and its number "rc" (row digit, column digit) can also be read
-// as a number. Each transmission has an indicator that decides which label of the two label rings is
-// digit 0; the labels then run on in ring order. The matrix never changes, the labels do.
+// The code table is a fixed 10x10 matrix (like the real duty-radio-operator table): row digits 0-9,
+// column letters a-j. Every cell holds a phrase, a letter, or a service marker, and its position can
+// also be read as a number (row digit + column index, so "0g" is 06).
 //
-// A transmission is a grid "dump" of 2-letter labels. A key is two orthogonally adjacent cells holding
-// a row label and a column label (either order). The real message is a sequence of keys hidden in the
-// dump; the radio answers Fallout-style with a Likeness count. Once the keys are right, ambiguous
-// phrases are resolved by context.
+// A transmission is a grid "dump" of single characters. A key is a digit touching a letter a-j
+// (side by side or stacked, either order), which names a cell. The real message is a sequence of keys
+// hidden in the dump; the radio answers Fallout-style with a Likeness count. Once the keys are right,
+// ambiguous phrases are resolved by context.
 
 export const ORDERS = ['continue', 'wait', 'back', 'hurry', 'base'];
 export const MAX_INTUITION = 5;
 export const MAX_TRIES = 5;
 
-/** A transmission with the shared matrix and rings attached. */
+/** A transmission with the shared matrix attached. */
 export function prepare(act, index) {
-  return { ...act.transmissions[index], matrix: act.matrix, rings: act.rings };
+  return { ...act.transmissions[index], matrix: act.matrix };
 }
 
 // --- The matrix and the key ---
@@ -25,21 +24,11 @@ export function cellById(tx, id) {
   return tx.matrix.cells[id] ?? null;
 }
 
-export function digitOf(ring, start, label) {
-  return (ring.indexOf(label) - ring.indexOf(start) + ring.length) % ring.length;
-}
+const COLUMNS = 'abcdefghij';
 
-export function labelFor(ring, start, digit) {
-  return ring[(ring.indexOf(start) + digit) % ring.length];
-}
-
-/** Label of each digit 0..9 for this transmission's indicator. */
-export function keyLabels(tx) {
-  const digits = [...Array(10).keys()];
-  return {
-    rows: digits.map((d) => labelFor(tx.rings.rows, tx.indicator.row, d)),
-    cols: digits.map((d) => labelFor(tx.rings.cols, tx.indicator.col, d)),
-  };
+/** The number a cell stands for when read as a number: row digit + column index ("0g" -> "06"). */
+export function numberOf(id) {
+  return id[0] + COLUMNS.indexOf(id[1]);
 }
 
 // --- Phase 1: finding keys in the dump ---
@@ -52,15 +41,13 @@ export function areAdjacent(tx, a, b) {
   return d === 1 && Math.floor(a / tx.cols) === Math.floor(b / tx.cols);
 }
 
-/** What a pair of cells spells: {id, row, col, cell}, or null if it is not a row label + column label. */
+/** What a pair of cells spells: {id, cell}, or null if it is not a digit touching a letter a-j. */
 export function tokenOfCells(tx, a, b) {
   if (a === b || !areAdjacent(tx, a, b)) return null;
-  for (const [x, y] of [[tx.dump[a], tx.dump[b]], [tx.dump[b], tx.dump[a]]]) {
-    if (tx.rings.rows.includes(x) && tx.rings.cols.includes(y)) {
-      const row = digitOf(tx.rings.rows, tx.indicator.row, x);
-      const col = digitOf(tx.rings.cols, tx.indicator.col, y);
-      const id = `${row}${col}`;
-      return { id, row, col, cell: cellById(tx, id) };
+  for (const [d, l] of [[tx.dump[a], tx.dump[b]], [tx.dump[b], tx.dump[a]]]) {
+    if (d >= '0' && d <= '9' && d.length === 1 && COLUMNS.includes(l)) {
+      const id = d + l;
+      return { id, cell: cellById(tx, id) };
     }
   }
   return null;
@@ -150,7 +137,7 @@ export function isLocked(tx, picks) {
 
 /** Words a key can stand for at message position `i`. A number slot reads the cell number itself. */
 export function meaningsOf(tx, i, id) {
-  if (tx.slots[i] === 'number') return [id];
+  if (tx.slots[i] === 'number') return [numberOf(id)];
   return cellById(tx, id).meanings;
 }
 
