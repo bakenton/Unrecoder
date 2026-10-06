@@ -6,3 +6,15 @@
 - План разработки: [docs/PLAN.md](docs/PLAN.md)
 
 Статус: Этап 0 — проектирование. Сначала HTML-прототип, затем порт в Unity.
+
+## Запуск прототипа
+
+Нужны Python и Node 20+ (зависимостей нет).
+
+```bash
+python -m http.server 5173
+```
+
+Открыть http://localhost:5173/prototype/index.html (сервер запускать из корня репозитория — контент лежит в `content/`).
+
+Тесты логики: `cd prototype && node --test src/core/`

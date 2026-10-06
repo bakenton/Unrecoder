@@ -1,0 +1,9 @@
+{
+  "name": "unrecoder-prototype",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test src/core/",
+    "serve": "python -m http.server 5173 --directory .."
+  }
+}

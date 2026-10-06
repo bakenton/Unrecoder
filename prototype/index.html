@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unrecoder — Reel Board prototype</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <main class="desk">
+    <section class="panel radio" aria-label="Radio">
+      <header>
+        <span>EXPEDITION RADIO LOG <b id="txId"></b></span>
+        <span id="txTime"></span>
+      </header>
+      <div class="signal" id="cipher" aria-label="Received cipher"></div>
+      <div class="sentence" id="sentence" aria-live="polite"></div>
+    </section>
+
+    <section class="panel board" aria-label="Reel board">
+      <header>
+        <span>DECODING SHEET</span>
+        <span class="intuition" id="intuition" title="Intuition Points"></span>
+      </header>
+      <div class="reels" id="reels"></div>
+      <p class="legend">
+        Scroll or use ▲▼ to spin a reel. Click the centre to lock a word.
+        <b>AUTO</b> locks a single-meaning reel for 1 ●.
+        <b>HEDGE</b> lets you lock several words in one reel.
+      </p>
+    </section>
+
+    <section class="panel crew" aria-label="Crew list">
+      <header><span>CREW LIST</span><button id="hintBtn" type="button">Hint</button></header>
+      <ul id="crewList"></ul>
+      <p class="hint" id="hint" hidden></p>
+    </section>
+
+    <section class="panel table-sheet" aria-label="Code table">
+      <header><span>CODE TABLE (THIS TRANSMISSION)</span></header>
+      <ul id="codeTable"></ul>
+    </section>
+
+    <section class="panel map" aria-label="Route map">
+      <header><span>ROUTE MAP — GLACIER</span></header>
+      <svg id="map" viewBox="0 0 440 290" role="img" aria-label="Route map"></svg>
+    </section>
+
+    <section class="panel orders" aria-label="Orders">
+      <header><span>ORDERS (CHOOSE 1 OF 5)</span></header>
+      <div class="order-row" id="orders"></div>
+      <button id="sendBtn" type="button" class="send" disabled>TRANSMIT ORDER</button>
+    </section>
+
+    <section class="panel result" id="result" aria-label="Next transmission" hidden>
+      <header><span>NEXT TRANSMISSION</span><span id="resultTime"></span></header>
+      <p class="message" id="message"></p>
+      <div class="debrief" id="debrief"></div>
+      <button id="restartBtn" type="button">Replay transmission</button>
+    </section>
+  </main>
+  <script type="module" src="src/main.js"></script>
+</body>
+</html>
