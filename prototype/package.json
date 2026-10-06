@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "test": "node --test src/core/",
+    "build": "node build-standalone.mjs",
     "serve": "python -m http.server 5173 --directory .."
   }
 }

@@ -1,0 +1,720 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unrecoder — dump prototype</title>
+  <style>
+:root {
+  --bg: #1a1814;
+  --paper: #e9e1c9;
+  --ink: #2b261c;
+  --amber: #ffb84d;
+  --amber-dim: #8a6226;
+  --screen: #0e0d0a;
+  --line: #3a352a;
+  --ok: #7fbf6a;
+  --warn: #e0a64a;
+  --bad: #d9624a;
+  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--paper); }
+.desk {
+  max-width: 1180px; margin: 0 auto; padding: 16px;
+  display: grid; gap: 12px;
+  grid-template-columns: 1.6fr 1fr;
+  grid-template-areas:
+    "radio crew"
+    "board crew"
+    "table map"
+    "orders orders"
+    "result result";
+}
+.radio { grid-area: radio; } .board { grid-area: board; } .crew { grid-area: crew; }
+.table-sheet { grid-area: table; } .map { grid-area: map; } .orders { grid-area: orders; } .result { grid-area: result; }
+
+.panel { background: var(--paper); color: var(--ink); border: 2px solid var(--line); border-radius: 4px; padding: 10px 12px; }
+.panel > header { display: flex; justify-content: space-between; align-items: center; font-size: 11px; letter-spacing: .12em; border-bottom: 1px solid #b9ae8e; padding-bottom: 6px; margin-bottom: 8px; }
+.radio { background: var(--screen); color: var(--amber); border-color: #4b4128; }
+.radio > header { border-color: var(--amber-dim); }
+.dump { padding: 10px 0 4px; font-size: 19px; }
+.dline { display: flex; gap: 2px; align-items: center; margin-bottom: 2px; }
+.addr { width: 4.2em; font-size: 11px; color: var(--amber-dim); }
+.cell { font: inherit; width: 1.5em; height: 1.55em; padding: 0; background: none; border: 0; color: var(--amber); cursor: pointer; border-radius: 2px; }
+.cell:hover:not(:disabled) { background: #3a2f12; }
+.cell:disabled { cursor: default; opacity: .45; }
+.cell.preview { background: #5a4515; }
+.cell.anchor { background: var(--amber); color: #1a1405; }
+.cell.picked { background: #ffcf7a; color: #1a1405; opacity: 1; }
+.status { min-height: 2.6em; color: #ffd9a0; font-size: 14px; padding: 6px 0 2px; }
+.status.hedge { color: var(--warn); }
+
+.picks { display: flex; gap: 8px; flex-wrap: wrap; }
+.pick { width: 96px; min-height: 64px; border: 1px dashed #8a7a4a; border-radius: 4px; padding: 4px 6px; text-align: center; }
+.pick.filled { border-style: solid; background: #2b261c; color: var(--paper); }
+.pick .type { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; opacity: .7; }
+.pick .k { font-size: 20px; color: var(--amber); }
+.pick .m { font-size: 12px; }
+.pick.extra { align-self: center; border-color: var(--bad); color: var(--bad); width: auto; min-height: 0; }
+.controls, .readrow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
+.controls button, .readrow button { font: inherit; padding: 7px 12px; border: 1px solid #8a7a4a; background: none; border-radius: 4px; cursor: pointer; color: var(--ink); }
+.controls button.primary { background: var(--amber); border: 0; font-weight: bold; }
+.controls button:disabled, .readrow button:disabled { opacity: .4; cursor: default; }
+.readbox { margin-top: 10px; }
+.readrow .word.on, .readrow .hedge.on { background: var(--ink); color: var(--amber); }
+.legend { font-size: 11px; opacity: .75; margin: 8px 0 0; }
+.intuition { font-size: 15px; letter-spacing: .15em; color: #a5671a; }
+
+.crew ul, .table-sheet ul { list-style: none; margin: 0; padding: 0; }
+.crew li { display: flex; gap: 8px; padding: 3px 0; font-size: 13px; border-bottom: 1px dotted #b9ae8e; }
+.crew li .id { font-weight: bold; width: 1.8em; }
+.crew li .where { margin-left: auto; opacity: .8; }
+.crew li.injured { color: var(--bad); }
+.crew li .note { font-size: 11px; opacity: .8; }
+.crew button, .result button, #hintBtn { font: inherit; font-size: 11px; cursor: pointer; }
+.hint { font-size: 12px; background: #f6efd6; border-left: 3px solid var(--warn); padding: 6px 8px; margin: 8px 0 0; }
+.table-sheet li { display: grid; grid-template-columns: 3.2em 1fr auto; font-size: 14px; padding: 2px 0; border-bottom: 1px dotted #b9ae8e; }
+.table-sheet li b { font-size: 16px; }
+.table-sheet li .multi { color: #a5671a; }
+.map svg { width: 100%; height: auto; background: #d8cfb1; border-radius: 3px; }
+
+.order-row { display: flex; flex-wrap: wrap; gap: 8px; }
+.order-row button { font: inherit; padding: 8px 14px; background: #2b261c; color: var(--paper); border: 2px solid transparent; border-radius: 4px; cursor: pointer; }
+.order-row button[aria-pressed="true"] { border-color: var(--amber); color: var(--amber); }
+.order-row button:disabled { opacity: .4; cursor: default; }
+.send { margin-top: 10px; padding: 10px 18px; font: inherit; font-weight: bold; background: var(--amber); border: 0; border-radius: 4px; cursor: pointer; }
+.send:disabled { background: #b9ae8e; cursor: default; }
+
+.result .message { font-size: 18px; margin: 4px 0 8px; }
+.result .message.safe { color: #3c7a2a; } .result .message.delay { color: #8a6a1a; } .result .message.harm { color: #a4382a; }
+.debrief { font-size: 13px; line-height: 1.5; background: #f6efd6; padding: 8px 10px; border-radius: 3px; margin-bottom: 10px; }
+.debrief p { margin: 3px 0; }
+.tag { display: inline-block; padding: 0 6px; border-radius: 3px; font-size: 11px; color: #fff; }
+.tag.correct { background: #3c7a2a; } .tag.hedged { background: #8a6a1a; } .tag.wrong { background: #a4382a; }
+
+@media (max-width: 820px) {
+  .desk { grid-template-columns: 1fr; grid-template-areas: "radio" "board" "orders" "crew" "table" "map" "result"; }
+  .dump { font-size: 16px; }
+}
+.table-sheet li i { font-size: 10px; opacity: .6; text-transform: uppercase; align-self: center; }
+[hidden] { display: none !important; }
+
+.grid { width: 100%; border-collapse: collapse; font-size: 13px; }
+.grid th, .grid td { border: 1px solid #b9ae8e; padding: 4px 6px; text-align: center; }
+.grid th { background: #d8cfb1; font-size: 15px; }
+.grid th.rowtype { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; opacity: .75; }
+.grid td.multi { color: #a5671a; font-weight: bold; }
+.cell.picked, .cell.picked:hover:not(:disabled) { background: #ffcf7a; color: #1a1405; opacity: 1; }
+.fatal { background: #5a1f17; color: #ffd9cf; padding: 12px 14px; border-radius: 4px; grid-column: 1 / -1; }
+
+</style>
+</head>
+<body>
+  <main class="desk">
+    <section class="panel radio" aria-label="Radio">
+      <header>
+        <span>EXPEDITION RADIO LOG <b id="txId"></b></span>
+        <span id="txTime"></span>
+      </header>
+      <div class="dump" id="dump" aria-label="Received signal"></div>
+      <div class="status" id="status" aria-live="polite"></div>
+    </section>
+
+    <section class="panel board" aria-label="Decoding sheet">
+      <header>
+        <span id="boardTitle">DECODING SHEET</span>
+        <span class="intuition" id="intuition" title="Intuition Points"></span>
+      </header>
+      <div id="picks" class="picks"></div>
+      <div id="controls" class="controls"></div>
+      <div id="readBox" class="readbox" hidden></div>
+      <p class="legend" id="legend"></p>
+    </section>
+
+    <section class="panel crew" aria-label="Crew list">
+      <header><span>CREW LIST</span><button id="hintBtn" type="button">Hint</button></header>
+      <ul id="crewList"></ul>
+      <p class="hint" id="hint" hidden></p>
+    </section>
+
+    <section class="panel table-sheet" aria-label="Code table">
+      <header><span>CODE TABLE (THIS TRANSMISSION)</span></header>
+      <div id="codeTable"></div>
+    </section>
+
+    <section class="panel map" aria-label="Route map">
+      <header><span>ROUTE MAP — GLACIER</span></header>
+      <svg id="map" viewBox="0 0 440 290" role="img" aria-label="Route map"></svg>
+    </section>
+
+    <section class="panel orders" aria-label="Orders">
+      <header><span>ORDERS (CHOOSE 1 OF 5)</span></header>
+      <div class="order-row" id="orders"></div>
+      <button id="sendBtn" type="button" class="send" disabled>TRANSMIT ORDER</button>
+    </section>
+
+    <section class="panel result" id="result" aria-label="Next transmission" hidden>
+      <header><span>NEXT TRANSMISSION</span><span id="resultTime"></span></header>
+      <p class="message" id="message"></p>
+      <div class="debrief" id="debrief"></div>
+      <button id="restartBtn" type="button">Replay transmission</button>
+    </section>
+  </main>
+  <script type="module">
+window.__ACT__ = {"crew":[{"id":"01","role":"Leader","location":"CP4","status":"ok","note":""},{"id":"02","role":"Navigator","location":"CP4","status":"ok","note":""},{"id":"03","role":"Medic","location":"CP4","status":"ok","note":""},{"id":"04","role":"Repair tech","location":"CP3","status":"injured","note":"injured last message, stayed at CP3"},{"id":"05","role":"Geologist","location":"CP4","status":"ok","note":""},{"id":"06","role":"Climber","location":"CP4","status":"ok","note":""},{"id":"07","role":"Climber","location":"CP4","status":"ok","note":""},{"id":"08","role":"Porter","location":"CP4","status":"ok","note":""},{"id":"09","role":"Porter","location":"CP4","status":"ok","note":""},{"id":"10","role":"Cook","location":"CP4","status":"ok","note":""}],"map":{"points":[{"id":"BASE","x":60,"y":250},{"id":"CP1","x":130,"y":190},{"id":"CP2","x":210,"y":215},{"id":"CP3","x":290,"y":150},{"id":"CP4","x":380,"y":100}]},"transmissions":[{"id":"T01-bridge","time":"14:32","cipher":["7c","2d","4b","5a","9c"],"table":[{"key":"7a","type":"who","meanings":["leader"]},{"key":"7c","type":"who","meanings":["team"]},{"key":"2a","type":"place","meanings":["CP3"]},{"key":"2b","type":"place","meanings":["base"]},{"key":"2d","type":"place","meanings":["CP4"]},{"key":"4b","type":"action","meanings":["reached"]},{"key":"4c","type":"action","meanings":["left"]},{"key":"5a","type":"thing","meanings":["bridge"]},{"key":"5d","type":"thing","meanings":["tent"]},{"key":"9a","type":"state","meanings":["injured"]},{"key":"9c","type":"state","meanings":["broken","repaired"]},{"key":"9d","type":"state","meanings":["safe"]}],"clauses":[{"symbols":[0,1,2],"pattern":"The {0} {2} {1}."},{"symbols":[3,4],"pattern":"The {3} is {4}."}],"truth":{"4":"broken"},"hint":"No one on the team can repair the bridge now: the only repair tech (04) is injured and stayed at CP3. So the bridge can only be broken.","outcomes":{"continue":{"severity":"harm","text":"The bridge collapsed. One member injured.","crew":[{"id":"06","status":"injured","note":"injured in the bridge collapse"}],"nearMiss":"We stopped at the bridge. Something felt wrong. No one crossed."},"wait":{"severity":"safe","text":"All safe. Looking for another route.","crew":[]},"back":{"severity":"delay","text":"Back at CP3. We lost half a day, but everyone is safe.","crew":[]},"hurry":{"severity":"harm","text":"We rushed the crossing. The bridge gave way. Two members injured.","crew":[{"id":"06","status":"injured","note":"injured in the bridge collapse"},{"id":"08","status":"injured","note":"injured in the bridge collapse"}],"nearMiss":"We started to rush, then stopped at the edge. No one hurt."},"base":{"severity":"delay","text":"Returning to base. The route is abandoned for now.","crew":[]}},"slots":["who","place","action","thing","state"],"stream":"km71nl7xwx22djajayc2s46g8ne820d2vck7kbxi10j3ya5j647iad0d4qg1s7xoeyx5swfyj2jh4wezl6b9pc9f862j9n3a","rows":{"who":"7","place":"2","action":"4","thing":"5","state":"9"},"cols":12,"cells":[[6,18],[30,31],[37,49],[45,46],[85,86]]}]};
+// Pure game logic: no DOM, no fetch. Ports 1:1 to C# later.
+//
+// A transmission is a grid "dump" (tx.stream, tx.cols wide). The real message is a sequence of code keys
+// hidden in it (tx.cipher, at tx.cells). The player finds keys from the code table in the dump
+// (a "pick" = two adjacent cells spelling a table key), and the radio answers Fallout-style
+// with a Likeness count. Once the keys are right, ambiguous keys are resolved by context.
+
+const ORDERS = ['continue', 'wait', 'back', 'hurry', 'base'];
+const MAX_INTUITION = 5;
+const MAX_TRIES = 5;
+
+function entryFor(tx, key) {
+  return tx.table.find((e) => e.key === key) ?? null;
+}
+
+// --- Phase 1: finding keys in the dump ---
+
+// The dump is a grid (tx.cols wide). A key is a pair of orthogonally adjacent cells holding a row
+// digit and a column letter of the code table, in either order, horizontally or vertically.
+// A pick is {a, b}: the two cell indices.
+
+function areAdjacent(tx, a, b) {
+  const d = Math.abs(a - b);
+  if (d === tx.cols) return true;
+  return d === 1 && Math.floor(a / tx.cols) === Math.floor(b / tx.cols);
+}
+
+/** The table entry a pair of cells spells (row digit + column letter, either order), or null. */
+function keyOfCells(tx, a, b) {
+  if (a === b || !areAdjacent(tx, a, b)) return null;
+  const ca = tx.stream[a];
+  const cb = tx.stream[b];
+  return entryFor(tx, ca + cb) ?? entryFor(tx, cb + ca);
+}
+
+/** Every pair of adjacent cells that spells a table key. */
+function findOccurrences(tx) {
+  const out = [];
+  const n = tx.stream.length;
+  for (let i = 0; i < n; i++) {
+    for (const j of [i + 1, i + tx.cols]) {
+      if (j >= n) continue;
+      const e = keyOfCells(tx, i, j);
+      if (e) out.push({ key: e.key, a: i, b: j });
+    }
+  }
+  return out;
+}
+
+function overlaps(p, q) {
+  return p.a === q.a || p.a === q.b || p.b === q.a || p.b === q.b;
+}
+
+/** Picks ordered by their first cell in reading order. */
+function sortPicks(picks) {
+  return [...picks].sort((p, q) => Math.min(p.a, p.b) - Math.min(q.a, q.b));
+}
+
+/** Do the picks, in reading order, form the message grammar (tx.slots)? */
+function parses(tx, picks) {
+  const sorted = sortPicks(picks);
+  if (sorted.length !== tx.slots.length) return false;
+  return sorted.every((p, i) => keyOfCells(tx, p.a, p.b)?.type === tx.slots[i]);
+}
+
+/** The keys picked, in reading order. */
+function pickedKeys(tx, picks) {
+  return sortPicks(picks).map((p) => keyOfCells(tx, p.a, p.b).key);
+}
+
+/** The real pair of cells of message key `i`. */
+function realPick(tx, i) {
+  return { a: tx.cells[i][0], b: tx.cells[i][1] };
+}
+
+function samePick(p, q) {
+  return (p.a === q.a && p.b === q.b) || (p.a === q.b && p.b === q.a);
+}
+
+/** Fallout "Likeness": how many picks are exactly a real key's pair of cells. */
+function likeness(tx, picks) {
+  return picks.filter((p) => tx.cipher.some((_, i) => samePick(p, realPick(tx, i)))).length;
+}
+
+function isLocked(tx, picks) {
+  return picks.length === tx.cipher.length && likeness(tx, picks) === tx.cipher.length;
+}
+
+// --- Phase 2: reading the message ---
+
+/** Ambiguity of the key the player ended up with at message index `i`. */
+function isAmbiguous(tx, i, keys = null) {
+  return entryFor(tx, keys?.[i] ?? tx.cipher[i]).meanings.length > 1;
+}
+
+/**
+ * selection: { [messageIndex]: string[] } chosen words per key.
+ * Returns 'incomplete' | 'correct' | 'hedged' | 'wrong'.
+ * `keys` are the keys the player found (defaults to the true ones).
+ */
+function judgeReading(tx, selection, keys = null) {
+  let hedged = false;
+  for (let i = 0; i < tx.cipher.length; i++) {
+    const chosen = selection[i] ?? [];
+    if (chosen.length === 0) return 'incomplete';
+    const key = keys?.[i] ?? tx.cipher[i];
+    const meanings = entryFor(tx, key).meanings;
+    if (!chosen.every((w) => meanings.includes(w))) return 'wrong';
+    if (key !== tx.cipher[i]) return 'wrong'; // misread signal
+    const truth = tx.truth[i];
+    if (truth === undefined) continue; // unambiguous key
+    if (!chosen.includes(truth)) return 'wrong';
+    if (chosen.length > 1) hedged = true;
+  }
+  return hedged ? 'hedged' : 'correct';
+}
+
+/** Render the decoded sentence(s). Hedged keys render as "a / b". */
+function renderSentence(tx, selection) {
+  return tx.clauses
+    .map((clause) => {
+      const text = clause.pattern.replace(/\{(\d+)\}/g, (_, n) => {
+        const words = selection[Number(n)] ?? [];
+        return words.length ? words.join(' / ') : '___';
+      });
+      return text.charAt(0).toUpperCase() + text.slice(1);
+    })
+    .join(' ');
+}
+
+/**
+ * Resolve the player's reading + order into the next transmission.
+ * The world outcome depends on truth x order. Reading affects feedback and Intuition:
+ *  - correct reading, no harm  -> +1 Intuition
+ *  - hedged (contains truth)   -> harm softened to a near miss, no Intuition
+ *  - wrong reading             -> full outcome, no Intuition
+ */
+function resolve(tx, selection, order, keys = null) {
+  const reading = judgeReading(tx, selection, keys);
+  if (reading === 'incomplete') throw new Error('Reading is incomplete');
+  const outcome = tx.outcomes[order];
+  if (!outcome) throw new Error(`Unknown order: ${order}`);
+
+  const softened = reading === 'hedged' && outcome.severity === 'harm';
+  const text = softened ? outcome.nearMiss : outcome.text;
+  const crew = softened ? [] : outcome.crew;
+  const harmed = !softened && outcome.severity === 'harm';
+  const intuitionGain = reading === 'correct' && !harmed ? 1 : 0;
+
+  return { reading, order, severity: softened ? 'delay' : outcome.severity, text, crew, intuitionGain };
+}
+
+function applyCrew(crew, changes) {
+  return crew.map((m) => {
+    const c = changes.find((x) => x.id === m.id);
+    return c ? { ...m, status: c.status, note: c.note ?? m.note } : m;
+  });
+}
+
+function spendIntuition(points, cost = 1) {
+  if (points < cost) return null;
+  return points - cost;
+}
+
+function gainIntuition(points, gain) {
+  return Math.min(MAX_INTUITION, points + gain);
+}
+
+
+const ORDER_LABELS = { continue: 'Continue', wait: 'Wait', back: 'Back to last CP', hurry: 'Hurry', base: 'Return to base' };
+const START_INTUITION = 3;
+const COLS = 12;
+
+const $ = (id) => document.getElementById(id);
+
+let act;
+let tx;
+let state;
+
+async function boot() {
+  try {
+    // The standalone build embeds the content; the dev page fetches it from ../content.
+    act = window.__ACT__ ?? await (await fetch('../content/campaign/act1.json')).json();
+  } catch (err) {
+    showFatal(`Could not load the game content (${err.message}). Start the local server from the repository root ` +
+      '(python -m http.server 5173) and open http://localhost:5173/prototype/index.html — or open ' +
+      'prototype/unrecoder-standalone.html, which needs no server.');
+    return;
+  }
+  tx = act.transmissions[0];
+  reset();
+}
+
+function showFatal(message) {
+  const el = document.createElement('p');
+  el.className = 'fatal';
+  el.textContent = message;
+  document.querySelector('.desk').prepend(el);
+}
+
+function reset() {
+  state = {
+    phase: 'find', // 'find' -> 'read' -> 'sent'
+    crew: act.crew,
+    intuition: START_INTUITION,
+    picks: [], // {start, end} spans of the dump the player marked as code keys
+    anchor: null, // first click of a span selection
+    hover: null,
+    tries: MAX_TRIES,
+    likeness: null,
+    note: '',
+    selection: {}, // message index -> words
+    hedge: {}, // message index -> bool
+    order: null,
+  };
+  $('result').hidden = true;
+  $('hint').hidden = true;
+  $('txId').textContent = tx.id.split('-')[0].replace('T', 'No.');
+  $('txTime').textContent = `RECEIVED ${tx.time}`;
+  renderAll();
+}
+
+function renderAll() {
+  renderDump();
+  renderStatus();
+  renderBoard();
+  renderIntuition();
+  renderCrew();
+  renderTable();
+  renderMap();
+  renderOrders();
+}
+
+// ---------- dump ----------
+
+function pickAt(i) {
+  return state.picks.find((p) => p.a === i || p.b === i);
+}
+
+function renderDump() {
+  const root = $('dump');
+  root.replaceChildren();
+  const finding = state.phase === 'find';
+  for (let row = 0; row * COLS < tx.stream.length; row++) {
+    const line = document.createElement('div');
+    line.className = 'dline';
+    const addr = document.createElement('span');
+    addr.className = 'addr';
+    addr.textContent = '0x' + (row * COLS).toString(16).toUpperCase().padStart(3, '0');
+    line.append(addr);
+    for (let c = 0; c < COLS; c++) {
+      const i = row * COLS + c;
+      if (i >= tx.stream.length) break;
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'cell';
+      cell.textContent = tx.stream[i];
+      cell.dataset.i = String(i);
+      if (pickAt(i)) cell.classList.add('picked');
+      if (state.anchor === i) cell.classList.add('anchor');
+      if (!finding) cell.disabled = true;
+      line.append(cell);
+    }
+    root.append(line);
+  }
+}
+
+// Delegated listeners: the dump is re-rendered on state changes, never on hover.
+$('dump').addEventListener('click', (e) => {
+  const cell = e.target.closest('.cell');
+  if (cell && !cell.disabled) onCell(Number(cell.dataset.i));
+});
+function onCell(i) {
+  const existing = pickAt(i);
+  if (existing && state.anchor === null) {
+    state.picks = state.picks.filter((p) => p !== existing);
+    state.note = '';
+    return renderAll();
+  }
+  if (state.anchor === null) {
+    state.anchor = i;
+    state.note = '';
+    return renderAll();
+  }
+  const first = state.anchor;
+  state.anchor = null;
+  const pair = { a: first, b: i };
+  if (first === i) {
+    state.note = '';
+  } else if (!areAdjacent(tx, first, i)) {
+    state.note = 'The two characters of a key touch: side by side or one above the other.';
+  } else if (!keyOfCells(tx, first, i)) {
+    state.note = `"${tx.stream[first]}" + "${tx.stream[i]}" is not a cell of the code table.`;
+  } else if (state.picks.some((p) => overlaps(p, pair))) {
+    state.note = 'That uses a character of a key you already marked. Click a marked key to unmark it.';
+  } else {
+    state.picks.push(pair);
+    state.note = '';
+  }
+  renderAll();
+}
+
+// ---------- status / board ----------
+
+function renderStatus() {
+  const el = $('status');
+  if (state.phase === 'find') {
+    el.classList.remove('hedge');
+    el.textContent = state.note || (state.likeness === null
+      ? `Find code keys from the table in the noise. A key is a row digit and a column letter that touch (side by side or one above the other, any order): click one, then the other. Message: ${tx.slots.length} keys.`
+      : `Likeness ${state.likeness}/${tx.slots.length} — ${state.tries} ${state.tries === 1 ? 'try' : 'tries'} left.`);
+    return;
+  }
+  const reading = judgeReading(tx, state.selection, keysFound());
+  el.textContent = renderSentence(tx, state.selection);
+  el.classList.toggle('hedge', reading === 'hedged');
+}
+
+function keysFound() {
+  return pickedKeys(tx, state.picks);
+}
+
+function renderIntuition() {
+  $('intuition').textContent = '●'.repeat(state.intuition) + '○'.repeat(MAX_INTUITION - state.intuition);
+}
+
+function btn(label, onClick, disabled = false, cls = '') {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.textContent = label;
+  b.disabled = disabled;
+  if (cls) b.className = cls;
+  b.addEventListener('click', onClick);
+  return b;
+}
+
+function renderBoard() {
+  const finding = state.phase === 'find';
+  $('boardTitle').textContent = finding ? 'DECODING SHEET — FIND THE KEYS' : 'DECODING SHEET — READ THE MESSAGE';
+  $('readBox').hidden = finding;
+  $('controls').hidden = !finding;
+
+  const picks = $('picks');
+  picks.replaceChildren();
+  const sorted = sortPicks(state.picks);
+  tx.slots.forEach((slotType, k) => {
+    const p = sorted[k];
+    const chip = document.createElement('div');
+    chip.className = 'pick' + (p ? ' filled' : '');
+    const entry = p ? keyOfCells(tx, p.a, p.b) : null;
+    chip.innerHTML = `<div class="type">${slotType}</div><div class="k">${entry ? entry.key : '···'}</div><div class="m">${entry ? entry.meanings.join(' / ') : ''}</div>`;
+    picks.append(chip);
+  });
+  if (sorted.length > tx.slots.length) {
+    const extra = document.createElement('div');
+    extra.className = 'pick extra';
+    extra.textContent = `+${sorted.length - tx.slots.length} extra`;
+    picks.append(extra);
+  }
+
+  if (finding) {
+    $('controls').replaceChildren(
+      btn(`TRY (${'●'.repeat(state.tries)}${'○'.repeat(MAX_TRIES - state.tries)})`, tryPicks, state.tries < 1 || state.picks.length === 0, 'primary'),
+      btn('AUTO (1 ●)', autoPick, state.intuition < 1 || realMissing().length === 0),
+      btn('Clear', () => { state.picks = []; state.note = ''; renderAll(); }, state.picks.length === 0),
+      btn('Move on with this reading', enterRead, state.likeness === null || !parses(tx, state.picks)),
+    );
+    $('legend').textContent = 'The message is a sequence of code keys hidden in the noise, in grammar order (' + tx.slots.join(' → ') + '). Some keys in the dump are decoys. TRY tells you only how many of your keys are right, not which.';
+  } else {
+    renderReadBox();
+    $('legend').textContent = 'Ambiguous keys have several meanings. Choose from the crew and map context, or HEDGE to hold both.';
+  }
+}
+
+function realMissing() {
+  return tx.cipher.map((_, i) => realPick(tx, i)).filter((r) => !state.picks.some((p) => samePick(p, r)));
+}
+
+function tryPicks() {
+  if (!parses(tx, state.picks)) {
+    const have = sortPicks(state.picks).map((p) => keyOfCells(tx, p.a, p.b).type).join(' → ') || 'nothing';
+    state.note = `Doesn't parse. Need ${tx.slots.join(' → ')} in reading order (left to right, top to bottom); you have: ${have}. (No try used.)`;
+    return renderAll();
+  }
+  state.note = '';
+  state.tries -= 1;
+  state.likeness = likeness(tx, state.picks);
+  if (isLocked(tx, state.picks) || state.tries === 0) return enterRead();
+  renderAll();
+}
+
+function autoPick() {
+  const left = spendIntuition(state.intuition);
+  if (left === null) return;
+  const missing = realMissing();
+  if (!missing.length) return;
+  state.intuition = left;
+  const reveal = missing[0];
+  state.picks = state.picks.filter((p) => !overlaps(p, reveal));
+  state.picks.push(reveal);
+  state.note = '';
+  renderAll();
+}
+
+function enterRead() {
+  state.phase = 'read';
+  state.note = '';
+  keysFound().forEach((key, i) => {
+    const meanings = entryFor(tx, key).meanings;
+    if (meanings.length === 1) state.selection[i] = [meanings[0]];
+  });
+  renderAll();
+}
+
+function renderReadBox() {
+  const box = $('readBox');
+  box.replaceChildren();
+  keysFound().forEach((key, i) => {
+    const entry = entryFor(tx, key);
+    if (entry.meanings.length < 2) return;
+    const row = document.createElement('div');
+    row.className = 'readrow';
+    const label = document.createElement('span');
+    label.textContent = `${key} (${entry.type}):`;
+    row.append(label);
+    entry.meanings.forEach((w) => {
+      const chosen = (state.selection[i] ?? []).includes(w);
+      row.append(btn(w, () => chooseWord(i, w), state.phase === 'sent', 'word' + (chosen ? ' on' : '')));
+    });
+    row.append(btn('HEDGE', () => {
+      state.hedge[i] = !state.hedge[i];
+      if (!state.hedge[i] && (state.selection[i] ?? []).length > 1) state.selection[i] = [state.selection[i][0]];
+      renderAll();
+    }, state.phase === 'sent', 'hedge' + (state.hedge[i] ? ' on' : '')));
+    box.append(row);
+  });
+  if (!box.children.length) box.textContent = 'Every key has a single meaning.';
+}
+
+function chooseWord(i, w) {
+  const cur = state.selection[i] ?? [];
+  if (cur.includes(w)) state.selection[i] = cur.filter((x) => x !== w);
+  else if (state.hedge[i]) state.selection[i] = [...cur, w];
+  else state.selection[i] = [w];
+  if (state.selection[i].length === 0) delete state.selection[i];
+  renderAll();
+}
+
+// ---------- side panels ----------
+
+function renderCrew() {
+  $('crewList').replaceChildren(...state.crew.map((m) => {
+    const li = document.createElement('li');
+    if (m.status === 'injured') li.classList.add('injured');
+    li.innerHTML = `<span class="id">${m.id}</span><span>${m.role}${m.note ? `<br><span class="note">${m.note}</span>` : ''}</span><span class="where">${m.location}</span>`;
+    return li;
+  }));
+}
+
+function renderTable() {
+  // The table is a grid: row digit = category, column letter = word. A key is "row digit + column letter".
+  const rows = Object.entries(tx.rows); // [type, digit]
+  const cols = [...new Set(tx.table.map((e) => e.key[1]))].sort();
+  const t = document.createElement('table');
+  t.className = 'grid';
+  const head = document.createElement('tr');
+  head.innerHTML = '<th></th><th></th>' + cols.map((c) => `<th>${c}</th>`).join('');
+  t.append(head);
+  for (const [type, digit] of rows) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<th>${digit}</th><th class="rowtype">${type}</th>` + cols.map((c) => {
+      const e = tx.table.find((x) => x.key === digit + c);
+      return `<td class="${e && e.meanings.length > 1 ? 'multi' : ''}">${e ? e.meanings.join(' / ') : '·'}</td>`;
+    }).join('');
+    t.append(tr);
+  }
+  $('codeTable').replaceChildren(t);
+}
+
+function renderMap() {
+  const pts = act.map.points;
+  const ns = 'http://www.w3.org/2000/svg';
+  const svg = $('map');
+  svg.replaceChildren();
+  const line = document.createElementNS(ns, 'polyline');
+  line.setAttribute('points', pts.map((p) => `${p.x},${p.y}`).join(' '));
+  line.setAttribute('fill', 'none');
+  line.setAttribute('stroke', '#8a7a4a');
+  line.setAttribute('stroke-dasharray', '6 5');
+  line.setAttribute('stroke-width', '2');
+  svg.append(line);
+  pts.forEach((p) => {
+    const g = document.createElementNS(ns, 'g');
+    g.innerHTML = `<circle cx="${p.x}" cy="${p.y}" r="6" fill="#2b261c"/><text x="${p.x + 9}" y="${p.y + 4}" font-size="12" fill="#2b261c">${p.id}</text>`;
+    svg.append(g);
+  });
+  const team = pts.find((p) => p.id === 'CP4');
+  const t = document.createElementNS(ns, 'circle');
+  t.setAttribute('cx', team.x); t.setAttribute('cy', team.y); t.setAttribute('r', 11);
+  t.setAttribute('fill', 'none'); t.setAttribute('stroke', '#a4382a'); t.setAttribute('stroke-width', '2');
+  svg.append(t);
+}
+
+function renderOrders() {
+  $('orders').replaceChildren(...ORDERS.map((o) => {
+    const b = btn(ORDER_LABELS[o], () => { state.order = o; renderOrders(); }, state.phase !== 'read');
+    b.setAttribute('aria-pressed', String(state.order === o));
+    return b;
+  }));
+  const ready = state.phase === 'read' && judgeReading(tx, state.selection, keysFound()) !== 'incomplete' && state.order;
+  $('sendBtn').disabled = !ready;
+}
+
+function send() {
+  const r = resolve(tx, state.selection, state.order, keysFound());
+  state.phase = 'sent';
+  state.crew = applyCrew(state.crew, r.crew);
+  state.intuition = gainIntuition(state.intuition, r.intuitionGain);
+
+  $('result').hidden = false;
+  $('resultTime').textContent = 'RECEIVED 14:58';
+  $('message').textContent = `"${r.text}"`;
+  $('message').className = `message ${r.severity}`;
+
+  const truthSelection = Object.fromEntries(tx.cipher.map((key, i) => [i, [tx.truth[i] ?? entryFor(tx, key).meanings[0]]]));
+  const verdict = {
+    correct: 'You read it right.',
+    hedged: 'You hedged: the right reading was in your answer, but you didn\'t commit to it.',
+    wrong: `You misread it. The real reading: "${renderSentence(tx, truthSelection)}"`,
+  }[r.reading];
+  $('debrief').innerHTML = `
+    <p><span class="tag ${r.reading}">${r.reading.toUpperCase()}</span> ${verdict}</p>
+    <p>Order: <b>${ORDER_LABELS[r.order]}</b>. Intuition ${r.intuitionGain ? '+' + r.intuitionGain : '+0'}.</p>
+    <p><i>Why:</i> ${tx.hint}</p>
+    <p style="opacity:.7">(Prototype debrief — in the real game you'd only learn this from the next message.)</p>`;
+  renderAll();
+  $('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+
+$('sendBtn').addEventListener('click', send);
+$('restartBtn').addEventListener('click', reset);
+$('hintBtn').addEventListener('click', () => {
+  const h = $('hint');
+  h.textContent = 'Hint: ' + tx.hint;
+  h.hidden = !h.hidden;
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && state.anchor !== null) { state.anchor = null; state.hover = null; renderDump(); }
+});
+
+boot();
+
+</script>
+</body>
+</html>

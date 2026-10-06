@@ -9,12 +9,15 @@
 
 ## Запуск прототипа
 
-Нужны Python и Node 20+ (зависимостей нет).
+**Самый простой способ:** открыть двойным кликом `prototype/unrecoder-standalone.html` — один файл, сервер не нужен.
+Он собирается командой `cd prototype && node build-standalone.mjs` (пересобирать после правок в `src/`, `style.css`, `index.html` или `content/`).
+
+**Режим разработки:** двойной клик по `run-prototype.bat` (запускает сервер и открывает браузер), либо из корня репозитория:
 
 ```bash
 python -m http.server 5173
 ```
 
-Открыть http://localhost:5173/prototype/index.html (сервер запускать из корня репозитория — контент лежит в `content/`).
+и открыть http://localhost:5173/prototype/index.html. Сервер обязательно запускать из корня репозитория — контент лежит в `content/`. Файл `prototype/index.html` напрямую двойным кликом не откроется (браузер блокирует модули по `file://`) — для этого есть standalone-версия.
 
-Тесты логики: `cd prototype && node --test src/core/`
+Тесты логики: `cd prototype && node --test src/core/` (нужен Node 20+).

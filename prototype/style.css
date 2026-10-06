@@ -99,3 +99,4 @@ body { margin: 0; background: var(--bg); color: var(--paper); }
 .grid th.rowtype { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; opacity: .75; }
 .grid td.multi { color: #a5671a; font-weight: bold; }
 .cell.picked, .cell.picked:hover:not(:disabled) { background: #ffcf7a; color: #1a1405; opacity: 1; }
+.fatal { background: #5a1f17; color: #ffd9cf; padding: 12px 14px; border-radius: 4px; grid-column: 1 / -1; }

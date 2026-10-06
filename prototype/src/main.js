@@ -15,10 +15,24 @@ let tx;
 let state;
 
 async function boot() {
-  const res = await fetch('../content/campaign/act1.json');
-  act = await res.json();
+  try {
+    // The standalone build embeds the content; the dev page fetches it from ../content.
+    act = window.__ACT__ ?? await (await fetch('../content/campaign/act1.json')).json();
+  } catch (err) {
+    showFatal(`Could not load the game content (${err.message}). Start the local server from the repository root ` +
+      '(python -m http.server 5173) and open http://localhost:5173/prototype/index.html — or open ' +
+      'prototype/unrecoder-standalone.html, which needs no server.');
+    return;
+  }
   tx = act.transmissions[0];
   reset();
+}
+
+function showFatal(message) {
+  const el = document.createElement('p');
+  el.className = 'fatal';
+  el.textContent = message;
+  document.querySelector('.desk').prepend(el);
 }
 
 function reset() {
