@@ -4,7 +4,7 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve as pathResolve } from 'node:path';
 import {
-  prepare, cellById, numberOf, digitOf, decodeGroup, checkGuess, meaningsOf, isAmbiguous, judgeReading,
+  prepare, cellById, numberOf, digitOf, decodeGroup, checkGuess, groupAt, candidates, nextCandidate, parses, isRealMessage, meaningsOf, isAmbiguous, judgeReading,
   renderSentence, resolve, applyCrew, spendIntuition, gainIntuition, ORDERS, MASK,
 } from './engine.js';
 
@@ -62,41 +62,113 @@ test('digitOf looks a letter up in a key half', () => {
   assert.equal(digitOf(half, 'Z'), -1);
 });
 
-test('every group is Z + two letters and decodes to its cipher cell', () => {
-  for (const tx of txs) {
-    assert.equal(tx.groups.length, tx.cipher.length);
-    tx.groups.forEach((g, i) => {
-      assert.equal(g.length, 3);
-      assert.equal(g[0], MASK);
-      assert.equal(decodeGroup(tx, g).id, tx.cipher[i], `${tx.id} group ${i}`);
-    });
-  }
-});
-
 test('decodeGroup rejects groups without the mask or with unknown letters', () => {
   assert.equal(decodeGroup(bridge, 'AEQ'), null);
   assert.equal(decodeGroup(bridge, 'ZZZ'), null);
   assert.equal(decodeGroup(bridge, 'ZA'), null);
-});
-
-test('a cell sent twice in one transmission uses different letters', () => {
-  for (const tx of txs) assert.equal(new Set(tx.groups).size, tx.groups.length, tx.id);
+  assert.equal(decodeGroup(bridge, 'ZA?'), null);
 });
 
 test('checkGuess tells row and column apart', () => {
-  const real = bridge.cipher[0];
-  assert.deepEqual(checkGuess(bridge, 0, real), { ok: true, row: true, col: true });
-  const wrongCol = real[0] + ((Number(real[1]) + 1) % 10);
-  assert.deepEqual(checkGuess(bridge, 0, wrongCol), { ok: false, row: true, col: false });
-  const wrongRow = ((Number(real[0]) + 1) % 10) + real[1];
-  assert.deepEqual(checkGuess(bridge, 0, wrongRow), { ok: false, row: false, col: true });
+  assert.deepEqual(checkGuess('18', '18'), { ok: true, row: true, col: true });
+  assert.deepEqual(checkGuess('18', '19'), { ok: false, row: true, col: false });
+  assert.deepEqual(checkGuess('18', '28'), { ok: false, row: false, col: true });
+});
+
+// ---------- the signal ----------
+
+test('the signal is a full grid; the real groups sit at tx.real, in reading order, and decode to the cipher', () => {
+  for (const tx of txs) {
+    assert.equal(tx.dump.length % tx.cols, 0);
+    assert.equal(tx.real.length, tx.cipher.length);
+    assert.deepEqual([...tx.real].sort((a, b) => a - b), tx.real);
+    tx.real.forEach((p, i) => assert.equal(groupAt(tx, p).id, tx.cipher[i], `${tx.id} group ${i}`));
+  }
+});
+
+test('every Z in the signal starts a group: real ones and decoys, and no Z is hidden elsewhere', () => {
+  for (const tx of txs) {
+    const zs = tx.dump.map((c, p) => (c === 'Z' ? p : -1)).filter((p) => p >= 0);
+    assert.deepEqual(zs, candidates(tx), tx.id);
+    assert.ok(zs.length > tx.real.length, `${tx.id}: no decoys`);
+    for (const p of tx.real) assert.ok(zs.includes(p));
+  }
+});
+
+test('groups never wrap around a row and never overlap', () => {
+  for (const tx of txs) {
+    const c = candidates(tx);
+    c.forEach((p, i) => {
+      assert.ok(p % tx.cols <= tx.cols - 3, `${tx.id}: group at ${p} wraps`);
+      if (i > 0) assert.ok(p - c[i - 1] >= 3, `${tx.id}: groups overlap`);
+    });
+  }
+});
+
+test('damaged groups show "?" but still decode through their lost letter; only real groups are damaged', () => {
+  const damaged = txs.filter((tx) => Object.keys(tx.damaged).length);
+  assert.ok(damaged.length >= 1);
+  for (const tx of txs) {
+    for (const [at, letter] of Object.entries(tx.damaged)) {
+      assert.equal(tx.dump[at], '?');
+      assert.ok(/[A-Y]/.test(letter));
+      const start = tx.real.find((p) => at >= p && at < p + 3);
+      assert.notEqual(start, undefined, `${tx.id}: a decoy is damaged`);
+      assert.equal(groupAt(tx, start).damaged, true);
+    }
+    assert.equal(tx.dump.filter((c) => c === '?').length, Object.keys(tx.damaged).length);
+  }
+});
+
+test('a damaged group can be found by kind: its cell is the only one of that kind in the known row or column', () => {
+  for (const tx of txs) {
+    for (const at of Object.keys(tx.damaged)) {
+      const start = tx.real.find((p) => at >= p && at < p + 3);
+      const g = groupAt(tx, start);
+      const lostCol = at - start === 2;
+      const same = Object.entries(tx.matrix.cells).filter(([id, c]) => (lostCol ? id[0] === g.id[0] : id[1] === g.id[1]) && c.kind === g.cell.kind);
+      assert.equal(same.length, 1, `${tx.id}: ${g.id} is not unique in its ${lostCol ? 'row' : 'column'}`);
+    }
+  }
+});
+
+/** Every set of groups (start positions) that reads as the message grammar. */
+function solutions(tx) {
+  const cands = candidates(tx);
+  const out = [];
+  const go = (start, chosen) => {
+    if (chosen.length === tx.slots.length) { if (parses(tx, chosen)) out.push([...chosen]); return; }
+    for (let i = start; i < cands.length; i++) go(i + 1, [...chosen, cands[i]]);
+  };
+  go(0, []);
+  return out;
+}
+
+test('each signal has exactly one reading that fits the grammar: the real message', () => {
+  for (const tx of txs) assert.deepEqual(solutions(tx), [tx.real], tx.id);
+});
+
+test('parses: the real groups fit; a decoy swapped in or a missing group does not', () => {
+  for (const tx of txs) {
+    assert.equal(parses(tx, tx.real), true, tx.id);
+    assert.equal(parses(tx, tx.real.slice(1)), false);
+    const decoy = candidates(tx).find((p) => !tx.real.includes(p));
+    assert.equal(parses(tx, [decoy, ...tx.real.slice(1)]) && !isRealMessage(tx, [decoy, ...tx.real.slice(1)]), false, tx.id);
+    assert.equal(isRealMessage(tx, tx.real), true);
+  }
+});
+
+test('a number or a spelled letter must be the group directly after the previous one', () => {
+  for (const tx of [member, hut]) {
+    const i = tx.slots.findIndex((s) => s === 'number' || s === 'letter');
+    assert.equal(nextCandidate(tx, tx.real[i - 1]), tx.real[i], tx.id);
+  }
 });
 
 test('the bridge sentence decodes to team, CP4, reached, bridge, broken/repaired', () => {
-  const words = bridge.groups.map((g) => cellById(bridge, decodeGroup(bridge, g).id).text);
+  const words = bridge.real.map((p) => groupAt(bridge, p).cell.text);
   assert.deepEqual(words, ['team', 'CP4', 'reached', 'bridge', 'broken / repaired']);
 });
-
 
 // ---------- reading the message ----------
 

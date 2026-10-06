@@ -42,18 +42,69 @@ export function decodeGroup(tx, group) {
   return { rowLetter: group[1], colLetter: group[2], row, col, id: `${row}${col}` };
 }
 
-/** The true cell id of group `i`. */
+/** The true cell id of message group `i` (the real groups, in message order). */
 export function trueCell(tx, i) {
   return tx.cipher[i];
 }
 
 /**
- * Check the player's guess (a cell id) for group `i`.
+ * Check the player's guess (a cell id) against the group's true cell id.
  * Returns {ok, row, col}: whether the guess is right and whether its row / column digit is right.
  */
-export function checkGuess(tx, i, id) {
-  const real = tx.cipher[i];
+export function checkGuess(real, id) {
   return { ok: id === real, row: id[0] === real[0], col: id[1] === real[1] };
+}
+
+// --- Phase 1: finding the groups in the signal ---
+//
+// The signal is a grid of letters. Every Z starts a group (Z + two letters): the real message groups, in reading
+// order, and decoys that look the same. In a damaged group one letter is lost and shows as "?"
+// (tx.damaged holds the lost letters, for the game, never for the player).
+
+/** The group that starts at dump position `p`, or null if p is not the start of a group. */
+export function groupAt(tx, p) {
+  if (tx.dump[p] !== MASK || p % tx.cols > tx.cols - 3) return null;
+  const letters = [0, 1, 2].map((k) => tx.damaged?.[p + k] ?? tx.dump[p + k]).join('');
+  const g = decodeGroup(tx, letters);
+  if (!g) return null;
+  const shown = [0, 1, 2].map((k) => tx.dump[p + k]).join('');
+  return { ...g, pos: p, shown, damaged: shown.includes('?'), cell: cellById(tx, g.id) };
+}
+
+/** Start positions of every group-looking Z in the signal, in reading order. */
+export function candidates(tx) {
+  return tx.dump.map((_, p) => p).filter((p) => groupAt(tx, p));
+}
+
+/** The first group after position `p` in reading order (what follows a marker). */
+export function nextCandidate(tx, p) {
+  return candidates(tx).find((q) => q > p) ?? null;
+}
+
+/** Can this cell fill a slot of the given kind? A number slot takes any cell (it is read as digits). */
+export function slotAccepts(slot, cell) {
+  if (!cell) return false;
+  return slot === 'number' || cell.kind === slot;
+}
+
+/**
+ * Do the marked groups (start positions), in reading order, form the message grammar (tx.slots)?
+ * A number or letter slot must be the very next group after the previous one: a marker is followed by its
+ * number, and spelled letters follow one by one.
+ */
+export function parses(tx, marked) {
+  const sorted = [...marked].sort((a, b) => a - b);
+  if (sorted.length !== tx.slots.length) return false;
+  return sorted.every((p, i) => {
+    if (!slotAccepts(tx.slots[i], groupAt(tx, p)?.cell)) return false;
+    if ((tx.slots[i] === 'number' || tx.slots[i] === 'letter') && i > 0) return nextCandidate(tx, sorted[i - 1]) === p;
+    return true;
+  });
+}
+
+/** Do these marked groups include exactly the real message groups? */
+export function isRealMessage(tx, marked) {
+  return marked.length === tx.real.length && tx.real.every((p) => marked.includes(p));
 }
 
 // --- Phase 2: reading the message ---

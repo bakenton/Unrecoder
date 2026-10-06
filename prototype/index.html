@@ -13,7 +13,7 @@
         <span>EXPEDITION RADIO LOG <b id="txId"></b></span>
         <span id="txTime"></span>
       </header>
-      <div class="groups" id="groups" aria-label="Received groups"></div>
+      <div class="dump" id="dump" aria-label="Received signal"></div>
       <div class="frame" id="frame" aria-label="Sentence to fill"></div>
       <div class="status" id="status" aria-live="polite"></div>
     </section>
@@ -39,10 +39,10 @@
       <header><span>TODAY'S KEY</span></header>
       <div class="keycard" id="keyCard"></div>
       <ol class="steps">
-        <li>The signal is groups of three letters. The first letter is always <b>Z</b>: a mask, it means nothing.</li>
-        <li>The <b>second</b> letter gives the row: find it in the vertical key, the digit it sits next to is the row.</li>
-        <li>The <b>third</b> letter gives the column: same, in the horizontal key.</li>
-        <li>Click that row and column in the table. The cell is a word, a letter, or a marker, and the sentence fills in. Each blank has a colour: look for table cells of that colour.</li>
+        <li><b>Find the groups.</b> A group is the letter <b>Z</b> and the two letters after it. Click a Z to mark it, click a marked group to unmark it. Careful: some Z groups are decoys. The real ones read as a sentence, in order.</li>
+        <li>Ignore the Z. The <b>second</b> letter gives the row (vertical key above), the <b>third</b> gives the column (horizontal key).</li>
+        <li>Click that cell in the table. The word fills its blank; each blank has a colour. A word that does not fit its blank means a decoy: unmark it.</li>
+        <li>A <b>?</b> is a lost letter: the other letter still gives a row or a column. Pick the cell of the right colour in it.</li>
       </ol>
       <div class="kinds" id="kinds"></div>
     </section>

@@ -1,6 +1,6 @@
 import {
-  ORDERS, MAX_INTUITION, prepare, cellById, numberOf, checkGuess, meaningsOf, judgeReading,
-  renderSentence, resolve, applyCrew, spendIntuition, gainIntuition,
+  ORDERS, MAX_INTUITION, prepare, cellById, numberOf, groupAt, nextCandidate, slotAccepts, parses, checkGuess,
+  meaningsOf, judgeReading, renderSentence, resolve, applyCrew, spendIntuition, gainIntuition,
 } from './core/engine.js';
 
 const ORDER_LABELS = { continue: 'Continue', wait: 'Wait', back: 'Back to last CP', hurry: 'Hurry', base: 'Return to base' };
@@ -46,8 +46,9 @@ function begin() {
     phase: 'find', // 'find' -> 'read' -> 'sent'
     crew: start.crew,
     intuition: start.intuition,
-    decoded: {}, // group index -> cell id the player found
-    selected: 0, // group being decoded
+    marked: [], // start positions in the signal of the groups the player marked
+    decoded: {}, // marked position -> cell id the player found
+    selected: null, // marked position being decoded
     note: '',
     selection: {}, // message index -> words
     hedge: {}, // message index -> bool
@@ -61,7 +62,7 @@ function begin() {
 }
 
 function renderAll() {
-  renderGroups();
+  renderDump();
   renderStatus();
   renderBoard();
   renderIntuition();
@@ -74,67 +75,133 @@ function renderAll() {
   renderOrders();
 }
 
-/** Decoded cell ids in message order (complete once every group is decoded). */
+/** Cell ids of the marked groups in reading order (complete once every marked group is decoded). */
 function keysFound() {
-  return tx.cipher.map((_, i) => state.decoded[i]);
+  return markedSorted().map((p) => state.decoded[p]);
+}
+
+function markedSorted() {
+  return [...state.marked].sort((a, b) => a - b);
 }
 
 function allDecoded() {
-  return tx.cipher.every((_, i) => state.decoded[i] !== undefined);
+  return state.marked.every((p) => state.decoded[p] !== undefined);
 }
 
-function wordOf(i) {
-  const id = state.decoded[i];
+function wordAt(p) {
+  const id = state.decoded[p];
   if (id === undefined) return null;
-  return tx.slots[i] === 'number' ? `number ${numberOf(id)}` : cellById(tx, id).meanings.join(' / ');
+  const k = markedSorted().indexOf(p);
+  return tx.slots[k] === 'number' ? `number ${numberOf(id)}` : cellById(tx, id).meanings.join(' / ');
 }
 
-function nextUndecoded() {
-  const k = tx.cipher.findIndex((_, i) => state.decoded[i] === undefined);
-  return k < 0 ? null : k;
+/** Does the decoded group at reading index `k` fit its blank? (undefined while it is not decoded yet) */
+function fitsBlank(k) {
+  const sorted = markedSorted();
+  const p = sorted[k];
+  if (p === undefined || state.decoded[p] === undefined || k >= tx.slots.length) return undefined;
+  if (!slotAccepts(tx.slots[k], cellById(tx, state.decoded[p]))) return false;
+  if ((tx.slots[k] === 'number' || tx.slots[k] === 'letter') && k > 0) return nextCandidate(tx, sorted[k - 1]) === p;
+  return true;
 }
 
-// ---------- radio: the groups ----------
+// ---------- radio: the signal ----------
 
-function renderGroups() {
-  const root = $('groups');
+function groupOfCell(i) {
+  return state.marked.find((p) => i >= p && i < p + 3);
+}
+
+function renderDump() {
+  const root = $('dump');
   root.replaceChildren();
-  tx.groups.forEach((g, i) => {
-    const b = document.createElement('button');
-    b.type = 'button';
-    b.className = 'group' + (state.selected === i ? ' sel' : '') + (state.decoded[i] !== undefined ? ' done' : '');
-    b.dataset.i = String(i);
-    b.disabled = state.phase !== 'find';
-    b.innerHTML = `<span class="g"><span class="z">${g[0]}</span>${g.slice(1)}</span><span class="w">${wordOf(i) ?? '?'}</span>`;
-    root.append(b);
-  });
+  const finding = state.phase === 'find';
+  for (let row = 0; row * tx.cols < tx.dump.length; row++) {
+    const line = document.createElement('div');
+    line.className = 'dline';
+    for (let c = 0; c < tx.cols; c++) {
+      const i = row * tx.cols + c;
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'cell' + (tx.dump[i] === 'Z' ? ' zed' : '') + (tx.dump[i] === '?' ? ' lost' : '');
+      cell.textContent = tx.dump[i];
+      cell.dataset.i = String(i);
+      const g = groupOfCell(i);
+      if (g !== undefined) cell.classList.add(g === state.selected ? 'anchor' : 'picked');
+      if (!finding) cell.disabled = true;
+      line.append(cell);
+    }
+    root.append(line);
+  }
 }
 
-$('groups').addEventListener('click', (e) => {
-  const g = e.target.closest('.group');
-  if (g && !g.disabled) { state.selected = Number(g.dataset.i); state.note = ''; renderAll(); }
+// Delegated listener: the signal is re-rendered on state changes only, never on hover.
+$('dump').addEventListener('click', (e) => {
+  const cell = e.target.closest('.cell');
+  if (cell && !cell.disabled) onDumpCell(Number(cell.dataset.i));
 });
+
+function onDumpCell(i) {
+  const marked = groupOfCell(i);
+  if (marked !== undefined) { // click a marked group to unmark it
+    state.marked = state.marked.filter((p) => p !== marked);
+    delete state.decoded[marked];
+    if (state.selected === marked) state.selected = markedSorted().find((p) => state.decoded[p] === undefined) ?? null;
+    state.note = '';
+    return renderAll();
+  }
+  if (!groupAt(tx, i)) {
+    state.note = 'A group starts with the letter Z. Click a Z to mark the group of three letters.';
+    return renderStatus();
+  }
+  if (state.marked.some((p) => Math.abs(p - i) < 3)) {
+    state.note = 'That overlaps a group you already marked.';
+    return renderStatus();
+  }
+  state.marked.push(i);
+  state.selected = i;
+  state.note = '';
+  renderAll();
+}
 
 // ---------- decoding: the table guess ----------
 
 function onMatrixCell(id) {
   if (state.phase !== 'find') return;
-  const i = state.selected;
-  if (i === null) { state.note = 'Pick a group in the signal first.'; return renderStatus(); }
-  const r = checkGuess(tx, i, id);
+  const p = state.selected;
+  if (p === null) { state.note = 'Mark a group in the signal first: click a Z.'; return renderStatus(); }
+  if (state.decoded[p] !== undefined) { state.note = 'That group is already decoded. Mark or pick another one.'; return renderStatus(); }
+  const g = groupAt(tx, p);
+  const r = checkGuess(g.id, id);
   if (!r.ok) {
-    const g = tx.groups[i];
-    state.note = r.row
-      ? `Row ${id[0]} is right, the column is not. Look the letter ${g[2]} up in the horizontal key.`
-      : r.col
-        ? `Column ${id[1]} is right, the row is not. Look the letter ${g[1]} up in the vertical key.`
-        : `Neither is right. ${g[1]} is a row letter (vertical key), ${g[2]} is a column letter (horizontal key).`;
+    const [, a, b] = g.shown;
+    if (g.damaged) {
+      state.note = a === '?'
+        ? (r.col ? `Column ${id[1]} is right. The row letter is lost, so use the sentence: which cell of column ${id[1]} fits this blank?` : `The column is not ${id[1]}. Look the letter ${b} up in the horizontal key.`)
+        : (r.row ? `Row ${id[0]} is right. The column letter is lost, so use the sentence: which cell of row ${id[0]} fits this blank?` : `The row is not ${id[0]}. Look the letter ${a} up in the vertical key.`);
+    } else {
+      state.note = r.row
+        ? `Row ${id[0]} is right, the column is not. Look the letter ${b} up in the horizontal key.`
+        : r.col
+          ? `Column ${id[1]} is right, the row is not. Look the letter ${a} up in the vertical key.`
+          : `Neither is right. ${a} is a row letter (vertical key), ${b} is a column letter (horizontal key).`;
+    }
     return renderStatus();
   }
-  state.decoded[i] = id;
-  state.selected = nextUndecoded();
+  state.decoded[p] = id;
   state.note = '';
-  if (allDecoded()) return enterRead();
+  afterDecode();
+}
+
+/** Called after a group is decoded: advance, or check whether the marked groups now form the message. */
+function afterDecode() {
+  const pending = markedSorted().find((p) => state.decoded[p] === undefined);
+  state.selected = pending ?? null;
+  if (state.marked.length === tx.slots.length && allDecoded()) {
+    if (parses(tx, state.marked)) return enterRead();
+    const have = markedSorted().map((p) => state.decoded[p]).map((id) => cellById(tx, id).kind).join(' → ');
+    state.note = `These groups do not form the sentence. Blanks need: ${tx.slots.join(' → ')}. You have: ${have}. Some of your groups are decoys: click a marked group in the signal to unmark it.`;
+    state.selected = null;
+  }
   renderAll();
 }
 
@@ -144,11 +211,20 @@ function renderStatus() {
   const el = $('status');
   el.classList.remove('hedge');
   if (state.phase === 'find') {
-    const i = state.selected;
-    const g = i === null ? null : tx.groups[i];
-    el.textContent = state.note || (g
-      ? `Group ${g}: ignore the Z. ${g[1]} gives the row (vertical key), ${g[2]} gives the column (horizontal key). Click that cell in the table.`
-      : 'Pick a group to decode.');
+    const p = state.selected;
+    const g = p === null ? null : groupAt(tx, p);
+    let text;
+    if (g && state.decoded[p] === undefined) {
+      text = g.damaged
+        ? `Group ${g.shown}: a letter is lost (?). The letter that is left still gives a row or a column. Click a cell of the table.`
+        : `Group ${g.shown}: ignore the Z. ${g.shown[1]} gives the row (vertical key), ${g.shown[2]} gives the column (horizontal key). Click that cell of the table.`;
+    } else if (markedSorted().some((_, k) => fitsBlank(k) === false)) {
+      const k = markedSorted().findIndex((_, i) => fitsBlank(i) === false);
+      text = `Group ${k + 1} (${wordAt(markedSorted()[k])}) does not fit the blank "${tx.slots[k] ?? 'extra'}". It may be a decoy: click it in the signal to unmark it.`;
+    } else {
+      text = `Find the ${tx.slots.length} groups of the message. Every group starts with Z, but not every Z group belongs to the message. Click a Z to mark it.`;
+    }
+    el.textContent = state.note || text;
     return;
   }
   el.textContent = renderSentence(tx, state.selection);
@@ -177,42 +253,56 @@ const KIND_NAMES = { who: 'who', place: 'place', action: 'action', thing: 'thing
 
 function renderBoard() {
   const finding = state.phase === 'find';
-  $('boardTitle').textContent = finding ? 'DECODING SHEET — DECODE THE GROUPS' : 'DECODING SHEET — READ THE MESSAGE';
+  $('boardTitle').textContent = finding ? 'DECODING SHEET — FIND AND DECODE THE GROUPS' : 'DECODING SHEET — READ THE MESSAGE';
   $('readBox').hidden = finding;
   $('controls').hidden = !finding;
 
   const picks = $('picks');
   picks.replaceChildren();
-  tx.slots.forEach((slot, k) => {
+  const sorted = markedSorted();
+  const count = Math.max(tx.slots.length, sorted.length);
+  for (let k = 0; k < count; k++) {
+    const slot = tx.slots[k];
+    const p = sorted[k];
     const chip = document.createElement('div');
-    const done = state.decoded[k] !== undefined;
-    chip.className = `pick kind-${slot}` + (done ? ' filled' : '') + (state.selected === k ? ' sel' : '');
-    chip.innerHTML = `<div class="type">${k + 1}. ${slot}</div><div class="k">${tx.groups[k]}</div><div class="m">${wordOf(k) ?? SLOT_HELP[slot]}</div>`;
-    if (finding) chip.addEventListener('click', () => { state.selected = k; state.note = ''; renderAll(); });
+    const fit = fitsBlank(k);
+    chip.className = `pick kind-${slot ?? 'extra'}` + (p !== undefined ? ' filled' : '') + (p !== undefined && p === state.selected ? ' sel' : '') + (fit === false ? ' bad' : '');
+    const g = p === undefined ? null : groupAt(tx, p);
+    const sub = p === undefined ? SLOT_HELP[slot] : (wordAt(p) ?? 'not decoded yet');
+    chip.innerHTML = `<div class="type">${k + 1}. ${slot ?? 'extra'}</div><div class="k">${g ? g.shown : '···'}</div><div class="m">${sub}${fit === false ? '<br>does not fit this blank' : ''}</div>`;
+    if (finding && p !== undefined) chip.addEventListener('click', () => { state.selected = p; state.note = ''; renderAll(); });
     picks.append(chip);
-  });
+  }
 
   if (finding) {
     $('controls').replaceChildren(
-      btn('AUTO (1 ●): decode the selected group', autoDecode, state.intuition < 1 || state.selected === null),
+      btn('AUTO (1 ●): find the next real group', autoFind, state.intuition < 1 || !nextReal()),
+      btn('Clear', () => { state.marked = []; state.decoded = {}; state.selected = null; state.note = ''; renderAll(); }, state.marked.length === 0),
     );
-    $('legend').textContent = 'Decode the groups in any order. The message reads in the order shown: ' + tx.slots.join(' → ') + '.';
+    $('legend').textContent = 'Blanks, in order: ' + tx.slots.join(' → ') + '. A number or a spelled letter is the group right after its marker.';
   } else {
     renderReadBox();
     $('legend').textContent = 'Ambiguous phrases have several meanings. Choose from the crew and map context, or HEDGE to hold both.';
   }
 }
 
-function autoDecode() {
+function nextReal() {
+  return tx.real.find((p) => !state.marked.includes(p) || state.decoded[p] === undefined) ?? null;
+}
+
+function autoFind() {
   const left = spendIntuition(state.intuition);
-  const i = state.selected;
-  if (left === null || i === null) return;
+  const p = nextReal();
+  if (left === null || p === null) return;
   state.intuition = left;
-  state.decoded[i] = tx.cipher[i];
-  state.selected = nextUndecoded();
+  if (!state.marked.includes(p)) {
+    // make room: drop any marked group that overlaps the real one
+    state.marked = state.marked.filter((q) => Math.abs(q - p) >= 3);
+    state.marked.push(p);
+  }
+  state.decoded[p] = groupAt(tx, p).id;
   state.note = '';
-  if (allDecoded()) return enterRead();
-  renderAll();
+  afterDecode();
 }
 
 function enterRead() {
@@ -296,8 +386,8 @@ function renderGuide() {
 /** The sentence with a blank for every key still to find; found keys are filled in as words. */
 function renderFrame() {
   const words = {};
-  tx.slots.forEach((_, k) => {
-    if (state.decoded[k] !== undefined) words[k] = wordOf(k).replace(/^number /, '');
+  markedSorted().forEach((p, k) => {
+    if (k < tx.slots.length && state.decoded[p] !== undefined) words[k] = wordAt(p).replace(/^number /, '');
   });
   const el = $('frame');
   el.replaceChildren();
@@ -342,7 +432,7 @@ function renderMatrix() {
 
 /** The daily key: which letters stand for which digit. The letters of the selected group are lit. */
 function renderKeyCard() {
-  const g = state.selected === null || state.phase !== 'find' ? null : tx.groups[state.selected];
+  const g = state.selected === null || state.phase !== 'find' ? null : groupAt(tx, state.selected)?.shown;
   const half = (title, letters, lit) => {
     const cells = letters.map((ls, d) => {
       const chars = [...ls].map((ch) => `<span class="kl${ch === lit ? ' hit' : ''}">${ch}</span>`).join('');
