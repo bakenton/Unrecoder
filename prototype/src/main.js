@@ -1,7 +1,6 @@
 import {
-  ORDERS, MAX_INTUITION, MAX_TRIES, prepare, cellById, numberOf, tokenOfCells, areAdjacent, overlaps, parses,
-  pickedKeys, likeness, isLocked, realPick, samePick, sortPicks, meaningsOf, judgeReading, renderSentence,
-  resolve, applyCrew, spendIntuition, gainIntuition,
+  ORDERS, MAX_INTUITION, prepare, cellById, numberOf, checkGuess, meaningsOf, judgeReading,
+  renderSentence, resolve, applyCrew, spendIntuition, gainIntuition,
 } from './core/engine.js';
 
 const ORDER_LABELS = { continue: 'Continue', wait: 'Wait', back: 'Back to last CP', hurry: 'Hurry', base: 'Return to base' };
@@ -47,10 +46,8 @@ function begin() {
     phase: 'find', // 'find' -> 'read' -> 'sent'
     crew: start.crew,
     intuition: start.intuition,
-    picks: [], // {a, b} pairs of dump cells the player marked as keys
-    anchor: null, // first click of a pair
-    tries: MAX_TRIES,
-    likeness: null,
+    decoded: {}, // group index -> cell id the player found
+    selected: 0, // group being decoded
     note: '',
     selection: {}, // message index -> words
     hedge: {}, // message index -> bool
@@ -64,85 +61,80 @@ function begin() {
 }
 
 function renderAll() {
-  renderDump();
+  renderGroups();
   renderStatus();
   renderBoard();
   renderIntuition();
   renderCrew();
   renderFrame();
   renderGuide();
+  renderKeyCard();
   renderMatrix();
   renderMap();
   renderOrders();
 }
 
-// ---------- dump ----------
-
-function pickAt(i) {
-  return state.picks.find((p) => p.a === i || p.b === i);
+/** Decoded cell ids in message order (complete once every group is decoded). */
+function keysFound() {
+  return tx.cipher.map((_, i) => state.decoded[i]);
 }
 
-function renderDump() {
-  const root = $('dump');
+function allDecoded() {
+  return tx.cipher.every((_, i) => state.decoded[i] !== undefined);
+}
+
+function wordOf(i) {
+  const id = state.decoded[i];
+  if (id === undefined) return null;
+  return tx.slots[i] === 'number' ? `number ${numberOf(id)}` : cellById(tx, id).meanings.join(' / ');
+}
+
+function nextUndecoded() {
+  const k = tx.cipher.findIndex((_, i) => state.decoded[i] === undefined);
+  return k < 0 ? null : k;
+}
+
+// ---------- radio: the groups ----------
+
+function renderGroups() {
+  const root = $('groups');
   root.replaceChildren();
-  const finding = state.phase === 'find';
-  for (let row = 0; row * tx.cols < tx.dump.length; row++) {
-    const line = document.createElement('div');
-    line.className = 'dline';
-    const addr = document.createElement('span');
-    addr.className = 'addr';
-    addr.textContent = '0x' + (row * tx.cols).toString(16).toUpperCase().padStart(3, '0');
-    line.append(addr);
-    for (let c = 0; c < tx.cols; c++) {
-      const i = row * tx.cols + c;
-      if (i >= tx.dump.length) break;
-      const cell = document.createElement('button');
-      cell.type = 'button';
-      cell.className = 'cell';
-      cell.textContent = tx.dump[i];
-      cell.dataset.i = String(i);
-      if (pickAt(i)) cell.classList.add('picked');
-      if (state.anchor === i) cell.classList.add('anchor');
-      if (!finding) cell.disabled = true;
-      line.append(cell);
-    }
-    root.append(line);
-  }
+  tx.groups.forEach((g, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'group' + (state.selected === i ? ' sel' : '') + (state.decoded[i] !== undefined ? ' done' : '');
+    b.dataset.i = String(i);
+    b.disabled = state.phase !== 'find';
+    b.innerHTML = `<span class="g"><span class="z">${g[0]}</span>${g.slice(1)}</span><span class="w">${wordOf(i) ?? '?'}</span>`;
+    root.append(b);
+  });
 }
 
-// Delegated listener: the dump is re-rendered on state changes only, never on hover.
-$('dump').addEventListener('click', (e) => {
-  const cell = e.target.closest('.cell');
-  if (cell && !cell.disabled) onCell(Number(cell.dataset.i));
+$('groups').addEventListener('click', (e) => {
+  const g = e.target.closest('.group');
+  if (g && !g.disabled) { state.selected = Number(g.dataset.i); state.note = ''; renderAll(); }
 });
 
-function onCell(i) {
-  const existing = pickAt(i);
-  if (existing && state.anchor === null) {
-    state.picks = state.picks.filter((p) => p !== existing);
-    state.note = '';
-    return renderAll();
+// ---------- decoding: the table guess ----------
+
+function onMatrixCell(id) {
+  if (state.phase !== 'find') return;
+  const i = state.selected;
+  if (i === null) { state.note = 'Pick a group in the signal first.'; return renderStatus(); }
+  const r = checkGuess(tx, i, id);
+  if (!r.ok) {
+    const g = tx.groups[i];
+    state.note = r.row
+      ? `Row ${id[0]} is right, the column is not. Look the letter ${g[2]} up in the horizontal key.`
+      : r.col
+        ? `Column ${id[1]} is right, the row is not. Look the letter ${g[1]} up in the vertical key.`
+        : `Neither is right. ${g[1]} is a row letter (vertical key), ${g[2]} is a column letter (horizontal key).`;
+    return renderStatus();
   }
-  if (state.anchor === null) {
-    state.anchor = i;
-    state.note = '';
-    return renderAll();
-  }
-  const first = state.anchor;
-  state.anchor = null;
-  const pair = { a: first, b: i };
-  if (first === i) {
-    state.note = '';
-  } else if (!areAdjacent(tx, first, i)) {
-    state.note = 'The two labels of a key touch: side by side or one above the other.';
-  } else if (!tokenOfCells(tx, first, i)) {
-    state.note = `${tx.dump[first]} + ${tx.dump[i]} is not a row label with a column label.`;
-  } else if (state.picks.some((p) => overlaps(p, pair))) {
-    state.note = 'That uses a label of a key you already marked. Click a marked key to unmark it.';
-  } else {
-    state.picks.push(pair);
-    state.note = '';
-  }
+  state.decoded[i] = id;
+  state.selected = nextUndecoded();
+  state.note = '';
+  if (allDecoded()) return enterRead();
   renderAll();
 }
 
@@ -150,19 +142,17 @@ function onCell(i) {
 
 function renderStatus() {
   const el = $('status');
+  el.classList.remove('hedge');
   if (state.phase === 'find') {
-    el.classList.remove('hedge');
-    el.textContent = state.note || (state.likeness === null
-      ? `Find ${tx.slots.length} keys: a digit touching a letter a-j. Click one, then the other.`
-      : `Likeness ${state.likeness}/${tx.slots.length} — ${state.tries} ${state.tries === 1 ? 'try' : 'tries'} left.`);
+    const i = state.selected;
+    const g = i === null ? null : tx.groups[i];
+    el.textContent = state.note || (g
+      ? `Group ${g}: ignore the Z. ${g[1]} gives the row (vertical key), ${g[2]} gives the column (horizontal key). Click that cell in the table.`
+      : 'Pick a group to decode.');
     return;
   }
   el.textContent = renderSentence(tx, state.selection);
   el.classList.toggle('hedge', judgeReading(tx, state.selection, keysFound()) === 'hedged');
-}
-
-function keysFound() {
-  return pickedKeys(tx, state.picks);
 }
 
 function renderIntuition() {
@@ -181,91 +171,54 @@ function btn(label, onClick, disabled = false, cls = '') {
 
 const SLOT_HELP = {
   who: 'who is it about?', place: 'where?', action: 'what happened?', thing: 'about what?', state: 'in what state?',
-  marker: 'announces a number or spelling', number: 'the pair right after the marker', letter: 'next letter of the word',
+  marker: 'announces a number or spelling', number: 'the group right after the marker', letter: 'next letter of the word',
 };
 const KIND_NAMES = { who: 'who', place: 'place', action: 'action', thing: 'thing', state: 'state', marker: 'marker', letter: 'letter', service: 'service' };
 
 function renderBoard() {
   const finding = state.phase === 'find';
-  $('boardTitle').textContent = finding ? 'DECODING SHEET — FIND THE KEYS' : 'DECODING SHEET — READ THE MESSAGE';
+  $('boardTitle').textContent = finding ? 'DECODING SHEET — DECODE THE GROUPS' : 'DECODING SHEET — READ THE MESSAGE';
   $('readBox').hidden = finding;
   $('controls').hidden = !finding;
 
   const picks = $('picks');
   picks.replaceChildren();
-  const sorted = sortPicks(state.picks);
   tx.slots.forEach((slot, k) => {
-    const p = sorted[k];
     const chip = document.createElement('div');
-    chip.className = `pick kind-${slot}` + (p ? ' filled' : '');
-    let main = '···';
-    let sub = SLOT_HELP[slot];
-    if (p) {
-      const t = tokenOfCells(tx, p.a, p.b);
-      main = t.id;
-      sub = slot === 'number' ? `number ${numberOf(t.id)}` : (t.cell?.text ?? '');
-    }
-    chip.innerHTML = `<div class="type">${k + 1}. ${slot}</div><div class="k">${main}</div><div class="m">${sub}</div>`;
+    const done = state.decoded[k] !== undefined;
+    chip.className = `pick kind-${slot}` + (done ? ' filled' : '') + (state.selected === k ? ' sel' : '');
+    chip.innerHTML = `<div class="type">${k + 1}. ${slot}</div><div class="k">${tx.groups[k]}</div><div class="m">${wordOf(k) ?? SLOT_HELP[slot]}</div>`;
+    if (finding) chip.addEventListener('click', () => { state.selected = k; state.note = ''; renderAll(); });
     picks.append(chip);
   });
-  if (sorted.length > tx.slots.length) {
-    const extra = document.createElement('div');
-    extra.className = 'pick extra';
-    extra.textContent = `+${sorted.length - tx.slots.length} extra`;
-    picks.append(extra);
-  }
 
   if (finding) {
     $('controls').replaceChildren(
-      btn(`TRY (${'●'.repeat(state.tries)}${'○'.repeat(MAX_TRIES - state.tries)})`, tryPicks, state.tries < 1 || state.picks.length === 0, 'primary'),
-      btn('AUTO (1 ●)', autoPick, state.intuition < 1 || realMissing().length === 0),
-      btn('Clear', () => { state.picks = []; state.note = ''; renderAll(); }, state.picks.length === 0),
-      btn('Move on with this reading', enterRead, state.likeness === null || state.picks.length !== tx.slots.length),
+      btn('AUTO (1 ●): decode the selected group', autoDecode, state.intuition < 1 || state.selected === null),
     );
-    $('legend').textContent = 'Mark the keys in reading order: ' + tx.slots.join(' → ') + '. A number or a spelled letter is the pair right after its marker.';
+    $('legend').textContent = 'Decode the groups in any order. The message reads in the order shown: ' + tx.slots.join(' → ') + '.';
   } else {
     renderReadBox();
     $('legend').textContent = 'Ambiguous phrases have several meanings. Choose from the crew and map context, or HEDGE to hold both.';
   }
 }
 
-function realMissing() {
-  return tx.cipher.map((_, i) => realPick(tx, i)).filter((r) => !state.picks.some((p) => samePick(p, r)));
-}
-
-function tryPicks() {
-  if (state.picks.length !== tx.slots.length) {
-    state.note = `The message has ${tx.slots.length} keys; you marked ${state.picks.length}. (No try used.)`;
-    return renderAll();
-  }
-  if (!parses(tx, state.picks)) {
-    const have = sortPicks(state.picks).map((p) => tokenOfCells(tx, p.a, p.b).cell?.kind).join(' → ');
-    state.note = `Does not fit the message yet. Need ${tx.slots.join(' → ')} in reading order; you have: ${have}. (No try used.)`;
-    return renderAll();
-  }
-  state.note = '';
-  state.tries -= 1;
-  state.likeness = likeness(tx, state.picks);
-  if (isLocked(tx, state.picks) || state.tries === 0) return enterRead();
-  renderAll();
-}
-
-function autoPick() {
+function autoDecode() {
   const left = spendIntuition(state.intuition);
-  if (left === null) return;
-  const missing = realMissing();
-  if (!missing.length) return;
+  const i = state.selected;
+  if (left === null || i === null) return;
   state.intuition = left;
-  const reveal = missing[0];
-  state.picks = state.picks.filter((p) => !overlaps(p, reveal));
-  state.picks.push(reveal);
+  state.decoded[i] = tx.cipher[i];
+  state.selected = nextUndecoded();
   state.note = '';
+  if (allDecoded()) return enterRead();
   renderAll();
 }
 
 function enterRead() {
   state.phase = 'read';
   state.note = '';
+  state.selected = null;
   keysFound().forEach((id, i) => {
     const meanings = meaningsOf(tx, i, id);
     if (meanings.length === 1) state.selection[i] = [meanings[0]];
@@ -342,12 +295,9 @@ function renderGuide() {
 
 /** The sentence with a blank for every key still to find; found keys are filled in as words. */
 function renderFrame() {
-  const sorted = sortPicks(state.picks);
   const words = {};
-  sorted.forEach((p, k) => {
-    if (k >= tx.slots.length) return;
-    const t = tokenOfCells(tx, p.a, p.b);
-    words[k] = tx.slots[k] === 'number' ? numberOf(t.id) : (t.cell?.meanings.join(' / ') ?? '?');
+  tx.slots.forEach((_, k) => {
+    if (state.decoded[k] !== undefined) words[k] = wordOf(k).replace(/^number /, '');
   });
   const el = $('frame');
   el.replaceChildren();
@@ -369,20 +319,40 @@ function renderMatrix() {
   const t = document.createElement('table');
   t.className = 'grid matrix';
   const head = document.createElement('tr');
-  head.innerHTML = '<th></th>' + [...'abcdefghij'].map((c, i) => `<th>${c}<small>${i}</small></th>`).join('');
+  head.innerHTML = '<th></th>' + [...'0123456789'].map((c) => `<th>${c}</th>`).join('');
   t.append(head);
+  const found = new Set(Object.values(state.decoded));
   for (let r = 0; r < 10; r++) {
     const tr = document.createElement('tr');
-    let html = `<th>${r}</th>`;
-    for (const c of 'abcdefghij') {
-      const cell = cellById(tx, `${r}${c}`);
-      const multi = cell.meanings.length > 1;
-      html += `<td class="kind-${cell.kind}${multi ? ' multi' : ''}" title="${r}${c}">${cell.text}</td>`;
+    tr.innerHTML = `<th>${r}</th>`;
+    for (let c = 0; c < 10; c++) {
+      const id = `${r}${c}`;
+      const cell = cellById(tx, id);
+      const td = document.createElement('td');
+      td.className = `kind-${cell.kind}` + (cell.meanings.length > 1 ? ' multi' : '') + (found.has(id) ? ' found' : '');
+      td.textContent = cell.text;
+      td.title = id;
+      td.addEventListener('click', () => onMatrixCell(id));
+      tr.append(td);
     }
-    tr.innerHTML = html;
     t.append(tr);
   }
   $('codeTable').replaceChildren(t);
+}
+
+/** The daily key: which letters stand for which digit. The letters of the selected group are lit. */
+function renderKeyCard() {
+  const g = state.selected === null || state.phase !== 'find' ? null : tx.groups[state.selected];
+  const half = (title, letters, lit) => {
+    const cells = letters.map((ls, d) => {
+      const chars = [...ls].map((ch) => `<span class="kl${ch === lit ? ' hit' : ''}">${ch}</span>`).join('');
+      return `<span class="kd"><b>${d}</b>${chars}</span>`;
+    }).join('');
+    return `<div class="keyhalf"><div class="kt">${title}</div><div class="kr">${cells}</div></div>`;
+  };
+  $('keyCard').innerHTML =
+    half('VERTICAL KEY: letter → row digit', tx.key.rows, g?.[1]) +
+    half('HORIZONTAL KEY: letter → column digit', tx.key.cols, g?.[2]);
 }
 
 function renderMap() {
@@ -462,8 +432,4 @@ $('hintBtn').addEventListener('click', () => {
   h.textContent = 'Hint: ' + tx.hint;
   h.hidden = !h.hidden;
 });
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && state.anchor !== null) { state.anchor = null; renderDump(); }
-});
-
 boot();

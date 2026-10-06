@@ -102,191 +102,121 @@
  },
  "matrix": {
   "rows": "0123456789",
-  "cols": "abcdefghij",
+  "cols": "0123456789",
   "cells": {
-   "0a": {
-    "kind": "state",
-    "text": "windy",
-    "meanings": [
-     "windy"
-    ]
-   },
-   "0b": {
-    "kind": "who",
-    "text": "medic",
-    "meanings": [
-     "medic"
-    ]
-   },
-   "0c": {
-    "kind": "state",
-    "text": "cold",
-    "meanings": [
-     "cold"
-    ]
-   },
-   "0d": {
-    "kind": "thing",
-    "text": "map",
-    "meanings": [
-     "map"
-    ]
-   },
-   "0e": {
-    "kind": "state",
-    "text": "safe",
-    "meanings": [
-     "safe"
-    ]
-   },
-   "0f": {
-    "kind": "letter",
-    "text": "E",
-    "meanings": [
-     "E"
-    ]
-   },
-   "0g": {
-    "kind": "letter",
-    "text": "I",
-    "meanings": [
-     "I"
-    ]
-   },
-   "0h": {
-    "kind": "place",
-    "text": "base",
-    "meanings": [
-     "base"
-    ]
-   },
-   "0i": {
-    "kind": "thing",
-    "text": "stove",
-    "meanings": [
-     "stove"
-    ]
-   },
-   "0j": {
-    "kind": "service",
-    "text": "say again",
-    "meanings": [
-     "say again"
-    ]
-   },
-   "1a": {
+   "10": {
     "kind": "action",
     "text": "climbed",
     "meanings": [
      "climbed"
     ]
    },
-   "1b": {
+   "11": {
     "kind": "service",
     "text": "understood",
     "meanings": [
      "understood"
     ]
    },
-   "1c": {
+   "12": {
     "kind": "thing",
     "text": "tent",
     "meanings": [
      "tent"
     ]
    },
-   "1d": {
+   "13": {
     "kind": "thing",
     "text": "sample",
     "meanings": [
      "sample"
     ]
    },
-   "1e": {
+   "14": {
     "kind": "letter",
     "text": "G",
     "meanings": [
      "G"
     ]
    },
-   "1f": {
+   "15": {
     "kind": "thing",
     "text": "boots",
     "meanings": [
      "boots"
     ]
    },
-   "1g": {
+   "16": {
     "kind": "action",
     "text": "found",
     "meanings": [
      "found"
     ]
    },
-   "1h": {
+   "17": {
     "kind": "thing",
     "text": "food",
     "meanings": [
      "food"
     ]
    },
-   "1i": {
+   "18": {
     "kind": "who",
     "text": "team",
     "meanings": [
      "team"
     ]
    },
-   "1j": {
+   "19": {
     "kind": "letter",
     "text": "O",
     "meanings": [
      "O"
     ]
    },
-   "2a": {
+   "20": {
     "kind": "state",
     "text": "snowing",
     "meanings": [
      "snowing"
     ]
    },
-   "2b": {
+   "21": {
     "kind": "action",
     "text": "resting",
     "meanings": [
      "resting"
     ]
    },
-   "2c": {
+   "22": {
     "kind": "state",
     "text": "ready",
     "meanings": [
      "ready"
     ]
    },
-   "2d": {
+   "23": {
     "kind": "marker",
     "text": "spell",
     "meanings": [
      "spell"
     ]
    },
-   "2e": {
+   "24": {
     "kind": "place",
     "text": "cave",
     "meanings": [
      "cave"
     ]
    },
-   "2f": {
+   "25": {
     "kind": "place",
     "text": "summit",
     "meanings": [
      "summit"
     ]
    },
-   "2g": {
+   "26": {
     "kind": "state",
     "text": "broken / repaired",
     "meanings": [
@@ -294,515 +224,585 @@
      "repaired"
     ]
    },
-   "2h": {
+   "27": {
     "kind": "thing",
     "text": "fuel",
     "meanings": [
      "fuel"
     ]
    },
-   "2i": {
+   "28": {
     "kind": "action",
     "text": "moving",
     "meanings": [
      "moving"
     ]
    },
-   "2j": {
+   "29": {
     "kind": "place",
     "text": "CP4",
     "meanings": [
      "CP4"
     ]
    },
-   "3a": {
+   "30": {
     "kind": "letter",
     "text": "J",
     "meanings": [
      "J"
     ]
    },
-   "3b": {
+   "31": {
     "kind": "thing",
     "text": "gloves",
     "meanings": [
      "gloves"
     ]
    },
-   "3c": {
+   "32": {
     "kind": "state",
     "text": "hungry",
     "meanings": [
      "hungry"
     ]
    },
-   "3d": {
+   "33": {
     "kind": "action",
     "text": "left",
     "meanings": [
      "left"
     ]
    },
-   "3e": {
+   "34": {
     "kind": "who",
     "text": "guide",
     "meanings": [
      "guide"
     ]
    },
-   "3f": {
+   "35": {
     "kind": "letter",
     "text": "Z",
     "meanings": [
      "Z"
     ]
    },
-   "3g": {
+   "36": {
     "kind": "state",
     "text": "wet",
     "meanings": [
      "wet"
     ]
    },
-   "3h": {
+   "37": {
     "kind": "action",
     "text": "searching",
     "meanings": [
      "searching"
     ]
    },
-   "3i": {
+   "38": {
     "kind": "action",
     "text": "waiting",
     "meanings": [
      "waiting"
     ]
    },
-   "3j": {
+   "39": {
     "kind": "letter",
     "text": "S",
     "meanings": [
      "S"
     ]
    },
-   "4a": {
+   "40": {
     "kind": "action",
     "text": "returning",
     "meanings": [
      "returning"
     ]
    },
-   "4b": {
+   "41": {
     "kind": "place",
     "text": "CP2",
     "meanings": [
      "CP2"
     ]
    },
-   "4c": {
+   "42": {
     "kind": "letter",
     "text": "T",
     "meanings": [
      "T"
     ]
    },
-   "4d": {
+   "43": {
     "kind": "letter",
     "text": "W",
     "meanings": [
      "W"
     ]
    },
-   "4e": {
+   "44": {
     "kind": "letter",
     "text": "N",
     "meanings": [
      "N"
     ]
    },
-   "4f": {
+   "45": {
     "kind": "letter",
     "text": "Y",
     "meanings": [
      "Y"
     ]
    },
-   "4g": {
+   "46": {
     "kind": "service",
     "text": "stand by",
     "meanings": [
      "stand by"
     ]
    },
-   "4h": {
+   "47": {
     "kind": "thing",
     "text": "rope",
     "meanings": [
      "rope"
     ]
    },
-   "4i": {
+   "48": {
     "kind": "letter",
     "text": "M",
     "meanings": [
      "M"
     ]
    },
-   "4j": {
+   "49": {
     "kind": "thing",
     "text": "blanket",
     "meanings": [
      "blanket"
     ]
    },
-   "5a": {
+   "50": {
     "kind": "marker",
     "text": "number",
     "meanings": [
      "number"
     ]
    },
-   "5b": {
+   "51": {
     "kind": "letter",
     "text": "V",
     "meanings": [
      "V"
     ]
    },
-   "5c": {
+   "52": {
     "kind": "who",
     "text": "leader",
     "meanings": [
      "leader"
     ]
    },
-   "5d": {
+   "53": {
     "kind": "thing",
     "text": "sled",
     "meanings": [
      "sled"
     ]
    },
-   "5e": {
+   "54": {
     "kind": "action",
     "text": "camped",
     "meanings": [
      "camped"
     ]
    },
-   "5f": {
+   "55": {
     "kind": "letter",
     "text": "K",
     "meanings": [
      "K"
     ]
    },
-   "5g": {
+   "56": {
     "kind": "letter",
     "text": "H",
     "meanings": [
      "H"
     ]
    },
-   "5h": {
+   "57": {
     "kind": "who",
     "text": "porter",
     "meanings": [
      "porter"
     ]
    },
-   "5i": {
+   "58": {
     "kind": "thing",
     "text": "bridge",
     "meanings": [
      "bridge"
     ]
    },
-   "5j": {
+   "59": {
     "kind": "letter",
     "text": "B",
     "meanings": [
      "B"
     ]
    },
-   "6a": {
+   "60": {
     "kind": "letter",
     "text": "X",
     "meanings": [
      "X"
     ]
    },
-   "6b": {
+   "61": {
     "kind": "thing",
     "text": "radio",
     "meanings": [
      "radio"
     ]
    },
-   "6c": {
+   "62": {
     "kind": "service",
     "text": "radio check",
     "meanings": [
      "radio check"
     ]
    },
-   "6d": {
+   "63": {
     "kind": "letter",
     "text": "D",
     "meanings": [
      "D"
     ]
    },
-   "6e": {
+   "64": {
     "kind": "place",
     "text": "CP3",
     "meanings": [
      "CP3"
     ]
    },
-   "6f": {
+   "65": {
     "kind": "letter",
     "text": "F",
     "meanings": [
      "F"
     ]
    },
-   "6g": {
+   "66": {
     "kind": "thing",
     "text": "tarp",
     "meanings": [
      "tarp"
     ]
    },
-   "6h": {
+   "67": {
     "kind": "letter",
     "text": "Q",
     "meanings": [
      "Q"
     ]
    },
-   "6i": {
+   "68": {
     "kind": "state",
     "text": "low battery",
     "meanings": [
      "low battery"
     ]
    },
-   "6j": {
+   "69": {
     "kind": "state",
     "text": "injured",
     "meanings": [
      "injured"
     ]
    },
-   "7a": {
+   "70": {
     "kind": "place",
     "text": "valley",
     "meanings": [
      "valley"
     ]
    },
-   "7b": {
+   "71": {
     "kind": "letter",
     "text": "R",
     "meanings": [
      "R"
     ]
    },
-   "7c": {
+   "72": {
     "kind": "thing",
     "text": "compass",
     "meanings": [
      "compass"
     ]
    },
-   "7d": {
+   "73": {
     "kind": "service",
     "text": "no reply",
     "meanings": [
      "no reply"
     ]
    },
-   "7e": {
+   "74": {
     "kind": "place",
     "text": "CP1",
     "meanings": [
      "CP1"
     ]
    },
-   "7f": {
+   "75": {
     "kind": "action",
     "text": "reached",
     "meanings": [
      "reached"
     ]
    },
-   "7g": {
+   "76": {
     "kind": "letter",
     "text": "U",
     "meanings": [
      "U"
     ]
    },
-   "7h": {
+   "77": {
     "kind": "thing",
     "text": "flare",
     "meanings": [
      "flare"
     ]
    },
-   "7i": {
+   "78": {
     "kind": "place",
     "text": "glacier",
     "meanings": [
      "glacier"
     ]
    },
-   "7j": {
+   "79": {
     "kind": "action",
     "text": "crossed",
     "meanings": [
      "crossed"
     ]
    },
-   "8a": {
+   "80": {
     "kind": "place",
     "text": "pass",
     "meanings": [
      "pass"
     ]
    },
-   "8b": {
+   "81": {
     "kind": "thing",
     "text": "camp",
     "meanings": [
      "camp"
     ]
    },
-   "8c": {
+   "82": {
     "kind": "letter",
     "text": "A",
     "meanings": [
      "A"
     ]
    },
-   "8d": {
+   "83": {
     "kind": "who",
     "text": "member",
     "meanings": [
      "member"
     ]
    },
-   "8e": {
+   "84": {
     "kind": "letter",
     "text": "C",
     "meanings": [
      "C"
     ]
    },
-   "8f": {
+   "85": {
     "kind": "place",
     "text": "river",
     "meanings": [
      "river"
     ]
    },
-   "8g": {
+   "86": {
     "kind": "place",
     "text": "south ridge",
     "meanings": [
      "south ridge"
     ]
    },
-   "8h": {
+   "87": {
     "kind": "thing",
     "text": "ice axe",
     "meanings": [
      "ice axe"
     ]
    },
-   "8i": {
+   "88": {
     "kind": "letter",
     "text": "L",
     "meanings": [
      "L"
     ]
    },
-   "8j": {
+   "89": {
     "kind": "place",
     "text": "hut",
     "meanings": [
      "hut"
     ]
    },
-   "9a": {
+   "90": {
     "kind": "action",
     "text": "stopped",
     "meanings": [
      "stopped"
     ]
    },
-   "9b": {
+   "91": {
     "kind": "service",
     "text": "over",
     "meanings": [
      "over"
     ]
    },
-   "9c": {
+   "92": {
     "kind": "place",
     "text": "slope",
     "meanings": [
      "slope"
     ]
    },
-   "9d": {
+   "93": {
     "kind": "letter",
     "text": "P",
     "meanings": [
      "P"
     ]
    },
-   "9e": {
+   "94": {
     "kind": "place",
     "text": "camp site",
     "meanings": [
      "camp site"
     ]
    },
-   "9f": {
+   "95": {
     "kind": "state",
     "text": "tired",
     "meanings": [
      "tired"
     ]
    },
-   "9g": {
+   "96": {
     "kind": "place",
     "text": "ridge",
     "meanings": [
      "ridge"
     ]
    },
-   "9h": {
+   "97": {
     "kind": "service",
     "text": "out",
     "meanings": [
      "out"
     ]
    },
-   "9i": {
+   "98": {
     "kind": "action",
     "text": "descending",
     "meanings": [
      "descending"
     ]
    },
-   "9j": {
+   "99": {
     "kind": "state",
     "text": "lost",
     "meanings": [
      "lost"
+    ]
+   },
+   "00": {
+    "kind": "state",
+    "text": "windy",
+    "meanings": [
+     "windy"
+    ]
+   },
+   "01": {
+    "kind": "who",
+    "text": "medic",
+    "meanings": [
+     "medic"
+    ]
+   },
+   "02": {
+    "kind": "state",
+    "text": "cold",
+    "meanings": [
+     "cold"
+    ]
+   },
+   "03": {
+    "kind": "thing",
+    "text": "map",
+    "meanings": [
+     "map"
+    ]
+   },
+   "04": {
+    "kind": "state",
+    "text": "safe",
+    "meanings": [
+     "safe"
+    ]
+   },
+   "05": {
+    "kind": "letter",
+    "text": "E",
+    "meanings": [
+     "E"
+    ]
+   },
+   "06": {
+    "kind": "letter",
+    "text": "I",
+    "meanings": [
+     "I"
+    ]
+   },
+   "07": {
+    "kind": "place",
+    "text": "base",
+    "meanings": [
+     "base"
+    ]
+   },
+   "08": {
+    "kind": "thing",
+    "text": "stove",
+    "meanings": [
+     "stove"
+    ]
+   },
+   "09": {
+    "kind": "service",
+    "text": "say again",
+    "meanings": [
+     "say again"
     ]
    }
   }
@@ -819,11 +819,11 @@
     "state"
    ],
    "cipher": [
-    "1i",
-    "2j",
-    "7f",
-    "5i",
-    "2g"
+    "18",
+    "29",
+    "75",
+    "58",
+    "26"
    ],
    "clauses": [
     {
@@ -883,126 +883,38 @@
      "crew": []
     }
    },
-   "cols": 12,
-   "dump": [
-    "w",
-    "o",
-    "2",
-    "w",
-    "m",
-    "9",
-    "s",
-    "6",
-    "x",
-    "9",
-    "2",
-    "n",
-    "h",
-    "t",
-    "6",
-    "x",
-    "1",
-    "u",
-    "k",
-    "p",
-    "u",
-    "n",
-    "q",
-    "s",
-    "g",
-    "n",
-    "w",
-    "u",
-    "i",
-    "s",
-    "2",
-    "j",
-    "l",
-    "1",
-    "8",
-    "t",
-    "o",
-    "u",
-    "2",
-    "w",
-    "n",
-    "s",
-    "3",
-    "x",
-    "t",
-    "k",
-    "u",
-    "f",
-    "j",
-    "o",
-    "5",
-    "5",
-    "s",
-    "k",
-    "k",
-    "s",
-    "t",
-    "u",
-    "2",
-    "7",
-    "s",
-    "6",
-    "0",
-    "o",
-    "3",
-    "s",
-    "2",
-    "n",
-    "r",
-    "i",
-    "5",
-    "2",
-    "3",
-    "y",
-    "1",
-    "2",
-    "9",
-    "4",
-    "1",
-    "v",
-    "x",
-    "x",
-    "r",
-    "t",
-    "r",
-    "t",
-    "x",
-    "g",
-    "k",
-    "1",
-    "4",
-    "0",
-    "x",
-    "9",
-    "2",
-    "8"
-   ],
-   "cells": [
-    [
-     16,
-     28
+   "key": {
+    "rows": [
+     "HKO",
+     "ERS",
+     "DNV",
+     "QU",
+     "CGW",
+     "JL",
+     "BM",
+     "FI",
+     "AX",
+     "PTY"
     ],
-    [
-     30,
-     31
-    ],
-    [
-     47,
-     59
-    ],
-    [
-     69,
-     70
-    ],
-    [
-     75,
-     87
+    "cols": [
+     "GST",
+     "CO",
+     "FW",
+     "BMN",
+     "IJQ",
+     "PU",
+     "ALY",
+     "EKV",
+     "DH",
+     "RX"
     ]
+   },
+   "groups": [
+    "ZSD",
+    "ZVR",
+    "ZFU",
+    "ZJH",
+    "ZNA"
    ]
   },
   {
@@ -1016,11 +928,11 @@
     "place"
    ],
    "cipher": [
-    "8d",
-    "5a",
-    "0g",
-    "6j",
-    "2j"
+    "83",
+    "50",
+    "06",
+    "69",
+    "29"
    ],
    "clauses": [
     {
@@ -1088,126 +1000,38 @@
      ]
     }
    },
-   "cols": 12,
-   "dump": [
-    "w",
-    "x",
-    "5",
-    "7",
-    "w",
-    "7",
-    "5",
-    "c",
-    "k",
-    "v",
-    "4",
-    "6",
-    "2",
-    "m",
-    "u",
-    "8",
-    "d",
-    "u",
-    "4",
-    "v",
-    "6",
-    "r",
-    "0",
-    "3",
-    "1",
-    "t",
-    "t",
-    "q",
-    "r",
-    "8",
-    "k",
-    "5",
-    "7",
-    "1",
-    "1",
-    "r",
-    "v",
-    "a",
-    "v",
-    "t",
-    "q",
-    "q",
-    "u",
-    "3",
-    "q",
-    "5",
-    "r",
-    "8",
-    "l",
-    "5",
-    "0",
-    "0",
-    "s",
-    "k",
-    "g",
-    "0",
-    "w",
-    "3",
-    "p",
-    "k",
-    "n",
-    "4",
-    "6",
-    "0",
-    "4",
-    "q",
-    "j",
-    "p",
-    "v",
-    "w",
-    "e",
-    "0",
-    "6",
-    "y",
-    "w",
-    "m",
-    "z",
-    "b",
-    "e",
-    "u",
-    "h",
-    "0",
-    "o",
-    "n",
-    "j",
-    "z",
-    "3",
-    "0",
-    "5",
-    "n",
-    "n",
-    "r",
-    "p",
-    "n",
-    "2",
-    "j"
-   ],
-   "cells": [
-    [
-     15,
-     16
+   "key": {
+    "rows": [
+     "BHM",
+     "LOR",
+     "ADT",
+     "JUY",
+     "EQ",
+     "FK",
+     "NX",
+     "IV",
+     "GS",
+     "CPW"
     ],
-    [
-     37,
-     49
-    ],
-    [
-     54,
-     55
-    ],
-    [
-     72,
-     84
-    ],
-    [
-     94,
-     95
+    "cols": [
+     "FIW",
+     "GMR",
+     "KUV",
+     "PS",
+     "BO",
+     "CT",
+     "EHQ",
+     "DN",
+     "XY",
+     "AJL"
     ]
+   },
+   "groups": [
+    "ZGS",
+    "ZKF",
+    "ZBH",
+    "ZXJ",
+    "ZDL"
    ]
   },
   {
@@ -1222,12 +1046,12 @@
     "letter"
    ],
    "cipher": [
-    "1i",
-    "1g",
-    "2d",
-    "5g",
-    "7g",
-    "4c"
+    "18",
+    "16",
+    "23",
+    "56",
+    "76",
+    "42"
    ],
    "clauses": [
     {
@@ -1282,130 +1106,39 @@
      "crew": []
     }
    },
-   "cols": 12,
-   "dump": [
-    "9",
-    "3",
-    "x",
-    "i",
-    "n",
-    "5",
-    "c",
-    "n",
-    "i",
-    "1",
-    "3",
-    "8",
-    "1",
-    "6",
-    "x",
-    "i",
-    "h",
-    "k",
-    "q",
-    "k",
-    "u",
-    "r",
-    "p",
-    "u",
-    "o",
-    "8",
-    "9",
-    "l",
-    "o",
-    "8",
-    "l",
-    "n",
-    "k",
-    "g",
-    "1",
-    "p",
-    "k",
-    "7",
-    "q",
-    "4",
-    "2",
-    "q",
-    "w",
-    "7",
-    "t",
-    "b",
-    "k",
-    "a",
-    "a",
-    "x",
-    "f",
-    "5",
-    "p",
-    "z",
-    "q",
-    "8",
-    "v",
-    "p",
-    "t",
-    "5",
-    "f",
-    "z",
-    "y",
-    "3",
-    "j",
-    "d",
-    "d",
-    "k",
-    "y",
-    "y",
-    "2",
-    "5",
-    "0",
-    "z",
-    "9",
-    "1",
-    "n",
-    "r",
-    "2",
-    "1",
-    "p",
-    "5",
-    "u",
-    "g",
-    "m",
-    "g",
-    "7",
-    "4",
-    "c",
-    "u",
-    "z",
-    "s",
-    "7",
-    "o",
-    "1",
-    "y"
-   ],
-   "cells": [
-    [
-     8,
-     9
+   "key": {
+    "rows": [
+     "BG",
+     "AD",
+     "HOQ",
+     "KRU",
+     "ISV",
+     "ET",
+     "CXY",
+     "MN",
+     "FW",
+     "JLP"
     ],
-    [
-     33,
-     34
-    ],
-    [
-     66,
-     78
-    ],
-    [
-     71,
-     83
-    ],
-    [
-     85,
-     86
-    ],
-    [
-     87,
-     88
+    "cols": [
+     "JL",
+     "EO",
+     "FS",
+     "CX",
+     "HMT",
+     "KRV",
+     "ADY",
+     "GNP",
+     "IQ",
+     "BUW"
     ]
+   },
+   "groups": [
+    "ZDQ",
+    "ZDD",
+    "ZHX",
+    "ZTY",
+    "ZND",
+    "ZSF"
    ]
   }
  ]

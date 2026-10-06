@@ -164,6 +164,30 @@ body { margin: 0; background: var(--bg); color: var(--paper); }
 .cell { width: 1.6em !important; font-size: 18px; }
 .blank { margin: 0 2px; }
 
+/* ---- v5: Z + two letters, daily key ---- */
+.groups { display: flex; flex-wrap: wrap; gap: 8px; padding: 10px 0 4px; }
+.group { font: inherit; background: #1a1710; border: 1px solid #4b4128; border-radius: 4px; color: var(--amber); padding: 6px 10px; cursor: pointer; text-align: center; min-width: 5.2em; }
+.group .g { display: block; font-size: 24px; letter-spacing: .12em; }
+.group .z { opacity: .35; }
+.group .w { display: block; font-size: 11px; opacity: .7; margin-top: 2px; min-height: 1.2em; }
+.group.sel { background: var(--amber); color: #1a1405; border-color: var(--amber); }
+.group.sel .z { opacity: .5; }
+.group.done:not(.sel) { border-color: #6a8f4a; }
+.group.done .w { color: #bfe3a8; opacity: 1; }
+.group.sel.done .w { color: #1a1405; }
+.pick { cursor: pointer; }
+.pick.sel { outline: 3px solid var(--amber); }
+.keycard { display: grid; gap: 8px; margin-bottom: 8px; }
+.kt { font-size: 10px; letter-spacing: .1em; opacity: .75; margin-bottom: 3px; }
+.kr { display: flex; flex-wrap: wrap; gap: 4px; }
+.kd { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #b9ae8e; border-radius: 3px; padding: 1px 6px; background: #f1ead2; font-size: 14px; }
+.kd b { background: var(--ink); color: var(--amber); border-radius: 2px; padding: 0 5px; }
+.kl { padding: 0 1px; }
+.kl.hit { background: var(--amber); font-weight: bold; box-shadow: 0 0 0 2px var(--amber); }
+.matrix td { cursor: pointer; }
+.matrix td:hover { outline: 2px solid var(--amber); }
+.matrix td.found { box-shadow: inset 0 0 0 2px #3c7a2a; }
+
 </style>
 </head>
 <body>
@@ -173,7 +197,7 @@ body { margin: 0; background: var(--bg); color: var(--paper); }
         <span>EXPEDITION RADIO LOG <b id="txId"></b></span>
         <span id="txTime"></span>
       </header>
-      <div class="dump" id="dump" aria-label="Received signal"></div>
+      <div class="groups" id="groups" aria-label="Received groups"></div>
       <div class="frame" id="frame" aria-label="Sentence to fill"></div>
       <div class="status" id="status" aria-live="polite"></div>
     </section>
@@ -196,12 +220,13 @@ body { margin: 0; background: var(--bg); color: var(--paper); }
     </section>
 
     <section class="panel guide" aria-label="How to read">
-      <header><span>HOW TO READ A TRANSMISSION</span></header>
+      <header><span>TODAY'S KEY</span></header>
+      <div class="keycard" id="keyCard"></div>
       <ol class="steps">
-        <li><b>Find a key in the noise:</b> a <b>digit</b> touching a <b>letter a–j</b> (side by side or one above the other, either order). Click one, then the other.</li>
-        <li><b>Look it up in the table:</b> row = the digit, column = the letter. The cell is a word, a letter, or a marker.</li>
-        <li><b>Fill the sentence in order.</b> The message reads left to right, top to bottom, and each blank has a colour: look for table cells of that colour.</li>
-        <li><b>TRY</b> checks your keys (Likeness: how many are right, not which).</li>
+        <li>The signal is groups of three letters. The first letter is always <b>Z</b>: a mask, it means nothing.</li>
+        <li>The <b>second</b> letter gives the row: find it in the vertical key, the digit it sits next to is the row.</li>
+        <li>The <b>third</b> letter gives the column: same, in the horizontal key.</li>
+        <li>Click that row and column in the table. The cell is a word, a letter, or a marker, and the sentence fills in. Each blank has a colour: look for table cells of that colour.</li>
       </ol>
       <div class="kinds" id="kinds"></div>
     </section>
@@ -212,7 +237,7 @@ body { margin: 0; background: var(--bg); color: var(--paper); }
     </section>
 
     <section class="panel table-sheet" aria-label="Duty radio table">
-      <header><span>DUTY RADIO TABLE — row digit + column letter</span></header>
+      <header><span>DUTY RADIO TABLE — click the cell of the selected group</span></header>
       <div id="codeTable"></div>
     </section>
 
@@ -234,140 +259,63 @@ body { margin: 0; background: var(--bg); color: var(--paper); }
     </section>
   </main>
   <script type="module">
-window.__ACT__ = {"crew":[{"id":"01","role":"Leader","location":"CP4","status":"ok","note":""},{"id":"02","role":"Navigator","location":"CP4","status":"ok","note":""},{"id":"03","role":"Medic","location":"CP4","status":"ok","note":""},{"id":"04","role":"Repair tech","location":"CP3","status":"injured","note":"injured last message, stayed at CP3"},{"id":"05","role":"Geologist","location":"CP4","status":"ok","note":""},{"id":"06","role":"Climber","location":"CP4","status":"ok","note":""},{"id":"07","role":"Climber","location":"CP4","status":"ok","note":""},{"id":"08","role":"Porter","location":"CP4","status":"ok","note":""},{"id":"09","role":"Porter","location":"CP4","status":"ok","note":""},{"id":"10","role":"Cook","location":"CP4","status":"ok","note":""}],"map":{"points":[{"id":"BASE","x":60,"y":250},{"id":"CP1","x":130,"y":190},{"id":"CP2","x":210,"y":215},{"id":"CP3","x":290,"y":150},{"id":"CP4","x":380,"y":100}]},"matrix":{"rows":"0123456789","cols":"abcdefghij","cells":{"0a":{"kind":"state","text":"windy","meanings":["windy"]},"0b":{"kind":"who","text":"medic","meanings":["medic"]},"0c":{"kind":"state","text":"cold","meanings":["cold"]},"0d":{"kind":"thing","text":"map","meanings":["map"]},"0e":{"kind":"state","text":"safe","meanings":["safe"]},"0f":{"kind":"letter","text":"E","meanings":["E"]},"0g":{"kind":"letter","text":"I","meanings":["I"]},"0h":{"kind":"place","text":"base","meanings":["base"]},"0i":{"kind":"thing","text":"stove","meanings":["stove"]},"0j":{"kind":"service","text":"say again","meanings":["say again"]},"1a":{"kind":"action","text":"climbed","meanings":["climbed"]},"1b":{"kind":"service","text":"understood","meanings":["understood"]},"1c":{"kind":"thing","text":"tent","meanings":["tent"]},"1d":{"kind":"thing","text":"sample","meanings":["sample"]},"1e":{"kind":"letter","text":"G","meanings":["G"]},"1f":{"kind":"thing","text":"boots","meanings":["boots"]},"1g":{"kind":"action","text":"found","meanings":["found"]},"1h":{"kind":"thing","text":"food","meanings":["food"]},"1i":{"kind":"who","text":"team","meanings":["team"]},"1j":{"kind":"letter","text":"O","meanings":["O"]},"2a":{"kind":"state","text":"snowing","meanings":["snowing"]},"2b":{"kind":"action","text":"resting","meanings":["resting"]},"2c":{"kind":"state","text":"ready","meanings":["ready"]},"2d":{"kind":"marker","text":"spell","meanings":["spell"]},"2e":{"kind":"place","text":"cave","meanings":["cave"]},"2f":{"kind":"place","text":"summit","meanings":["summit"]},"2g":{"kind":"state","text":"broken / repaired","meanings":["broken","repaired"]},"2h":{"kind":"thing","text":"fuel","meanings":["fuel"]},"2i":{"kind":"action","text":"moving","meanings":["moving"]},"2j":{"kind":"place","text":"CP4","meanings":["CP4"]},"3a":{"kind":"letter","text":"J","meanings":["J"]},"3b":{"kind":"thing","text":"gloves","meanings":["gloves"]},"3c":{"kind":"state","text":"hungry","meanings":["hungry"]},"3d":{"kind":"action","text":"left","meanings":["left"]},"3e":{"kind":"who","text":"guide","meanings":["guide"]},"3f":{"kind":"letter","text":"Z","meanings":["Z"]},"3g":{"kind":"state","text":"wet","meanings":["wet"]},"3h":{"kind":"action","text":"searching","meanings":["searching"]},"3i":{"kind":"action","text":"waiting","meanings":["waiting"]},"3j":{"kind":"letter","text":"S","meanings":["S"]},"4a":{"kind":"action","text":"returning","meanings":["returning"]},"4b":{"kind":"place","text":"CP2","meanings":["CP2"]},"4c":{"kind":"letter","text":"T","meanings":["T"]},"4d":{"kind":"letter","text":"W","meanings":["W"]},"4e":{"kind":"letter","text":"N","meanings":["N"]},"4f":{"kind":"letter","text":"Y","meanings":["Y"]},"4g":{"kind":"service","text":"stand by","meanings":["stand by"]},"4h":{"kind":"thing","text":"rope","meanings":["rope"]},"4i":{"kind":"letter","text":"M","meanings":["M"]},"4j":{"kind":"thing","text":"blanket","meanings":["blanket"]},"5a":{"kind":"marker","text":"number","meanings":["number"]},"5b":{"kind":"letter","text":"V","meanings":["V"]},"5c":{"kind":"who","text":"leader","meanings":["leader"]},"5d":{"kind":"thing","text":"sled","meanings":["sled"]},"5e":{"kind":"action","text":"camped","meanings":["camped"]},"5f":{"kind":"letter","text":"K","meanings":["K"]},"5g":{"kind":"letter","text":"H","meanings":["H"]},"5h":{"kind":"who","text":"porter","meanings":["porter"]},"5i":{"kind":"thing","text":"bridge","meanings":["bridge"]},"5j":{"kind":"letter","text":"B","meanings":["B"]},"6a":{"kind":"letter","text":"X","meanings":["X"]},"6b":{"kind":"thing","text":"radio","meanings":["radio"]},"6c":{"kind":"service","text":"radio check","meanings":["radio check"]},"6d":{"kind":"letter","text":"D","meanings":["D"]},"6e":{"kind":"place","text":"CP3","meanings":["CP3"]},"6f":{"kind":"letter","text":"F","meanings":["F"]},"6g":{"kind":"thing","text":"tarp","meanings":["tarp"]},"6h":{"kind":"letter","text":"Q","meanings":["Q"]},"6i":{"kind":"state","text":"low battery","meanings":["low battery"]},"6j":{"kind":"state","text":"injured","meanings":["injured"]},"7a":{"kind":"place","text":"valley","meanings":["valley"]},"7b":{"kind":"letter","text":"R","meanings":["R"]},"7c":{"kind":"thing","text":"compass","meanings":["compass"]},"7d":{"kind":"service","text":"no reply","meanings":["no reply"]},"7e":{"kind":"place","text":"CP1","meanings":["CP1"]},"7f":{"kind":"action","text":"reached","meanings":["reached"]},"7g":{"kind":"letter","text":"U","meanings":["U"]},"7h":{"kind":"thing","text":"flare","meanings":["flare"]},"7i":{"kind":"place","text":"glacier","meanings":["glacier"]},"7j":{"kind":"action","text":"crossed","meanings":["crossed"]},"8a":{"kind":"place","text":"pass","meanings":["pass"]},"8b":{"kind":"thing","text":"camp","meanings":["camp"]},"8c":{"kind":"letter","text":"A","meanings":["A"]},"8d":{"kind":"who","text":"member","meanings":["member"]},"8e":{"kind":"letter","text":"C","meanings":["C"]},"8f":{"kind":"place","text":"river","meanings":["river"]},"8g":{"kind":"place","text":"south ridge","meanings":["south ridge"]},"8h":{"kind":"thing","text":"ice axe","meanings":["ice axe"]},"8i":{"kind":"letter","text":"L","meanings":["L"]},"8j":{"kind":"place","text":"hut","meanings":["hut"]},"9a":{"kind":"action","text":"stopped","meanings":["stopped"]},"9b":{"kind":"service","text":"over","meanings":["over"]},"9c":{"kind":"place","text":"slope","meanings":["slope"]},"9d":{"kind":"letter","text":"P","meanings":["P"]},"9e":{"kind":"place","text":"camp site","meanings":["camp site"]},"9f":{"kind":"state","text":"tired","meanings":["tired"]},"9g":{"kind":"place","text":"ridge","meanings":["ridge"]},"9h":{"kind":"service","text":"out","meanings":["out"]},"9i":{"kind":"action","text":"descending","meanings":["descending"]},"9j":{"kind":"state","text":"lost","meanings":["lost"]}}},"transmissions":[{"id":"T01-bridge","time":"14:32","slots":["who","place","action","thing","state"],"cipher":["1i","2j","7f","5i","2g"],"clauses":[{"pattern":"The {0} {2} {1}."},{"pattern":"The {3} is {4}."}],"truth":{"4":"broken"},"hint":"No one on the team can repair the bridge now: the only repair tech (04) is injured and stayed at CP3. So the bridge can only be broken.","outcomes":{"continue":{"severity":"harm","text":"The bridge collapsed. One member injured.","crew":[{"id":"06","status":"injured","note":"injured in the bridge collapse"}],"nearMiss":"We stopped at the bridge. Something felt wrong. No one crossed."},"wait":{"severity":"safe","text":"All safe. Looking for another route.","crew":[]},"back":{"severity":"delay","text":"Back at CP3. We lost half a day, but everyone is safe.","crew":[]},"hurry":{"severity":"harm","text":"We rushed the crossing. The bridge gave way. Two members injured.","crew":[{"id":"06","status":"injured","note":"injured in the bridge collapse"},{"id":"08","status":"injured","note":"injured in the bridge collapse"}],"nearMiss":"We started to rush, then stopped at the edge. No one hurt."},"base":{"severity":"delay","text":"Returning to base. The route is abandoned for now.","crew":[]}},"cols":12,"dump":["w","o","2","w","m","9","s","6","x","9","2","n","h","t","6","x","1","u","k","p","u","n","q","s","g","n","w","u","i","s","2","j","l","1","8","t","o","u","2","w","n","s","3","x","t","k","u","f","j","o","5","5","s","k","k","s","t","u","2","7","s","6","0","o","3","s","2","n","r","i","5","2","3","y","1","2","9","4","1","v","x","x","r","t","r","t","x","g","k","1","4","0","x","9","2","8"],"cells":[[16,28],[30,31],[47,59],[69,70],[75,87]]},{"id":"T02-member","time":"15:41","slots":["who","marker","number","state","place"],"cipher":["8d","5a","0g","6j","2j"],"clauses":[{"pattern":"The {0} {2} is {3} at {4}."}],"truth":{},"hint":"The number marker says the next pair is a number: 06 is a crew ID (a climber). The decoys are other phrases that would also fit, so use the Likeness count.","outcomes":{"continue":{"severity":"harm","text":"We pushed on. 06 is getting worse. We have to stop.","crew":[{"id":"06","status":"injured","note":"injured, worsening"}],"nearMiss":"We started to move, then stopped. 06 is being treated."},"wait":{"severity":"safe","text":"Medic is with 06. Stable. We rest here.","crew":[{"id":"06","status":"injured","note":"injured, stable at CP4"}]},"back":{"severity":"delay","text":"Carrying 06 back to CP3. It is slow.","crew":[{"id":"06","status":"injured","note":"being carried back"}]},"hurry":{"severity":"harm","text":"Hurrying with an injured man. 06 fell. It is bad.","crew":[{"id":"06","status":"injured","note":"injured, serious"}],"nearMiss":"We almost hurried. We slowed down for 06."},"base":{"severity":"delay","text":"Evacuating 06 to base. The team is following.","crew":[{"id":"06","status":"injured","note":"evacuating to base"}]}},"cols":12,"dump":["w","x","5","7","w","7","5","c","k","v","4","6","2","m","u","8","d","u","4","v","6","r","0","3","1","t","t","q","r","8","k","5","7","1","1","r","v","a","v","t","q","q","u","3","q","5","r","8","l","5","0","0","s","k","g","0","w","3","p","k","n","4","6","0","4","q","j","p","v","w","e","0","6","y","w","m","z","b","e","u","h","0","o","n","j","z","3","0","5","n","n","r","p","n","2","j"],"cells":[[15,16],[37,49],[54,55],[72,84],[94,95]]},{"id":"T03-hut","time":"17:05","slots":["who","action","marker","letter","letter","letter"],"cipher":["1i","1g","2d","5g","7g","4c"],"clauses":[{"pattern":"The {0} {1}: {3}{4}{5}."}],"truth":{},"hint":"After the spell marker the letters follow one by one. The other spelling follows a number marker, so it is not a spelled word.","outcomes":{"continue":{"severity":"harm","text":"We went past the hut. The weather turned. One frostbitten.","crew":[{"id":"07","status":"injured","note":"frostbite"}],"nearMiss":"We almost went past the hut. We turned back and sheltered."},"wait":{"severity":"safe","text":"We are in the hut. Warm. Waiting out the weather.","crew":[]},"back":{"severity":"delay","text":"Back toward CP3. We will lose the hut.","crew":[]},"hurry":{"severity":"harm","text":"We hurried past the hut into the storm. Two frostbitten.","crew":[{"id":"07","status":"injured","note":"frostbite"},{"id":"09","status":"injured","note":"frostbite"}],"nearMiss":"We almost hurried on. We stopped at the hut instead."},"base":{"severity":"delay","text":"Returning to base. We leave the hut behind.","crew":[]}},"cols":12,"dump":["9","3","x","i","n","5","c","n","i","1","3","8","1","6","x","i","h","k","q","k","u","r","p","u","o","8","9","l","o","8","l","n","k","g","1","p","k","7","q","4","2","q","w","7","t","b","k","a","a","x","f","5","p","z","q","8","v","p","t","5","f","z","y","3","j","d","d","k","y","y","2","5","0","z","9","1","n","r","2","1","p","5","u","g","m","g","7","4","c","u","z","s","7","o","1","y"],"cells":[[8,9],[33,34],[66,78],[71,83],[85,86],[87,88]]}]};
+window.__ACT__ = {"crew":[{"id":"01","role":"Leader","location":"CP4","status":"ok","note":""},{"id":"02","role":"Navigator","location":"CP4","status":"ok","note":""},{"id":"03","role":"Medic","location":"CP4","status":"ok","note":""},{"id":"04","role":"Repair tech","location":"CP3","status":"injured","note":"injured last message, stayed at CP3"},{"id":"05","role":"Geologist","location":"CP4","status":"ok","note":""},{"id":"06","role":"Climber","location":"CP4","status":"ok","note":""},{"id":"07","role":"Climber","location":"CP4","status":"ok","note":""},{"id":"08","role":"Porter","location":"CP4","status":"ok","note":""},{"id":"09","role":"Porter","location":"CP4","status":"ok","note":""},{"id":"10","role":"Cook","location":"CP4","status":"ok","note":""}],"map":{"points":[{"id":"BASE","x":60,"y":250},{"id":"CP1","x":130,"y":190},{"id":"CP2","x":210,"y":215},{"id":"CP3","x":290,"y":150},{"id":"CP4","x":380,"y":100}]},"matrix":{"rows":"0123456789","cols":"0123456789","cells":{"10":{"kind":"action","text":"climbed","meanings":["climbed"]},"11":{"kind":"service","text":"understood","meanings":["understood"]},"12":{"kind":"thing","text":"tent","meanings":["tent"]},"13":{"kind":"thing","text":"sample","meanings":["sample"]},"14":{"kind":"letter","text":"G","meanings":["G"]},"15":{"kind":"thing","text":"boots","meanings":["boots"]},"16":{"kind":"action","text":"found","meanings":["found"]},"17":{"kind":"thing","text":"food","meanings":["food"]},"18":{"kind":"who","text":"team","meanings":["team"]},"19":{"kind":"letter","text":"O","meanings":["O"]},"20":{"kind":"state","text":"snowing","meanings":["snowing"]},"21":{"kind":"action","text":"resting","meanings":["resting"]},"22":{"kind":"state","text":"ready","meanings":["ready"]},"23":{"kind":"marker","text":"spell","meanings":["spell"]},"24":{"kind":"place","text":"cave","meanings":["cave"]},"25":{"kind":"place","text":"summit","meanings":["summit"]},"26":{"kind":"state","text":"broken / repaired","meanings":["broken","repaired"]},"27":{"kind":"thing","text":"fuel","meanings":["fuel"]},"28":{"kind":"action","text":"moving","meanings":["moving"]},"29":{"kind":"place","text":"CP4","meanings":["CP4"]},"30":{"kind":"letter","text":"J","meanings":["J"]},"31":{"kind":"thing","text":"gloves","meanings":["gloves"]},"32":{"kind":"state","text":"hungry","meanings":["hungry"]},"33":{"kind":"action","text":"left","meanings":["left"]},"34":{"kind":"who","text":"guide","meanings":["guide"]},"35":{"kind":"letter","text":"Z","meanings":["Z"]},"36":{"kind":"state","text":"wet","meanings":["wet"]},"37":{"kind":"action","text":"searching","meanings":["searching"]},"38":{"kind":"action","text":"waiting","meanings":["waiting"]},"39":{"kind":"letter","text":"S","meanings":["S"]},"40":{"kind":"action","text":"returning","meanings":["returning"]},"41":{"kind":"place","text":"CP2","meanings":["CP2"]},"42":{"kind":"letter","text":"T","meanings":["T"]},"43":{"kind":"letter","text":"W","meanings":["W"]},"44":{"kind":"letter","text":"N","meanings":["N"]},"45":{"kind":"letter","text":"Y","meanings":["Y"]},"46":{"kind":"service","text":"stand by","meanings":["stand by"]},"47":{"kind":"thing","text":"rope","meanings":["rope"]},"48":{"kind":"letter","text":"M","meanings":["M"]},"49":{"kind":"thing","text":"blanket","meanings":["blanket"]},"50":{"kind":"marker","text":"number","meanings":["number"]},"51":{"kind":"letter","text":"V","meanings":["V"]},"52":{"kind":"who","text":"leader","meanings":["leader"]},"53":{"kind":"thing","text":"sled","meanings":["sled"]},"54":{"kind":"action","text":"camped","meanings":["camped"]},"55":{"kind":"letter","text":"K","meanings":["K"]},"56":{"kind":"letter","text":"H","meanings":["H"]},"57":{"kind":"who","text":"porter","meanings":["porter"]},"58":{"kind":"thing","text":"bridge","meanings":["bridge"]},"59":{"kind":"letter","text":"B","meanings":["B"]},"60":{"kind":"letter","text":"X","meanings":["X"]},"61":{"kind":"thing","text":"radio","meanings":["radio"]},"62":{"kind":"service","text":"radio check","meanings":["radio check"]},"63":{"kind":"letter","text":"D","meanings":["D"]},"64":{"kind":"place","text":"CP3","meanings":["CP3"]},"65":{"kind":"letter","text":"F","meanings":["F"]},"66":{"kind":"thing","text":"tarp","meanings":["tarp"]},"67":{"kind":"letter","text":"Q","meanings":["Q"]},"68":{"kind":"state","text":"low battery","meanings":["low battery"]},"69":{"kind":"state","text":"injured","meanings":["injured"]},"70":{"kind":"place","text":"valley","meanings":["valley"]},"71":{"kind":"letter","text":"R","meanings":["R"]},"72":{"kind":"thing","text":"compass","meanings":["compass"]},"73":{"kind":"service","text":"no reply","meanings":["no reply"]},"74":{"kind":"place","text":"CP1","meanings":["CP1"]},"75":{"kind":"action","text":"reached","meanings":["reached"]},"76":{"kind":"letter","text":"U","meanings":["U"]},"77":{"kind":"thing","text":"flare","meanings":["flare"]},"78":{"kind":"place","text":"glacier","meanings":["glacier"]},"79":{"kind":"action","text":"crossed","meanings":["crossed"]},"80":{"kind":"place","text":"pass","meanings":["pass"]},"81":{"kind":"thing","text":"camp","meanings":["camp"]},"82":{"kind":"letter","text":"A","meanings":["A"]},"83":{"kind":"who","text":"member","meanings":["member"]},"84":{"kind":"letter","text":"C","meanings":["C"]},"85":{"kind":"place","text":"river","meanings":["river"]},"86":{"kind":"place","text":"south ridge","meanings":["south ridge"]},"87":{"kind":"thing","text":"ice axe","meanings":["ice axe"]},"88":{"kind":"letter","text":"L","meanings":["L"]},"89":{"kind":"place","text":"hut","meanings":["hut"]},"90":{"kind":"action","text":"stopped","meanings":["stopped"]},"91":{"kind":"service","text":"over","meanings":["over"]},"92":{"kind":"place","text":"slope","meanings":["slope"]},"93":{"kind":"letter","text":"P","meanings":["P"]},"94":{"kind":"place","text":"camp site","meanings":["camp site"]},"95":{"kind":"state","text":"tired","meanings":["tired"]},"96":{"kind":"place","text":"ridge","meanings":["ridge"]},"97":{"kind":"service","text":"out","meanings":["out"]},"98":{"kind":"action","text":"descending","meanings":["descending"]},"99":{"kind":"state","text":"lost","meanings":["lost"]},"00":{"kind":"state","text":"windy","meanings":["windy"]},"01":{"kind":"who","text":"medic","meanings":["medic"]},"02":{"kind":"state","text":"cold","meanings":["cold"]},"03":{"kind":"thing","text":"map","meanings":["map"]},"04":{"kind":"state","text":"safe","meanings":["safe"]},"05":{"kind":"letter","text":"E","meanings":["E"]},"06":{"kind":"letter","text":"I","meanings":["I"]},"07":{"kind":"place","text":"base","meanings":["base"]},"08":{"kind":"thing","text":"stove","meanings":["stove"]},"09":{"kind":"service","text":"say again","meanings":["say again"]}}},"transmissions":[{"id":"T01-bridge","time":"14:32","slots":["who","place","action","thing","state"],"cipher":["18","29","75","58","26"],"clauses":[{"pattern":"The {0} {2} {1}."},{"pattern":"The {3} is {4}."}],"truth":{"4":"broken"},"hint":"No one on the team can repair the bridge now: the only repair tech (04) is injured and stayed at CP3. So the bridge can only be broken.","outcomes":{"continue":{"severity":"harm","text":"The bridge collapsed. One member injured.","crew":[{"id":"06","status":"injured","note":"injured in the bridge collapse"}],"nearMiss":"We stopped at the bridge. Something felt wrong. No one crossed."},"wait":{"severity":"safe","text":"All safe. Looking for another route.","crew":[]},"back":{"severity":"delay","text":"Back at CP3. We lost half a day, but everyone is safe.","crew":[]},"hurry":{"severity":"harm","text":"We rushed the crossing. The bridge gave way. Two members injured.","crew":[{"id":"06","status":"injured","note":"injured in the bridge collapse"},{"id":"08","status":"injured","note":"injured in the bridge collapse"}],"nearMiss":"We started to rush, then stopped at the edge. No one hurt."},"base":{"severity":"delay","text":"Returning to base. The route is abandoned for now.","crew":[]}},"key":{"rows":["HKO","ERS","DNV","QU","CGW","JL","BM","FI","AX","PTY"],"cols":["GST","CO","FW","BMN","IJQ","PU","ALY","EKV","DH","RX"]},"groups":["ZSD","ZVR","ZFU","ZJH","ZNA"]},{"id":"T02-member","time":"15:41","slots":["who","marker","number","state","place"],"cipher":["83","50","06","69","29"],"clauses":[{"pattern":"The {0} {2} is {3} at {4}."}],"truth":{},"hint":"The number marker says the next pair is a number: 06 is a crew ID (a climber). The decoys are other phrases that would also fit, so use the Likeness count.","outcomes":{"continue":{"severity":"harm","text":"We pushed on. 06 is getting worse. We have to stop.","crew":[{"id":"06","status":"injured","note":"injured, worsening"}],"nearMiss":"We started to move, then stopped. 06 is being treated."},"wait":{"severity":"safe","text":"Medic is with 06. Stable. We rest here.","crew":[{"id":"06","status":"injured","note":"injured, stable at CP4"}]},"back":{"severity":"delay","text":"Carrying 06 back to CP3. It is slow.","crew":[{"id":"06","status":"injured","note":"being carried back"}]},"hurry":{"severity":"harm","text":"Hurrying with an injured man. 06 fell. It is bad.","crew":[{"id":"06","status":"injured","note":"injured, serious"}],"nearMiss":"We almost hurried. We slowed down for 06."},"base":{"severity":"delay","text":"Evacuating 06 to base. The team is following.","crew":[{"id":"06","status":"injured","note":"evacuating to base"}]}},"key":{"rows":["BHM","LOR","ADT","JUY","EQ","FK","NX","IV","GS","CPW"],"cols":["FIW","GMR","KUV","PS","BO","CT","EHQ","DN","XY","AJL"]},"groups":["ZGS","ZKF","ZBH","ZXJ","ZDL"]},{"id":"T03-hut","time":"17:05","slots":["who","action","marker","letter","letter","letter"],"cipher":["18","16","23","56","76","42"],"clauses":[{"pattern":"The {0} {1}: {3}{4}{5}."}],"truth":{},"hint":"After the spell marker the letters follow one by one. The other spelling follows a number marker, so it is not a spelled word.","outcomes":{"continue":{"severity":"harm","text":"We went past the hut. The weather turned. One frostbitten.","crew":[{"id":"07","status":"injured","note":"frostbite"}],"nearMiss":"We almost went past the hut. We turned back and sheltered."},"wait":{"severity":"safe","text":"We are in the hut. Warm. Waiting out the weather.","crew":[]},"back":{"severity":"delay","text":"Back toward CP3. We will lose the hut.","crew":[]},"hurry":{"severity":"harm","text":"We hurried past the hut into the storm. Two frostbitten.","crew":[{"id":"07","status":"injured","note":"frostbite"},{"id":"09","status":"injured","note":"frostbite"}],"nearMiss":"We almost hurried on. We stopped at the hut instead."},"base":{"severity":"delay","text":"Returning to base. We leave the hut behind.","crew":[]}},"key":{"rows":["BG","AD","HOQ","KRU","ISV","ET","CXY","MN","FW","JLP"],"cols":["JL","EO","FS","CX","HMT","KRV","ADY","GNP","IQ","BUW"]},"groups":["ZDQ","ZDD","ZHX","ZTY","ZND","ZSF"]}]};
 // Pure game logic: no DOM, no fetch. Ports 1:1 to C# later.
 //
-// The code table is a fixed 10x10 matrix (like the real duty-radio-operator table): row digits 0-9,
-// column letters a-j. Every cell holds a phrase, a letter, or a service marker, and its position can
-// also be read as a number (row digit + column index, so "0g" is 06).
+// The code table (like the real duty-radio-operator table, "TDR") is a fixed 10x10 matrix: cell "rc" is
+// row r, column c, and holds a phrase, a letter, or a service marker. Its position doubles as a number.
 //
-// A transmission is a grid "dump" of single characters. A key is a digit touching a letter a-j
-// (side by side or stacked, either order), which names a cell. The real message is a sequence of keys
-// hidden in the dump; the radio answers Fallout-style with a Likeness count. Once the keys are right,
-// ambiguous phrases are resolved by context.
+// A transmission is a list of groups "Z" + two letters. Z is a mask and means nothing. The daily key says
+// which digits the two letters stand for: a vertical key gives the row digit, a horizontal key gives the
+// column digit (each digit owns 2-3 letters, every letter belongs to one digit). Row + column = a cell.
+// Once the cells are found, ambiguous phrases are resolved by context.
 
 const ORDERS = ['continue', 'wait', 'back', 'hurry', 'base'];
 const MAX_INTUITION = 5;
-const MAX_TRIES = 5;
+const MASK = 'Z';
 
 /** A transmission with the shared matrix attached. */
 function prepare(act, index) {
   return { ...act.transmissions[index], matrix: act.matrix };
 }
 
-// --- The matrix and the key ---
-
 function cellById(tx, id) {
   return tx.matrix.cells[id] ?? null;
 }
 
-const COLUMNS = 'abcdefghij';
-
-/** The number a cell stands for when read as a number: row digit + column index ("0g" -> "06"). */
+/** The number a cell stands for when read as a number: its own id ("06"). */
 function numberOf(id) {
-  return id[0] + COLUMNS.indexOf(id[1]);
+  return id;
 }
 
-// --- Phase 1: finding keys in the dump ---
-//
-// A pick is {a, b}: two cell indices of the dump.
+// --- Phase 1: decoding the groups ---
 
-function areAdjacent(tx, a, b) {
-  const d = Math.abs(a - b);
-  if (d === tx.cols) return true;
-  return d === 1 && Math.floor(a / tx.cols) === Math.floor(b / tx.cols);
+/** The digit a letter stands for in a key (an array of 10 letter strings), or -1. */
+function digitOf(keyHalf, letter) {
+  return keyHalf.findIndex((letters) => letters.includes(letter));
 }
 
-/** What a pair of cells spells: {id, cell}, or null if it is not a digit touching a letter a-j. */
-function tokenOfCells(tx, a, b) {
-  if (a === b || !areAdjacent(tx, a, b)) return null;
-  for (const [d, l] of [[tx.dump[a], tx.dump[b]], [tx.dump[b], tx.dump[a]]]) {
-    if (d >= '0' && d <= '9' && d.length === 1 && COLUMNS.includes(l)) {
-      const id = d + l;
-      return { id, cell: cellById(tx, id) };
-    }
-  }
-  return null;
+/** A group "ZEQ" -> {rowLetter, colLetter, row, col, id}; null if it is not a valid group. */
+function decodeGroup(tx, group) {
+  if (group.length !== 3 || group[0] !== MASK) return null;
+  const row = digitOf(tx.key.rows, group[1]);
+  const col = digitOf(tx.key.cols, group[2]);
+  if (row < 0 || col < 0) return null;
+  return { rowLetter: group[1], colLetter: group[2], row, col, id: `${row}${col}` };
 }
 
-function minCell(p) {
-  return Math.min(p.a, p.b);
-}
-
-/** Every pair of adjacent cells that is a valid key, in reading order. */
-function findOccurrences(tx) {
-  const out = [];
-  const n = tx.dump.length;
-  for (let i = 0; i < n; i++) {
-    for (const j of [i + 1, i + tx.cols]) {
-      if (j >= n) continue;
-      const t = tokenOfCells(tx, i, j);
-      if (t) out.push({ id: t.id, a: i, b: j });
-    }
-  }
-  return out.sort((p, q) => minCell(p) - minCell(q));
-}
-
-/** The first key in the dump after `pick` in reading order (what follows a marker). */
-function nextOccurrence(tx, pick) {
-  return findOccurrences(tx).find((o) => minCell(o) > minCell(pick)) ?? null;
-}
-
-function overlaps(p, q) {
-  return p.a === q.a || p.a === q.b || p.b === q.a || p.b === q.b;
-}
-
-/** Picks ordered by their first cell in reading order. */
-function sortPicks(picks) {
-  return [...picks].sort((p, q) => minCell(p) - minCell(q));
-}
-
-function samePick(p, q) {
-  return (p.a === q.a && p.b === q.b) || (p.a === q.b && p.b === q.a);
-}
-
-/** Can this token fill a slot of the given kind? A number slot takes any pair (it is read as digits). */
-function slotAccepts(slot, token) {
-  if (!token) return false;
-  if (slot === 'number') return true;
-  return token.cell?.kind === slot;
+/** The true cell id of group `i`. */
+function trueCell(tx, i) {
+  return tx.cipher[i];
 }
 
 /**
- * Do the picks, in reading order, form the message grammar (tx.slots)?
- * Number and letter slots must directly follow the previous pick in the dump:
- * a marker is followed by its number, and spelled letters follow one by one.
+ * Check the player's guess (a cell id) for group `i`.
+ * Returns {ok, row, col}: whether the guess is right and whether its row / column digit is right.
  */
-function parses(tx, picks) {
-  const sorted = sortPicks(picks);
-  if (sorted.length !== tx.slots.length) return false;
-  return sorted.every((p, i) => {
-    if (!slotAccepts(tx.slots[i], tokenOfCells(tx, p.a, p.b))) return false;
-    if ((tx.slots[i] === 'number' || tx.slots[i] === 'letter') && i > 0) {
-      const next = nextOccurrence(tx, sorted[i - 1]);
-      if (!next || !samePick(next, p)) return false;
-    }
-    return true;
-  });
-}
-
-/** Cell ids of the picks, in reading order. */
-function pickedKeys(tx, picks) {
-  return sortPicks(picks).map((p) => tokenOfCells(tx, p.a, p.b).id);
-}
-
-/** The real pair of cells of message key `i`. */
-function realPick(tx, i) {
-  return { a: tx.cells[i][0], b: tx.cells[i][1] };
-}
-
-/** Fallout "Likeness": how many picks are exactly a real key's pair of cells. */
-function likeness(tx, picks) {
-  return picks.filter((p) => tx.cipher.some((_, i) => samePick(p, realPick(tx, i)))).length;
-}
-
-function isLocked(tx, picks) {
-  return picks.length === tx.cipher.length && likeness(tx, picks) === tx.cipher.length;
+function checkGuess(tx, i, id) {
+  const real = tx.cipher[i];
+  return { ok: id === real, row: id[0] === real[0], col: id[1] === real[1] };
 }
 
 // --- Phase 2: reading the message ---
@@ -455,11 +403,6 @@ function gainIntuition(points, gain) {
   return Math.min(MAX_INTUITION, points + gain);
 }
 
-import {
-  ORDERS, MAX_INTUITION, MAX_TRIES, prepare, cellById, numberOf, tokenOfCells, areAdjacent, overlaps, parses,
-  pickedKeys, likeness, isLocked, realPick, samePick, sortPicks, meaningsOf, judgeReading, renderSentence,
-  resolve, applyCrew, spendIntuition, gainIntuition,
-} from './core/engine.js';
 
 const ORDER_LABELS = { continue: 'Continue', wait: 'Wait', back: 'Back to last CP', hurry: 'Hurry', base: 'Return to base' };
 const START_INTUITION = 3;
@@ -504,10 +447,8 @@ function begin() {
     phase: 'find', // 'find' -> 'read' -> 'sent'
     crew: start.crew,
     intuition: start.intuition,
-    picks: [], // {a, b} pairs of dump cells the player marked as keys
-    anchor: null, // first click of a pair
-    tries: MAX_TRIES,
-    likeness: null,
+    decoded: {}, // group index -> cell id the player found
+    selected: 0, // group being decoded
     note: '',
     selection: {}, // message index -> words
     hedge: {}, // message index -> bool
@@ -521,85 +462,80 @@ function begin() {
 }
 
 function renderAll() {
-  renderDump();
+  renderGroups();
   renderStatus();
   renderBoard();
   renderIntuition();
   renderCrew();
   renderFrame();
   renderGuide();
+  renderKeyCard();
   renderMatrix();
   renderMap();
   renderOrders();
 }
 
-// ---------- dump ----------
-
-function pickAt(i) {
-  return state.picks.find((p) => p.a === i || p.b === i);
+/** Decoded cell ids in message order (complete once every group is decoded). */
+function keysFound() {
+  return tx.cipher.map((_, i) => state.decoded[i]);
 }
 
-function renderDump() {
-  const root = $('dump');
+function allDecoded() {
+  return tx.cipher.every((_, i) => state.decoded[i] !== undefined);
+}
+
+function wordOf(i) {
+  const id = state.decoded[i];
+  if (id === undefined) return null;
+  return tx.slots[i] === 'number' ? `number ${numberOf(id)}` : cellById(tx, id).meanings.join(' / ');
+}
+
+function nextUndecoded() {
+  const k = tx.cipher.findIndex((_, i) => state.decoded[i] === undefined);
+  return k < 0 ? null : k;
+}
+
+// ---------- radio: the groups ----------
+
+function renderGroups() {
+  const root = $('groups');
   root.replaceChildren();
-  const finding = state.phase === 'find';
-  for (let row = 0; row * tx.cols < tx.dump.length; row++) {
-    const line = document.createElement('div');
-    line.className = 'dline';
-    const addr = document.createElement('span');
-    addr.className = 'addr';
-    addr.textContent = '0x' + (row * tx.cols).toString(16).toUpperCase().padStart(3, '0');
-    line.append(addr);
-    for (let c = 0; c < tx.cols; c++) {
-      const i = row * tx.cols + c;
-      if (i >= tx.dump.length) break;
-      const cell = document.createElement('button');
-      cell.type = 'button';
-      cell.className = 'cell';
-      cell.textContent = tx.dump[i];
-      cell.dataset.i = String(i);
-      if (pickAt(i)) cell.classList.add('picked');
-      if (state.anchor === i) cell.classList.add('anchor');
-      if (!finding) cell.disabled = true;
-      line.append(cell);
-    }
-    root.append(line);
-  }
+  tx.groups.forEach((g, i) => {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'group' + (state.selected === i ? ' sel' : '') + (state.decoded[i] !== undefined ? ' done' : '');
+    b.dataset.i = String(i);
+    b.disabled = state.phase !== 'find';
+    b.innerHTML = `<span class="g"><span class="z">${g[0]}</span>${g.slice(1)}</span><span class="w">${wordOf(i) ?? '?'}</span>`;
+    root.append(b);
+  });
 }
 
-// Delegated listener: the dump is re-rendered on state changes only, never on hover.
-$('dump').addEventListener('click', (e) => {
-  const cell = e.target.closest('.cell');
-  if (cell && !cell.disabled) onCell(Number(cell.dataset.i));
+$('groups').addEventListener('click', (e) => {
+  const g = e.target.closest('.group');
+  if (g && !g.disabled) { state.selected = Number(g.dataset.i); state.note = ''; renderAll(); }
 });
 
-function onCell(i) {
-  const existing = pickAt(i);
-  if (existing && state.anchor === null) {
-    state.picks = state.picks.filter((p) => p !== existing);
-    state.note = '';
-    return renderAll();
+// ---------- decoding: the table guess ----------
+
+function onMatrixCell(id) {
+  if (state.phase !== 'find') return;
+  const i = state.selected;
+  if (i === null) { state.note = 'Pick a group in the signal first.'; return renderStatus(); }
+  const r = checkGuess(tx, i, id);
+  if (!r.ok) {
+    const g = tx.groups[i];
+    state.note = r.row
+      ? `Row ${id[0]} is right, the column is not. Look the letter ${g[2]} up in the horizontal key.`
+      : r.col
+        ? `Column ${id[1]} is right, the row is not. Look the letter ${g[1]} up in the vertical key.`
+        : `Neither is right. ${g[1]} is a row letter (vertical key), ${g[2]} is a column letter (horizontal key).`;
+    return renderStatus();
   }
-  if (state.anchor === null) {
-    state.anchor = i;
-    state.note = '';
-    return renderAll();
-  }
-  const first = state.anchor;
-  state.anchor = null;
-  const pair = { a: first, b: i };
-  if (first === i) {
-    state.note = '';
-  } else if (!areAdjacent(tx, first, i)) {
-    state.note = 'The two labels of a key touch: side by side or one above the other.';
-  } else if (!tokenOfCells(tx, first, i)) {
-    state.note = `${tx.dump[first]} + ${tx.dump[i]} is not a row label with a column label.`;
-  } else if (state.picks.some((p) => overlaps(p, pair))) {
-    state.note = 'That uses a label of a key you already marked. Click a marked key to unmark it.';
-  } else {
-    state.picks.push(pair);
-    state.note = '';
-  }
+  state.decoded[i] = id;
+  state.selected = nextUndecoded();
+  state.note = '';
+  if (allDecoded()) return enterRead();
   renderAll();
 }
 
@@ -607,19 +543,17 @@ function onCell(i) {
 
 function renderStatus() {
   const el = $('status');
+  el.classList.remove('hedge');
   if (state.phase === 'find') {
-    el.classList.remove('hedge');
-    el.textContent = state.note || (state.likeness === null
-      ? `Find ${tx.slots.length} keys: a digit touching a letter a-j. Click one, then the other.`
-      : `Likeness ${state.likeness}/${tx.slots.length} — ${state.tries} ${state.tries === 1 ? 'try' : 'tries'} left.`);
+    const i = state.selected;
+    const g = i === null ? null : tx.groups[i];
+    el.textContent = state.note || (g
+      ? `Group ${g}: ignore the Z. ${g[1]} gives the row (vertical key), ${g[2]} gives the column (horizontal key). Click that cell in the table.`
+      : 'Pick a group to decode.');
     return;
   }
   el.textContent = renderSentence(tx, state.selection);
   el.classList.toggle('hedge', judgeReading(tx, state.selection, keysFound()) === 'hedged');
-}
-
-function keysFound() {
-  return pickedKeys(tx, state.picks);
 }
 
 function renderIntuition() {
@@ -638,91 +572,54 @@ function btn(label, onClick, disabled = false, cls = '') {
 
 const SLOT_HELP = {
   who: 'who is it about?', place: 'where?', action: 'what happened?', thing: 'about what?', state: 'in what state?',
-  marker: 'announces a number or spelling', number: 'the pair right after the marker', letter: 'next letter of the word',
+  marker: 'announces a number or spelling', number: 'the group right after the marker', letter: 'next letter of the word',
 };
 const KIND_NAMES = { who: 'who', place: 'place', action: 'action', thing: 'thing', state: 'state', marker: 'marker', letter: 'letter', service: 'service' };
 
 function renderBoard() {
   const finding = state.phase === 'find';
-  $('boardTitle').textContent = finding ? 'DECODING SHEET — FIND THE KEYS' : 'DECODING SHEET — READ THE MESSAGE';
+  $('boardTitle').textContent = finding ? 'DECODING SHEET — DECODE THE GROUPS' : 'DECODING SHEET — READ THE MESSAGE';
   $('readBox').hidden = finding;
   $('controls').hidden = !finding;
 
   const picks = $('picks');
   picks.replaceChildren();
-  const sorted = sortPicks(state.picks);
   tx.slots.forEach((slot, k) => {
-    const p = sorted[k];
     const chip = document.createElement('div');
-    chip.className = `pick kind-${slot}` + (p ? ' filled' : '');
-    let main = '···';
-    let sub = SLOT_HELP[slot];
-    if (p) {
-      const t = tokenOfCells(tx, p.a, p.b);
-      main = t.id;
-      sub = slot === 'number' ? `number ${numberOf(t.id)}` : (t.cell?.text ?? '');
-    }
-    chip.innerHTML = `<div class="type">${k + 1}. ${slot}</div><div class="k">${main}</div><div class="m">${sub}</div>`;
+    const done = state.decoded[k] !== undefined;
+    chip.className = `pick kind-${slot}` + (done ? ' filled' : '') + (state.selected === k ? ' sel' : '');
+    chip.innerHTML = `<div class="type">${k + 1}. ${slot}</div><div class="k">${tx.groups[k]}</div><div class="m">${wordOf(k) ?? SLOT_HELP[slot]}</div>`;
+    if (finding) chip.addEventListener('click', () => { state.selected = k; state.note = ''; renderAll(); });
     picks.append(chip);
   });
-  if (sorted.length > tx.slots.length) {
-    const extra = document.createElement('div');
-    extra.className = 'pick extra';
-    extra.textContent = `+${sorted.length - tx.slots.length} extra`;
-    picks.append(extra);
-  }
 
   if (finding) {
     $('controls').replaceChildren(
-      btn(`TRY (${'●'.repeat(state.tries)}${'○'.repeat(MAX_TRIES - state.tries)})`, tryPicks, state.tries < 1 || state.picks.length === 0, 'primary'),
-      btn('AUTO (1 ●)', autoPick, state.intuition < 1 || realMissing().length === 0),
-      btn('Clear', () => { state.picks = []; state.note = ''; renderAll(); }, state.picks.length === 0),
-      btn('Move on with this reading', enterRead, state.likeness === null || state.picks.length !== tx.slots.length),
+      btn('AUTO (1 ●): decode the selected group', autoDecode, state.intuition < 1 || state.selected === null),
     );
-    $('legend').textContent = 'Mark the keys in reading order: ' + tx.slots.join(' → ') + '. A number or a spelled letter is the pair right after its marker.';
+    $('legend').textContent = 'Decode the groups in any order. The message reads in the order shown: ' + tx.slots.join(' → ') + '.';
   } else {
     renderReadBox();
     $('legend').textContent = 'Ambiguous phrases have several meanings. Choose from the crew and map context, or HEDGE to hold both.';
   }
 }
 
-function realMissing() {
-  return tx.cipher.map((_, i) => realPick(tx, i)).filter((r) => !state.picks.some((p) => samePick(p, r)));
-}
-
-function tryPicks() {
-  if (state.picks.length !== tx.slots.length) {
-    state.note = `The message has ${tx.slots.length} keys; you marked ${state.picks.length}. (No try used.)`;
-    return renderAll();
-  }
-  if (!parses(tx, state.picks)) {
-    const have = sortPicks(state.picks).map((p) => tokenOfCells(tx, p.a, p.b).cell?.kind).join(' → ');
-    state.note = `Does not fit the message yet. Need ${tx.slots.join(' → ')} in reading order; you have: ${have}. (No try used.)`;
-    return renderAll();
-  }
-  state.note = '';
-  state.tries -= 1;
-  state.likeness = likeness(tx, state.picks);
-  if (isLocked(tx, state.picks) || state.tries === 0) return enterRead();
-  renderAll();
-}
-
-function autoPick() {
+function autoDecode() {
   const left = spendIntuition(state.intuition);
-  if (left === null) return;
-  const missing = realMissing();
-  if (!missing.length) return;
+  const i = state.selected;
+  if (left === null || i === null) return;
   state.intuition = left;
-  const reveal = missing[0];
-  state.picks = state.picks.filter((p) => !overlaps(p, reveal));
-  state.picks.push(reveal);
+  state.decoded[i] = tx.cipher[i];
+  state.selected = nextUndecoded();
   state.note = '';
+  if (allDecoded()) return enterRead();
   renderAll();
 }
 
 function enterRead() {
   state.phase = 'read';
   state.note = '';
+  state.selected = null;
   keysFound().forEach((id, i) => {
     const meanings = meaningsOf(tx, i, id);
     if (meanings.length === 1) state.selection[i] = [meanings[0]];
@@ -799,12 +696,9 @@ function renderGuide() {
 
 /** The sentence with a blank for every key still to find; found keys are filled in as words. */
 function renderFrame() {
-  const sorted = sortPicks(state.picks);
   const words = {};
-  sorted.forEach((p, k) => {
-    if (k >= tx.slots.length) return;
-    const t = tokenOfCells(tx, p.a, p.b);
-    words[k] = tx.slots[k] === 'number' ? numberOf(t.id) : (t.cell?.meanings.join(' / ') ?? '?');
+  tx.slots.forEach((_, k) => {
+    if (state.decoded[k] !== undefined) words[k] = wordOf(k).replace(/^number /, '');
   });
   const el = $('frame');
   el.replaceChildren();
@@ -826,20 +720,40 @@ function renderMatrix() {
   const t = document.createElement('table');
   t.className = 'grid matrix';
   const head = document.createElement('tr');
-  head.innerHTML = '<th></th>' + [...'abcdefghij'].map((c, i) => `<th>${c}<small>${i}</small></th>`).join('');
+  head.innerHTML = '<th></th>' + [...'0123456789'].map((c) => `<th>${c}</th>`).join('');
   t.append(head);
+  const found = new Set(Object.values(state.decoded));
   for (let r = 0; r < 10; r++) {
     const tr = document.createElement('tr');
-    let html = `<th>${r}</th>`;
-    for (const c of 'abcdefghij') {
-      const cell = cellById(tx, `${r}${c}`);
-      const multi = cell.meanings.length > 1;
-      html += `<td class="kind-${cell.kind}${multi ? ' multi' : ''}" title="${r}${c}">${cell.text}</td>`;
+    tr.innerHTML = `<th>${r}</th>`;
+    for (let c = 0; c < 10; c++) {
+      const id = `${r}${c}`;
+      const cell = cellById(tx, id);
+      const td = document.createElement('td');
+      td.className = `kind-${cell.kind}` + (cell.meanings.length > 1 ? ' multi' : '') + (found.has(id) ? ' found' : '');
+      td.textContent = cell.text;
+      td.title = id;
+      td.addEventListener('click', () => onMatrixCell(id));
+      tr.append(td);
     }
-    tr.innerHTML = html;
     t.append(tr);
   }
   $('codeTable').replaceChildren(t);
+}
+
+/** The daily key: which letters stand for which digit. The letters of the selected group are lit. */
+function renderKeyCard() {
+  const g = state.selected === null || state.phase !== 'find' ? null : tx.groups[state.selected];
+  const half = (title, letters, lit) => {
+    const cells = letters.map((ls, d) => {
+      const chars = [...ls].map((ch) => `<span class="kl${ch === lit ? ' hit' : ''}">${ch}</span>`).join('');
+      return `<span class="kd"><b>${d}</b>${chars}</span>`;
+    }).join('');
+    return `<div class="keyhalf"><div class="kt">${title}</div><div class="kr">${cells}</div></div>`;
+  };
+  $('keyCard').innerHTML =
+    half('VERTICAL KEY: letter → row digit', tx.key.rows, g?.[1]) +
+    half('HORIZONTAL KEY: letter → column digit', tx.key.cols, g?.[2]);
 }
 
 function renderMap() {
@@ -919,10 +833,6 @@ $('hintBtn').addEventListener('click', () => {
   h.textContent = 'Hint: ' + tx.hint;
   h.hidden = !h.hidden;
 });
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && state.anchor !== null) { state.anchor = null; renderDump(); }
-});
-
 boot();
 
 </script>
