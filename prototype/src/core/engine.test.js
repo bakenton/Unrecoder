@@ -3,7 +3,10 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve as pathResolve } from 'node:path';
-import { judgeReading, renderSentence, resolve, isAmbiguous, ORDERS, applyCrew, spendIntuition, gainIntuition, likeness, isLocked, typeFits, noiseCandidates, MAX_TRIES } from './engine.js';
+import {
+  judgeReading, renderSentence, resolve, isAmbiguous, ORDERS, applyCrew, spendIntuition, gainIntuition,
+  likeness, isLocked, findOccurrences, keyAtSpan, parses, pickedKeys, realSpan, MAX_TRIES,
+} from './engine.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const act = JSON.parse(readFileSync(pathResolve(here, '../../../content/campaign/act1.json'), 'utf8'));
@@ -93,48 +96,77 @@ test('crew and Intuition helpers', () => {
   assert.equal(gainIntuition(5, 1), 5);
 });
 
-test('tuning: likeness counts correct glyph positions without saying which', () => {
-  assert.equal(likeness(tx, ['7', '4', 'd', 'b', '9']), 2); // 7 and b right
-  assert.equal(likeness(tx, ['7', '2', 'a', 'b', 'c']), 5);
-  assert.ok(isLocked(tx, tx.cipher));
-  assert.ok(!isLocked(tx, ['7', '4', 'd', 'b', '9']));
+
+// --- dump / tuning ---
+
+const span = (key, start) => ({ start, end: start + key.length });
+const realPicks = () => tx.cipher.map((_, i) => realSpan(tx, i));
+const posOf = Object.fromEntries(findOccurrences(tx).map((o) => [o.key, o.start]));
+
+test('the real keys sit in the dump at their recorded positions', () => {
+  tx.cipher.forEach((key, i) => assert.equal(tx.stream.slice(tx.positions[i], tx.positions[i] + key.length), key));
 });
 
-test('tuning: the true glyph is always among the noise candidates and fits its slot type', () => {
-  tx.cipher.forEach((g, i) => {
-    assert.ok(noiseCandidates(tx, i).includes(g));
-    assert.ok(typeFits(tx, i, g));
-  });
+test('the dump has no accidental key matches: only the intended real keys and decoys', () => {
+  const found = findOccurrences(tx).map((o) => o.key);
+  assert.equal(new Set(found).size, found.length, 'a key appears twice');
+  // 5 real + 5 decoys = 10; the remaining 2 table keys (base, safe) are not in the dump
+  assert.equal(found.length, 10);
 });
 
-test('tuning: slot 0 is solvable by the table alone (wrong candidate has the wrong type)', () => {
-  const wrong = noiseCandidates(tx, 0).find((g) => g !== tx.cipher[0]);
-  assert.ok(!typeFits(tx, 0, wrong));
+test('keyAtSpan accepts only real table keys', () => {
+  assert.equal(keyAtSpan(tx, posOf['c4'], posOf['c4'] + 2).key, 'c4');
+  assert.equal(keyAtSpan(tx, posOf['c4'], posOf['c4'] + 1), null);
+  assert.equal(keyAtSpan(tx, 0, 2), null);
 });
 
-test('tuning is solvable within MAX_TRIES by a likeness-driven strategy', () => {
-  // Brute-force strategy: every guess consistent with all previous likeness feedback.
-  const cands = tx.cipher.map((_, i) => noiseCandidates(tx, i));
+test('likeness counts picks that are the real key at the real place, not which', () => {
+  const real = realPicks();
+  assert.equal(likeness(tx, real), 5);
+  assert.ok(isLocked(tx, real));
+  const decoyWho = span('3r', posOf['3r']);
+  const picks = [decoyWho, ...real.slice(1)];
+  assert.equal(likeness(tx, picks), 4);
+  assert.ok(!isLocked(tx, picks));
+  // same key text elsewhere does not count (position matters)
+  assert.equal(likeness(tx, [span('c3', posOf['c3'])]), 0);
+});
+
+test('parses: picks must follow the grammar in stream order', () => {
+  assert.ok(parses(tx, realPicks()));
+  assert.ok(!parses(tx, realPicks().slice(0, 4)));
+  // decoy action "lft" sits before real place "c4": left-then-reached-CP4 is not WHO PLACE ACTION THING STATE
+  const bad = [span('7k', posOf['7k']), span('c4', posOf['c4']), span('lft', posOf['lft']), span('bri', posOf['bri']), span('x9', posOf['x9'])];
+  assert.ok(!parses(tx, bad));
+});
+
+test('pickedKeys returns keys in stream order whatever the pick order', () => {
+  assert.deepEqual(pickedKeys(tx, [...realPicks()].reverse()), tx.cipher);
+});
+
+test('the dump is solvable within MAX_TRIES by a likeness-driven strategy', () => {
+  const slots = tx.slots;
+  const decoysAndReal = findOccurrences(tx).filter((o) => o.start >= 0);
+  const byType = (t) => decoysAndReal.filter((o) => keyAtSpan(tx, o.start, o.end).type === t);
   let pool = [[]];
-  cands.forEach((c) => { pool = pool.flatMap((p) => c.map((g) => [...p, g])); });
+  for (const t of slots) pool = pool.flatMap((p) => byType(t).map((o) => [...p, o]));
+  pool = pool.filter((c) => c.every((o, i) => i === 0 || c[i - 1].end <= o.start));
+  const truth = realPicks();
+  const lk = (a, b) => a.filter((o, i) => o.start === b[i].start).length;
   let tries = 0;
   while (pool.length) {
     const guess = pool[0];
     tries += 1;
-    const l = likeness(tx, guess);
-    if (l === tx.cipher.length) break;
-    pool = pool.filter((g) => g !== guess && likenessBetween(g, guess) === l);
+    const l = lk(guess, truth);
+    if (l === slots.length) break;
+    pool = pool.filter((c) => c !== guess && lk(c, guess) === l);
   }
   assert.ok(tries <= MAX_TRIES, `needed ${tries} tries`);
 });
 
-function likenessBetween(a, b) {
-  return a.reduce((n, x, i) => n + (x === b[i] ? 1 : 0), 0);
-}
-
-test('a misread signal makes the reading wrong even if the words look plausible', () => {
-  const badGlyphs = ['7', '4', 'a', 'b', 'c']; // CP3 instead of CP4
+test('a misread key makes the reading wrong even if the words look plausible', () => {
+  const keys = ['7k', 'c3', 'rea', 'bri', 'x9']; // CP3 instead of CP4
   const sel = { 0: ['team'], 1: ['CP3'], 2: ['reached'], 3: ['bridge'], 4: ['broken'] };
-  assert.equal(judgeReading(tx, sel, badGlyphs), 'wrong');
-  assert.equal(judgeReading(tx, { ...A }, tx.cipher), 'correct');
+  assert.equal(judgeReading(tx, sel, keys), 'wrong');
+  assert.equal(judgeReading(tx, A, tx.cipher), 'correct');
 });

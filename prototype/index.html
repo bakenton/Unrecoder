@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Unrecoder — Reel Board prototype</title>
+  <title>Unrecoder — dump prototype</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -13,21 +13,19 @@
         <span>EXPEDITION RADIO LOG <b id="txId"></b></span>
         <span id="txTime"></span>
       </header>
-      <div class="signal" id="cipher" aria-label="Received cipher"></div>
-      <div class="sentence" id="sentence" aria-live="polite"></div>
+      <div class="dump" id="dump" aria-label="Received signal"></div>
+      <div class="status" id="status" aria-live="polite"></div>
     </section>
 
-    <section class="panel board" aria-label="Reel board">
+    <section class="panel board" aria-label="Decoding sheet">
       <header>
-        <span>DECODING SHEET — tune the signal, then read it</span>
+        <span id="boardTitle">DECODING SHEET</span>
         <span class="intuition" id="intuition" title="Intuition Points"></span>
       </header>
-      <div class="reels" id="reels"></div>
-      <p class="legend">
-        1) TUNE: pick the real glyph in each smeared slot (use the code table: the glyph must match the slot type), then TRY for a Likeness count. 2) READ: spin ambiguous reels, click to lock.
-        <b>AUTO</b> reveals the real glyph in a slot for 1 ●.
-        <b>HEDGE</b> lets you lock several words in one reel.
-      </p>
+      <div id="picks" class="picks"></div>
+      <div id="controls" class="controls"></div>
+      <div id="readBox" class="readbox" hidden></div>
+      <p class="legend" id="legend"></p>
     </section>
 
     <section class="panel crew" aria-label="Crew list">

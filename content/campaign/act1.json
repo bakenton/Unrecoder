@@ -105,71 +105,78 @@
       "id": "T01-bridge",
       "time": "14:32",
       "cipher": [
-        "7",
-        "2",
-        "a",
-        "b",
-        "c"
+        "7k",
+        "c4",
+        "rea",
+        "bri",
+        "x9"
       ],
       "table": [
         {
-          "symbol": "7",
+          "key": "7k",
           "type": "who",
           "meanings": [
             "team"
           ]
         },
         {
-          "symbol": "1",
-          "type": "thing",
+          "key": "3r",
+          "type": "who",
           "meanings": [
-            "rope"
+            "leader"
           ]
         },
         {
-          "symbol": "2",
+          "key": "c4",
           "type": "place",
           "meanings": [
             "CP4"
           ]
         },
         {
-          "symbol": "4",
+          "key": "c3",
           "type": "place",
           "meanings": [
             "CP3"
           ]
         },
         {
-          "symbol": "a",
+          "key": "hq",
+          "type": "place",
+          "meanings": [
+            "base"
+          ]
+        },
+        {
+          "key": "rea",
           "type": "action",
           "meanings": [
             "reached"
           ]
         },
         {
-          "symbol": "d",
+          "key": "lft",
           "type": "action",
           "meanings": [
             "left"
           ]
         },
         {
-          "symbol": "b",
+          "key": "bri",
           "type": "thing",
           "meanings": [
             "bridge"
           ]
         },
         {
-          "symbol": "e",
+          "key": "tnt",
           "type": "thing",
           "meanings": [
-            "camp"
+            "tent"
           ]
         },
         {
-          "symbol": "c",
+          "key": "x9",
           "type": "state",
           "meanings": [
             "broken",
@@ -177,10 +184,17 @@
           ]
         },
         {
-          "symbol": "9",
+          "key": "inj",
           "type": "state",
           "meanings": [
             "injured"
+          ]
+        },
+        {
+          "key": "ok2",
+          "type": "state",
+          "meanings": [
+            "safe"
           ]
         }
       ],
@@ -258,28 +272,14 @@
         "thing",
         "state"
       ],
-      "noise": {
-        "0": [
-          "7",
-          "1"
-        ],
-        "1": [
-          "4",
-          "2"
-        ],
-        "2": [
-          "d",
-          "a"
-        ],
-        "3": [
-          "b",
-          "e"
-        ],
-        "4": [
-          "9",
-          "c"
-        ]
-      }
+      "stream": "4g7v3ruod6v17kr0she6c3111y0lftdr1xesc4zemeetrea1qz6bbri7lwrwtntjivwinj2ufpqbx9nzn5sw6axpnv1u2jpa",
+      "positions": [
+        12,
+        36,
+        44,
+        52,
+        76
+      ]
     }
   ]
 }

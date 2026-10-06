@@ -1,10 +1,11 @@
 import {
-  ORDERS, MAX_INTUITION, MAX_TRIES, entryFor, isAmbiguous, judgeReading, renderSentence,
-  resolve, applyCrew, spendIntuition, gainIntuition, noiseCandidates, likeness, isLocked,
+  ORDERS, MAX_INTUITION, MAX_TRIES, entryFor, judgeReading, renderSentence, resolve, applyCrew,
+  spendIntuition, gainIntuition, keyAtSpan, overlaps, parses, pickedKeys, likeness, isLocked, realSpan,
 } from './core/engine.js';
 
 const ORDER_LABELS = { continue: 'Continue', wait: 'Wait', back: 'Back to last CP', hurry: 'Hurry', base: 'Return to base' };
 const START_INTUITION = 3;
+const COLS = 12;
 
 const $ = (id) => document.getElementById(id);
 
@@ -21,17 +22,18 @@ async function boot() {
 
 function reset() {
   state = {
+    phase: 'find', // 'find' -> 'read' -> 'sent'
     crew: act.crew,
     intuition: START_INTUITION,
-    phase: 'tune', // 'tune' -> 'read' -> 'sent'
-    glyphs: tx.cipher.map((_, i) => noiseCandidates(tx, i)[0]), // the player's current guess per position
+    picks: [], // {start, end} spans of the dump the player marked as code keys
+    anchor: null, // first click of a span selection
+    hover: null,
     tries: MAX_TRIES,
     likeness: null,
-    selection: {}, // cipherIndex -> string[]
-    pos: Object.fromEntries(tx.cipher.map((_, i) => [i, 0])), // drum position per reel
-    hedge: {}, // cipherIndex -> bool
+    note: '',
+    selection: {}, // message index -> words
+    hedge: {}, // message index -> bool
     order: null,
-    sent: false,
   };
   $('result').hidden = true;
   $('hint').hidden = true;
@@ -41,9 +43,9 @@ function reset() {
 }
 
 function renderAll() {
-  renderCipher();
-  renderReels();
-  renderSentence_();
+  renderDump();
+  renderStatus();
+  renderBoard();
   renderIntuition();
   renderCrew();
   renderTable();
@@ -51,171 +53,226 @@ function renderAll() {
   renderOrders();
 }
 
-function renderCipher() {
-  $('cipher').replaceChildren(...tx.cipher.map((_, i) => {
-    const el = document.createElement('span');
-    const cands = noiseCandidates(tx, i);
-    if (state.phase === 'tune' && cands.length > 1) {
-      el.className = 'smear';
-      el.innerHTML = cands.map((g) => `<i>${g}</i>`).join('');
-    } else {
-      el.textContent = state.glyphs[i];
-      if (state.phase !== 'tune' && !isLocked(tx, state.glyphs)) el.classList.add('weak');
+// ---------- dump ----------
+
+function pickAt(i) {
+  return state.picks.find((p) => p.start <= i && i < p.end);
+}
+
+function previewRange() {
+  if (state.anchor === null || state.hover === null) return null;
+  return { start: Math.min(state.anchor, state.hover), end: Math.max(state.anchor, state.hover) + 1 };
+}
+
+function renderDump() {
+  const root = $('dump');
+  root.replaceChildren();
+  const preview = previewRange();
+  const finding = state.phase === 'find';
+  for (let row = 0; row * COLS < tx.stream.length; row++) {
+    const line = document.createElement('div');
+    line.className = 'dline';
+    const addr = document.createElement('span');
+    addr.className = 'addr';
+    addr.textContent = '0x' + (row * COLS).toString(16).toUpperCase().padStart(3, '0');
+    line.append(addr);
+    for (let c = 0; c < COLS; c++) {
+      const i = row * COLS + c;
+      if (i >= tx.stream.length) break;
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'cell';
+      cell.textContent = tx.stream[i];
+      cell.dataset.i = String(i);
+      if (pickAt(i)) cell.classList.add('picked');
+      if (state.anchor === i) cell.classList.add('anchor');
+      if (preview && i >= preview.start && i < preview.end && !pickAt(i)) cell.classList.add('preview');
+      if (!finding) cell.disabled = true;
+      cell.addEventListener('click', () => onCell(i));
+      cell.addEventListener('pointerenter', () => { if (state.anchor !== null) { state.hover = i; renderDump(); } });
+      line.append(cell);
     }
-    return el;
-  }));
+    root.append(line);
+  }
+}
+
+function onCell(i) {
+  const existing = pickAt(i);
+  if (existing && state.anchor === null) {
+    state.picks = state.picks.filter((p) => p !== existing);
+    state.note = '';
+    return renderAll();
+  }
+  if (state.anchor === null) {
+    state.anchor = i;
+    state.hover = i;
+    return renderAll();
+  }
+  const span = { start: Math.min(state.anchor, i), end: Math.max(state.anchor, i) + 1 };
+  state.anchor = null;
+  state.hover = null;
+  const entry = keyAtSpan(tx, span.start, span.end);
+  if (!entry) {
+    state.note = `"${tx.stream.slice(span.start, span.end)}" is not in the code table.`;
+  } else if (state.picks.some((p) => overlaps(p, span))) {
+    state.note = 'That overlaps a key you already marked. Click a marked key to unmark it.';
+  } else {
+    state.picks.push(span);
+    state.note = '';
+  }
+  renderAll();
+}
+
+// ---------- status / board ----------
+
+function renderStatus() {
+  const el = $('status');
+  if (state.phase === 'find') {
+    el.classList.remove('hedge');
+    el.textContent = state.note || (state.likeness === null
+      ? `Find code keys from the table in the noise. Click the first and last character of a key. Message: ${tx.slots.length} keys.`
+      : `Likeness ${state.likeness}/${tx.slots.length} — ${state.tries} ${state.tries === 1 ? 'try' : 'tries'} left.`);
+    return;
+  }
+  const reading = judgeReading(tx, state.selection, keysFound());
+  el.textContent = renderSentence(tx, state.selection);
+  el.classList.toggle('hedge', reading === 'hedged');
+}
+
+function keysFound() {
+  return pickedKeys(tx, state.picks);
 }
 
 function renderIntuition() {
   $('intuition').textContent = '●'.repeat(state.intuition) + '○'.repeat(MAX_INTUITION - state.intuition);
 }
 
-function renderSentence_() {
-  if (state.phase === 'tune') {
-    $('sentence').textContent = state.likeness === null
-      ? 'Signal is noisy. Tune each smeared symbol, then TRY.'
-      : `Likeness ${state.likeness}/${tx.cipher.length} — ${state.tries} ${state.tries === 1 ? 'try' : 'tries'} left.`;
-    $('sentence').classList.remove('hedge');
-    return;
-  }
-  const reading = judgeReading(tx, state.selection, state.glyphs);
-  const text = renderSentence(tx, state.selection);
-  $('sentence').textContent = text;
-  $('sentence').classList.toggle('hedge', reading === 'hedged');
+function btn(label, onClick, disabled = false, cls = '') {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.textContent = label;
+  b.disabled = disabled;
+  if (cls) b.className = cls;
+  b.addEventListener('click', onClick);
+  return b;
 }
 
-function candidates(i) {
-  return entryFor(tx, state.glyphs[i]).meanings;
-}
+function renderBoard() {
+  const finding = state.phase === 'find';
+  $('boardTitle').textContent = finding ? 'DECODING SHEET — FIND THE KEYS' : 'DECODING SHEET — READ THE MESSAGE';
+  $('readBox').hidden = finding;
+  $('controls').hidden = !finding;
 
-function renderTuning() {
-  const root = $('reels');
-  root.replaceChildren();
-  tx.cipher.forEach((_, i) => {
-    const cands = noiseCandidates(tx, i);
-    const cell = document.createElement('div');
-    cell.className = 'reel tune';
-    cell.innerHTML = `<div class="type">slot ${i + 1}</div><div class="type">${tx.slots[i]}</div>`;
-    const chips = document.createElement('div');
-    chips.className = 'chips';
-    cands.forEach((g) => {
-      const c = btn(g, () => { state.glyphs[i] = g; renderAll(); });
-      c.className = 'chip' + (state.glyphs[i] === g ? ' on' : '');
-      chips.append(c);
-    });
-    const tools = document.createElement('div');
-    tools.className = 'tools';
-    tools.append(btn('AUTO', () => autoTune(i), state.intuition < 1 || cands.length < 2));
-    cell.append(chips, tools);
-    root.append(cell);
+  const picks = $('picks');
+  picks.replaceChildren();
+  const sorted = [...state.picks].sort((a, b) => a.start - b.start);
+  tx.slots.forEach((slotType, k) => {
+    const p = sorted[k];
+    const chip = document.createElement('div');
+    chip.className = 'pick' + (p ? ' filled' : '');
+    const entry = p ? keyAtSpan(tx, p.start, p.end) : null;
+    chip.innerHTML = `<div class="type">${slotType}</div><div class="k">${entry ? entry.key : '···'}</div><div class="m">${entry ? entry.meanings.join(' / ') : ''}</div>`;
+    picks.append(chip);
   });
-  const bar = document.createElement('div');
-  bar.className = 'tunebar';
-  bar.append(btn(`TRY (${'●'.repeat(state.tries)}${'○'.repeat(MAX_TRIES - state.tries)})`, tryTune, state.tries < 1));
-  bar.append(btn('Give up tuning', () => enterRead(), state.likeness === null));
-  root.append(bar);
+  if (sorted.length > tx.slots.length) {
+    const extra = document.createElement('div');
+    extra.className = 'pick extra';
+    extra.textContent = `+${sorted.length - tx.slots.length} extra`;
+    picks.append(extra);
+  }
+
+  if (finding) {
+    $('controls').replaceChildren(
+      btn(`TRY (${'●'.repeat(state.tries)}${'○'.repeat(MAX_TRIES - state.tries)})`, tryPicks, state.tries < 1 || state.picks.length === 0, 'primary'),
+      btn('AUTO (1 ●)', autoPick, state.intuition < 1 || realMissing().length === 0),
+      btn('Clear', () => { state.picks = []; state.note = ''; renderAll(); }, state.picks.length === 0),
+      btn('Move on with this reading', enterRead, state.likeness === null || !parses(tx, state.picks)),
+    );
+    $('legend').textContent = 'The message is a sequence of code keys hidden in the noise, in grammar order (' + tx.slots.join(' → ') + '). Some keys in the dump are decoys. TRY tells you only how many of your keys are right, not which.';
+  } else {
+    renderReadBox();
+    $('legend').textContent = 'Ambiguous keys have several meanings. Choose from the crew and map context, or HEDGE to hold both.';
+  }
 }
 
-function tryTune() {
+function realMissing() {
+  return tx.cipher.map((_, i) => realSpan(tx, i)).filter((r) => !state.picks.some((p) => p.start === r.start && p.end === r.end));
+}
+
+function tryPicks() {
+  if (!parses(tx, state.picks)) {
+    const have = [...state.picks].sort((a, b) => a.start - b.start).map((p) => keyAtSpan(tx, p.start, p.end).type).join(' → ') || 'nothing';
+    state.note = `Doesn't parse. Need ${tx.slots.join(' → ')} in stream order; you have: ${have}. (No try used.)`;
+    return renderAll();
+  }
+  state.note = '';
   state.tries -= 1;
-  state.likeness = likeness(tx, state.glyphs);
-  if (isLocked(tx, state.glyphs) || state.tries === 0) enterRead();
-  else renderAll();
+  state.likeness = likeness(tx, state.picks);
+  if (isLocked(tx, state.picks) || state.tries === 0) return enterRead();
+  renderAll();
 }
 
-function autoTune(i) {
+function autoPick() {
   const left = spendIntuition(state.intuition);
   if (left === null) return;
+  const missing = realMissing();
+  if (!missing.length) return;
   state.intuition = left;
-  state.glyphs[i] = tx.cipher[i];
+  const reveal = missing[0];
+  state.picks = state.picks.filter((p) => !overlaps(p, reveal));
+  state.picks.push(reveal);
+  state.note = '';
   renderAll();
 }
 
 function enterRead() {
   state.phase = 'read';
-  // Single-meaning symbols decode straight from the table; ambiguous ones are the player's call.
-  tx.cipher.forEach((_, i) => {
-    const meanings = entryFor(tx, state.glyphs[i]).meanings;
+  state.note = '';
+  keysFound().forEach((key, i) => {
+    const meanings = entryFor(tx, key).meanings;
     if (meanings.length === 1) state.selection[i] = [meanings[0]];
   });
   renderAll();
 }
 
-function renderReels() {
-  if (state.phase === 'tune') return renderTuning();
-  const root = $('reels');
-  root.replaceChildren();
-  state.glyphs.forEach((symbol, i) => {
-    const cands = candidates(i);
-    const multi = cands.length > 1;
-    const chosen = state.selection[i] ?? [];
-    const pos = state.pos[i];
-    const locked = (w) => chosen.includes(w);
-
-    const reel = document.createElement('div');
-    reel.className = 'reel';
-    reel.innerHTML = `<div class="sym">${symbol}</div><div class="type">${entryFor(tx, symbol).type}</div>`;
-
-    const up = btn('▲', () => spin(i, -1), !multi || state.sent);
-    const down = btn('▼', () => spin(i, 1), !multi || state.sent);
-    const win = document.createElement('div');
-    win.className = 'win';
-    // Multi-meaning reels show prev / current / next; single-meaning reels show one row.
-    const offsets = multi ? [-1, 0, 1] : [0];
-    win.append(...offsets.map((off) => {
-      const w = cands[(((pos + off) % cands.length) + cands.length) % cands.length];
-      const row = document.createElement('div');
-      row.className = 'row' + (off === 0 ? ' mid' : '');
-      row.textContent = w;
-      if (locked(w)) row.classList.add('locked');
-      if (off === 0 && multi && !state.sent) row.addEventListener('click', () => toggle(i, w));
-      return row;
-    }));
-    win.addEventListener('wheel', (e) => { if (multi && !state.sent) { e.preventDefault(); spin(i, Math.sign(e.deltaY)); } }, { passive: false });
-
-    const tools = document.createElement('div');
-    tools.className = 'tools';
-    if (multi) {
-      const h = btn('HEDGE', () => { state.hedge[i] = !state.hedge[i]; if (!state.hedge[i] && chosen.length > 1) state.selection[i] = [chosen[0]]; renderAll(); }, state.sent);
-      h.classList.toggle('on', !!state.hedge[i]);
-      tools.append(h);
-    }
-    reel.append(up, win, down, tools);
-    root.append(reel);
+function renderReadBox() {
+  const box = $('readBox');
+  box.replaceChildren();
+  keysFound().forEach((key, i) => {
+    const entry = entryFor(tx, key);
+    if (entry.meanings.length < 2) return;
+    const row = document.createElement('div');
+    row.className = 'readrow';
+    const label = document.createElement('span');
+    label.textContent = `${key} (${entry.type}):`;
+    row.append(label);
+    entry.meanings.forEach((w) => {
+      const chosen = (state.selection[i] ?? []).includes(w);
+      row.append(btn(w, () => chooseWord(i, w), state.phase === 'sent', 'word' + (chosen ? ' on' : '')));
+    });
+    row.append(btn('HEDGE', () => {
+      state.hedge[i] = !state.hedge[i];
+      if (!state.hedge[i] && (state.selection[i] ?? []).length > 1) state.selection[i] = [state.selection[i][0]];
+      renderAll();
+    }, state.phase === 'sent', 'hedge' + (state.hedge[i] ? ' on' : '')));
+    box.append(row);
   });
+  if (!box.children.length) box.textContent = 'Every key has a single meaning.';
 }
 
-function btn(label, onClick, disabled = false) {
-  const b = document.createElement('button');
-  b.type = 'button';
-  b.textContent = label;
-  b.disabled = disabled;
-  b.addEventListener('click', onClick);
-  return b;
-}
-
-function spin(i, dir) {
-  state.pos[i] += dir;
-  renderReels();
-}
-
-function toggle(i, word) {
-  const cands = candidates(i);
+function chooseWord(i, w) {
   const cur = state.selection[i] ?? [];
-  if (cur.includes(word)) {
-    state.selection[i] = cur.filter((w) => w !== word);
-  } else if (state.hedge[i] && cands.length > 1) {
-    state.selection[i] = [...cur, word];
-  } else {
-    state.selection[i] = [word];
-  }
+  if (cur.includes(w)) state.selection[i] = cur.filter((x) => x !== w);
+  else if (state.hedge[i]) state.selection[i] = [...cur, w];
+  else state.selection[i] = [w];
   if (state.selection[i].length === 0) delete state.selection[i];
   renderAll();
 }
 
+// ---------- side panels ----------
+
 function renderCrew() {
-  const ul = $('crewList');
-  ul.replaceChildren(...state.crew.map((m) => {
+  $('crewList').replaceChildren(...state.crew.map((m) => {
     const li = document.createElement('li');
     if (m.status === 'injured') li.classList.add('injured');
     li.innerHTML = `<span class="id">${m.id}</span><span>${m.role}${m.note ? `<br><span class="note">${m.note}</span>` : ''}</span><span class="where">${m.location}</span>`;
@@ -227,7 +284,7 @@ function renderTable() {
   $('codeTable').replaceChildren(...tx.table.map((e) => {
     const li = document.createElement('li');
     const multi = e.meanings.length > 1;
-    li.innerHTML = `<b>${e.symbol}</b><span class="${multi ? 'multi' : ''}">${e.meanings.join(' / ')}</span>`;
+    li.innerHTML = `<b>${e.key}</b><span class="${multi ? 'multi' : ''}">${e.meanings.join(' / ')}</span><i>${e.type}</i>`;
     return li;
   }));
 }
@@ -257,19 +314,17 @@ function renderMap() {
 }
 
 function renderOrders() {
-  const root = $('orders');
-  root.replaceChildren(...ORDERS.map((o) => {
+  $('orders').replaceChildren(...ORDERS.map((o) => {
     const b = btn(ORDER_LABELS[o], () => { state.order = o; renderOrders(); }, state.phase !== 'read');
     b.setAttribute('aria-pressed', String(state.order === o));
     return b;
   }));
-  const ready = state.phase === 'read' && judgeReading(tx, state.selection, state.glyphs) !== 'incomplete' && state.order && !state.sent;
+  const ready = state.phase === 'read' && judgeReading(tx, state.selection, keysFound()) !== 'incomplete' && state.order;
   $('sendBtn').disabled = !ready;
 }
 
 function send() {
-  const r = resolve(tx, state.selection, state.order, state.glyphs);
-  state.sent = true;
+  const r = resolve(tx, state.selection, state.order, keysFound());
   state.phase = 'sent';
   state.crew = applyCrew(state.crew, r.crew);
   state.intuition = gainIntuition(state.intuition, r.intuitionGain);
@@ -279,7 +334,7 @@ function send() {
   $('message').textContent = `"${r.text}"`;
   $('message').className = `message ${r.severity}`;
 
-  const truthSelection = Object.fromEntries(tx.cipher.map((_, i) => [i, [tx.truth[i] ?? candidates(i)[0]]]));
+  const truthSelection = Object.fromEntries(tx.cipher.map((key, i) => [i, [tx.truth[i] ?? entryFor(tx, key).meanings[0]]]));
   const verdict = {
     correct: 'You read it right.',
     hedged: 'You hedged: the right reading was in your answer, but you didn\'t commit to it.',
@@ -300,6 +355,9 @@ $('hintBtn').addEventListener('click', () => {
   const h = $('hint');
   h.textContent = 'Hint: ' + tx.hint;
   h.hidden = !h.hidden;
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && state.anchor !== null) { state.anchor = null; state.hover = null; renderDump(); }
 });
 
 boot();
