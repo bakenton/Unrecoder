@@ -1,0 +1,31 @@
+# Unity
+unity/[Ll]ibrary/
+unity/[Tt]emp/
+unity/[Oo]bj/
+unity/[Bb]uild/
+unity/[Bb]uilds/
+unity/[Ll]ogs/
+unity/[Uu]ser[Ss]ettings/
+unity/[Mm]emoryCaptures/
+unity/.vs/
+unity/.idea/
+*.csproj
+*.sln
+*.pidb
+*.unityproj
+*.apk
+*.aab
+*.unitypackage
+sysinfo.txt
+crashlytics-build.properties
+
+# Web prototype
+node_modules/
+dist/
+.vite/
+
+# OS / editors
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
