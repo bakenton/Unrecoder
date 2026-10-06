@@ -1,23 +1,50 @@
 // Pure game logic: no DOM, no fetch. Ports 1:1 to C# later.
 //
-// A transmission is a grid "dump" (tx.stream, tx.cols wide). The real message is a sequence of code keys
-// hidden in it (tx.cipher, at tx.cells). The player finds keys from the code table in the dump
-// (a "pick" = two adjacent cells spelling a table key), and the radio answers Fallout-style
-// with a Likeness count. Once the keys are right, ambiguous keys are resolved by context.
+// The code table is a fixed 10x10 matrix (like the real duty-radio-operator table): every cell holds a
+// phrase, a letter, or a service marker, and its number "rc" (row digit, column digit) can also be read
+// as a number. Each transmission has an indicator that decides which label of the two label rings is
+// digit 0; the labels then run on in ring order. The matrix never changes, the labels do.
+//
+// A transmission is a grid "dump" of 2-letter labels. A key is two orthogonally adjacent cells holding
+// a row label and a column label (either order). The real message is a sequence of keys hidden in the
+// dump; the radio answers Fallout-style with a Likeness count. Once the keys are right, ambiguous
+// phrases are resolved by context.
 
 export const ORDERS = ['continue', 'wait', 'back', 'hurry', 'base'];
 export const MAX_INTUITION = 5;
 export const MAX_TRIES = 5;
 
-export function entryFor(tx, key) {
-  return tx.table.find((e) => e.key === key) ?? null;
+/** A transmission with the shared matrix and rings attached. */
+export function prepare(act, index) {
+  return { ...act.transmissions[index], matrix: act.matrix, rings: act.rings };
+}
+
+// --- The matrix and the key ---
+
+export function cellById(tx, id) {
+  return tx.matrix.cells[id] ?? null;
+}
+
+export function digitOf(ring, start, label) {
+  return (ring.indexOf(label) - ring.indexOf(start) + ring.length) % ring.length;
+}
+
+export function labelFor(ring, start, digit) {
+  return ring[(ring.indexOf(start) + digit) % ring.length];
+}
+
+/** Label of each digit 0..9 for this transmission's indicator. */
+export function keyLabels(tx) {
+  const digits = [...Array(10).keys()];
+  return {
+    rows: digits.map((d) => labelFor(tx.rings.rows, tx.indicator.row, d)),
+    cols: digits.map((d) => labelFor(tx.rings.cols, tx.indicator.col, d)),
+  };
 }
 
 // --- Phase 1: finding keys in the dump ---
-
-// The dump is a grid (tx.cols wide). A key is a pair of orthogonally adjacent cells holding a row
-// digit and a column letter of the code table, in either order, horizontally or vertically.
-// A pick is {a, b}: the two cell indices.
+//
+// A pick is {a, b}: two cell indices of the dump.
 
 export function areAdjacent(tx, a, b) {
   const d = Math.abs(a - b);
@@ -25,26 +52,41 @@ export function areAdjacent(tx, a, b) {
   return d === 1 && Math.floor(a / tx.cols) === Math.floor(b / tx.cols);
 }
 
-/** The table entry a pair of cells spells (row digit + column letter, either order), or null. */
-export function keyOfCells(tx, a, b) {
+/** What a pair of cells spells: {id, row, col, cell}, or null if it is not a row label + column label. */
+export function tokenOfCells(tx, a, b) {
   if (a === b || !areAdjacent(tx, a, b)) return null;
-  const ca = tx.stream[a];
-  const cb = tx.stream[b];
-  return entryFor(tx, ca + cb) ?? entryFor(tx, cb + ca);
+  for (const [x, y] of [[tx.dump[a], tx.dump[b]], [tx.dump[b], tx.dump[a]]]) {
+    if (tx.rings.rows.includes(x) && tx.rings.cols.includes(y)) {
+      const row = digitOf(tx.rings.rows, tx.indicator.row, x);
+      const col = digitOf(tx.rings.cols, tx.indicator.col, y);
+      const id = `${row}${col}`;
+      return { id, row, col, cell: cellById(tx, id) };
+    }
+  }
+  return null;
 }
 
-/** Every pair of adjacent cells that spells a table key. */
+export function minCell(p) {
+  return Math.min(p.a, p.b);
+}
+
+/** Every pair of adjacent cells that is a valid key, in reading order. */
 export function findOccurrences(tx) {
   const out = [];
-  const n = tx.stream.length;
+  const n = tx.dump.length;
   for (let i = 0; i < n; i++) {
     for (const j of [i + 1, i + tx.cols]) {
       if (j >= n) continue;
-      const e = keyOfCells(tx, i, j);
-      if (e) out.push({ key: e.key, a: i, b: j });
+      const t = tokenOfCells(tx, i, j);
+      if (t) out.push({ id: t.id, a: i, b: j });
     }
   }
-  return out;
+  return out.sort((p, q) => minCell(p) - minCell(q));
+}
+
+/** The first key in the dump after `pick` in reading order (what follows a marker). */
+export function nextOccurrence(tx, pick) {
+  return findOccurrences(tx).find((o) => minCell(o) > minCell(pick)) ?? null;
 }
 
 export function overlaps(p, q) {
@@ -53,28 +95,46 @@ export function overlaps(p, q) {
 
 /** Picks ordered by their first cell in reading order. */
 export function sortPicks(picks) {
-  return [...picks].sort((p, q) => Math.min(p.a, p.b) - Math.min(q.a, q.b));
+  return [...picks].sort((p, q) => minCell(p) - minCell(q));
 }
 
-/** Do the picks, in reading order, form the message grammar (tx.slots)? */
+export function samePick(p, q) {
+  return (p.a === q.a && p.b === q.b) || (p.a === q.b && p.b === q.a);
+}
+
+/** Can this token fill a slot of the given kind? A number slot takes any pair (it is read as digits). */
+export function slotAccepts(slot, token) {
+  if (!token) return false;
+  if (slot === 'number') return true;
+  return token.cell?.kind === slot;
+}
+
+/**
+ * Do the picks, in reading order, form the message grammar (tx.slots)?
+ * Number and letter slots must directly follow the previous pick in the dump:
+ * a marker is followed by its number, and spelled letters follow one by one.
+ */
 export function parses(tx, picks) {
   const sorted = sortPicks(picks);
   if (sorted.length !== tx.slots.length) return false;
-  return sorted.every((p, i) => keyOfCells(tx, p.a, p.b)?.type === tx.slots[i]);
+  return sorted.every((p, i) => {
+    if (!slotAccepts(tx.slots[i], tokenOfCells(tx, p.a, p.b))) return false;
+    if ((tx.slots[i] === 'number' || tx.slots[i] === 'letter') && i > 0) {
+      const next = nextOccurrence(tx, sorted[i - 1]);
+      if (!next || !samePick(next, p)) return false;
+    }
+    return true;
+  });
 }
 
-/** The keys picked, in reading order. */
+/** Cell ids of the picks, in reading order. */
 export function pickedKeys(tx, picks) {
-  return sortPicks(picks).map((p) => keyOfCells(tx, p.a, p.b).key);
+  return sortPicks(picks).map((p) => tokenOfCells(tx, p.a, p.b).id);
 }
 
 /** The real pair of cells of message key `i`. */
 export function realPick(tx, i) {
   return { a: tx.cells[i][0], b: tx.cells[i][1] };
-}
-
-export function samePick(p, q) {
-  return (p.a === q.a && p.b === q.b) || (p.a === q.b && p.b === q.a);
 }
 
 /** Fallout "Likeness": how many picks are exactly a real key's pair of cells. */
@@ -88,15 +148,20 @@ export function isLocked(tx, picks) {
 
 // --- Phase 2: reading the message ---
 
-/** Ambiguity of the key the player ended up with at message index `i`. */
+/** Words a key can stand for at message position `i`. A number slot reads the cell number itself. */
+export function meaningsOf(tx, i, id) {
+  if (tx.slots[i] === 'number') return [id];
+  return cellById(tx, id).meanings;
+}
+
 export function isAmbiguous(tx, i, keys = null) {
-  return entryFor(tx, keys?.[i] ?? tx.cipher[i]).meanings.length > 1;
+  return meaningsOf(tx, i, keys?.[i] ?? tx.cipher[i]).length > 1;
 }
 
 /**
  * selection: { [messageIndex]: string[] } chosen words per key.
  * Returns 'incomplete' | 'correct' | 'hedged' | 'wrong'.
- * `keys` are the keys the player found (defaults to the true ones).
+ * `keys` are the cell ids the player found (defaults to the true ones).
  */
 export function judgeReading(tx, selection, keys = null) {
   let hedged = false;
@@ -104,7 +169,7 @@ export function judgeReading(tx, selection, keys = null) {
     const chosen = selection[i] ?? [];
     if (chosen.length === 0) return 'incomplete';
     const key = keys?.[i] ?? tx.cipher[i];
-    const meanings = entryFor(tx, key).meanings;
+    const meanings = meaningsOf(tx, i, key);
     if (!chosen.every((w) => meanings.includes(w))) return 'wrong';
     if (key !== tx.cipher[i]) return 'wrong'; // misread signal
     const truth = tx.truth[i];

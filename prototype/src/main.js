@@ -1,18 +1,19 @@
 import {
-  ORDERS, MAX_INTUITION, MAX_TRIES, entryFor, judgeReading, renderSentence, resolve, applyCrew,
-  spendIntuition, gainIntuition, keyOfCells, areAdjacent, overlaps, parses, pickedKeys, likeness, isLocked, realPick,
-  sortPicks, samePick,
+  ORDERS, MAX_INTUITION, MAX_TRIES, prepare, cellById, keyLabels, tokenOfCells, areAdjacent, overlaps, parses,
+  pickedKeys, likeness, isLocked, realPick, samePick, sortPicks, meaningsOf, judgeReading, renderSentence,
+  resolve, applyCrew, spendIntuition, gainIntuition,
 } from './core/engine.js';
 
 const ORDER_LABELS = { continue: 'Continue', wait: 'Wait', back: 'Back to last CP', hurry: 'Hurry', base: 'Return to base' };
 const START_INTUITION = 3;
-const COLS = 12;
 
 const $ = (id) => document.getElementById(id);
 
 let act;
+let txIndex = 0;
 let tx;
 let state;
+let start; // {crew, intuition} at the start of the current transmission, for Replay
 
 async function boot() {
   try {
@@ -24,8 +25,7 @@ async function boot() {
       'prototype/unrecoder-standalone.html, which needs no server.');
     return;
   }
-  tx = act.transmissions[0];
-  reset();
+  startCampaign();
 }
 
 function showFatal(message) {
@@ -35,23 +35,31 @@ function showFatal(message) {
   document.querySelector('.desk').prepend(el);
 }
 
-function reset() {
+function startCampaign() {
+  txIndex = 0;
+  start = { crew: act.crew, intuition: START_INTUITION };
+  begin();
+}
+
+function begin() {
+  tx = prepare(act, txIndex);
   state = {
     phase: 'find', // 'find' -> 'read' -> 'sent'
-    crew: act.crew,
-    intuition: START_INTUITION,
-    picks: [], // {start, end} spans of the dump the player marked as code keys
-    anchor: null, // first click of a span selection
-    hover: null,
+    crew: start.crew,
+    intuition: start.intuition,
+    picks: [], // {a, b} pairs of dump cells the player marked as keys
+    anchor: null, // first click of a pair
     tries: MAX_TRIES,
     likeness: null,
     note: '',
     selection: {}, // message index -> words
     hedge: {}, // message index -> bool
     order: null,
+    help: tx.keyHelp, // training mode: show the key and decode picks
   };
   $('result').hidden = true;
   $('hint').hidden = true;
+  $('helpToggle').checked = state.help;
   $('txId').textContent = tx.id.split('-')[0].replace('T', 'No.');
   $('txTime').textContent = `RECEIVED ${tx.time}`;
   renderAll();
@@ -63,7 +71,8 @@ function renderAll() {
   renderBoard();
   renderIntuition();
   renderCrew();
-  renderTable();
+  renderKey();
+  renderMatrix();
   renderMap();
   renderOrders();
 }
@@ -78,20 +87,20 @@ function renderDump() {
   const root = $('dump');
   root.replaceChildren();
   const finding = state.phase === 'find';
-  for (let row = 0; row * COLS < tx.stream.length; row++) {
+  for (let row = 0; row * tx.cols < tx.dump.length; row++) {
     const line = document.createElement('div');
     line.className = 'dline';
     const addr = document.createElement('span');
     addr.className = 'addr';
-    addr.textContent = '0x' + (row * COLS).toString(16).toUpperCase().padStart(3, '0');
+    addr.textContent = '0x' + (row * tx.cols).toString(16).toUpperCase().padStart(3, '0');
     line.append(addr);
-    for (let c = 0; c < COLS; c++) {
-      const i = row * COLS + c;
-      if (i >= tx.stream.length) break;
+    for (let c = 0; c < tx.cols; c++) {
+      const i = row * tx.cols + c;
+      if (i >= tx.dump.length) break;
       const cell = document.createElement('button');
       cell.type = 'button';
       cell.className = 'cell';
-      cell.textContent = tx.stream[i];
+      cell.textContent = tx.dump[i];
       cell.dataset.i = String(i);
       if (pickAt(i)) cell.classList.add('picked');
       if (state.anchor === i) cell.classList.add('anchor');
@@ -102,11 +111,12 @@ function renderDump() {
   }
 }
 
-// Delegated listeners: the dump is re-rendered on state changes, never on hover.
+// Delegated listener: the dump is re-rendered on state changes only, never on hover.
 $('dump').addEventListener('click', (e) => {
   const cell = e.target.closest('.cell');
   if (cell && !cell.disabled) onCell(Number(cell.dataset.i));
 });
+
 function onCell(i) {
   const existing = pickAt(i);
   if (existing && state.anchor === null) {
@@ -125,11 +135,11 @@ function onCell(i) {
   if (first === i) {
     state.note = '';
   } else if (!areAdjacent(tx, first, i)) {
-    state.note = 'The two characters of a key touch: side by side or one above the other.';
-  } else if (!keyOfCells(tx, first, i)) {
-    state.note = `"${tx.stream[first]}" + "${tx.stream[i]}" is not a cell of the code table.`;
+    state.note = 'The two labels of a key touch: side by side or one above the other.';
+  } else if (!tokenOfCells(tx, first, i)) {
+    state.note = `${tx.dump[first]} + ${tx.dump[i]} is not a row label with a column label.`;
   } else if (state.picks.some((p) => overlaps(p, pair))) {
-    state.note = 'That uses a character of a key you already marked. Click a marked key to unmark it.';
+    state.note = 'That uses a label of a key you already marked. Click a marked key to unmark it.';
   } else {
     state.picks.push(pair);
     state.note = '';
@@ -144,13 +154,12 @@ function renderStatus() {
   if (state.phase === 'find') {
     el.classList.remove('hedge');
     el.textContent = state.note || (state.likeness === null
-      ? `Find code keys from the table in the noise. A key is a row digit and a column letter that touch (side by side or one above the other, any order): click one, then the other. Message: ${tx.slots.length} keys.`
+      ? `Find the keys in the noise: a row label next to a column label (either order, side by side or stacked). Message: ${tx.slots.length} keys.`
       : `Likeness ${state.likeness}/${tx.slots.length} — ${state.tries} ${state.tries === 1 ? 'try' : 'tries'} left.`);
     return;
   }
-  const reading = judgeReading(tx, state.selection, keysFound());
   el.textContent = renderSentence(tx, state.selection);
-  el.classList.toggle('hedge', reading === 'hedged');
+  el.classList.toggle('hedge', judgeReading(tx, state.selection, keysFound()) === 'hedged');
 }
 
 function keysFound() {
@@ -171,6 +180,8 @@ function btn(label, onClick, disabled = false, cls = '') {
   return b;
 }
 
+const SLOT_LABEL = { who: 'who', place: 'place', action: 'action', thing: 'thing', state: 'state', marker: 'marker', number: 'number', letter: 'letter' };
+
 function renderBoard() {
   const finding = state.phase === 'find';
   $('boardTitle').textContent = finding ? 'DECODING SHEET — FIND THE KEYS' : 'DECODING SHEET — READ THE MESSAGE';
@@ -180,12 +191,22 @@ function renderBoard() {
   const picks = $('picks');
   picks.replaceChildren();
   const sorted = sortPicks(state.picks);
-  tx.slots.forEach((slotType, k) => {
+  tx.slots.forEach((slot, k) => {
     const p = sorted[k];
     const chip = document.createElement('div');
     chip.className = 'pick' + (p ? ' filled' : '');
-    const entry = p ? keyOfCells(tx, p.a, p.b) : null;
-    chip.innerHTML = `<div class="type">${slotType}</div><div class="k">${entry ? entry.key : '···'}</div><div class="m">${entry ? entry.meanings.join(' / ') : ''}</div>`;
+    let main = '···';
+    let sub = '';
+    if (p) {
+      const t = tokenOfCells(tx, p.a, p.b);
+      if (state.help || !finding) {
+        main = t.id;
+        sub = slot === 'number' ? `number ${t.id}` : (t.cell?.text ?? '');
+      } else {
+        main = `${tx.dump[p.a]}·${tx.dump[p.b]}`;
+      }
+    }
+    chip.innerHTML = `<div class="type">${SLOT_LABEL[slot]}</div><div class="k">${main}</div><div class="m">${sub}</div>`;
     picks.append(chip);
   });
   if (sorted.length > tx.slots.length) {
@@ -200,12 +221,12 @@ function renderBoard() {
       btn(`TRY (${'●'.repeat(state.tries)}${'○'.repeat(MAX_TRIES - state.tries)})`, tryPicks, state.tries < 1 || state.picks.length === 0, 'primary'),
       btn('AUTO (1 ●)', autoPick, state.intuition < 1 || realMissing().length === 0),
       btn('Clear', () => { state.picks = []; state.note = ''; renderAll(); }, state.picks.length === 0),
-      btn('Move on with this reading', enterRead, state.likeness === null || !parses(tx, state.picks)),
+      btn('Move on with this reading', enterRead, state.likeness === null || state.picks.length !== tx.slots.length),
     );
-    $('legend').textContent = 'The message is a sequence of code keys hidden in the noise, in grammar order (' + tx.slots.join(' → ') + '). Some keys in the dump are decoys. TRY tells you only how many of your keys are right, not which.';
+    $('legend').textContent = 'Decode the labels with the key (ring + indicator), find the cell in the table, and pick only keys that fit the message: ' + tx.slots.join(' → ') + '. TRY tells you how many keys are right, not which. Numbers and spelled letters follow their marker directly.';
   } else {
     renderReadBox();
-    $('legend').textContent = 'Ambiguous keys have several meanings. Choose from the crew and map context, or HEDGE to hold both.';
+    $('legend').textContent = 'Ambiguous phrases have several meanings. Choose from the crew and map context, or HEDGE to hold both.';
   }
 }
 
@@ -214,9 +235,13 @@ function realMissing() {
 }
 
 function tryPicks() {
-  if (!parses(tx, state.picks)) {
-    const have = sortPicks(state.picks).map((p) => keyOfCells(tx, p.a, p.b).type).join(' → ') || 'nothing';
-    state.note = `Doesn't parse. Need ${tx.slots.join(' → ')} in reading order (left to right, top to bottom); you have: ${have}. (No try used.)`;
+  if (state.picks.length !== tx.slots.length) {
+    state.note = `The message has ${tx.slots.length} keys; you marked ${state.picks.length}. (No try used.)`;
+    return renderAll();
+  }
+  if (state.help && !parses(tx, state.picks)) {
+    const have = sortPicks(state.picks).map((p) => tokenOfCells(tx, p.a, p.b).cell?.kind).join(' → ');
+    state.note = `Doesn't parse. Need ${tx.slots.join(' → ')} in reading order (left to right, top to bottom); you have: ${have}. A number or letter must be the pair right after its marker. (No try used.)`;
     return renderAll();
   }
   state.note = '';
@@ -242,8 +267,8 @@ function autoPick() {
 function enterRead() {
   state.phase = 'read';
   state.note = '';
-  keysFound().forEach((key, i) => {
-    const meanings = entryFor(tx, key).meanings;
+  keysFound().forEach((id, i) => {
+    const meanings = meaningsOf(tx, i, id);
     if (meanings.length === 1) state.selection[i] = [meanings[0]];
   });
   renderAll();
@@ -252,15 +277,22 @@ function enterRead() {
 function renderReadBox() {
   const box = $('readBox');
   box.replaceChildren();
-  keysFound().forEach((key, i) => {
-    const entry = entryFor(tx, key);
-    if (entry.meanings.length < 2) return;
+  keysFound().forEach((id, i) => {
+    const meanings = meaningsOf(tx, i, id);
+    if (tx.slots[i] === 'number') {
+      const m = state.crew.find((c) => c.id === id);
+      const note = document.createElement('div');
+      note.className = 'readnote';
+      note.textContent = m ? `Number ${id} = crew member ${id}: ${m.role} (${m.status}).` : `Number ${id}: no crew member has this ID.`;
+      box.append(note);
+    }
+    if (meanings.length < 2) return;
     const row = document.createElement('div');
     row.className = 'readrow';
     const label = document.createElement('span');
-    label.textContent = `${key} (${entry.type}):`;
+    label.textContent = `${id} (${tx.slots[i]}):`;
     row.append(label);
-    entry.meanings.forEach((w) => {
+    meanings.forEach((w) => {
       const chosen = (state.selection[i] ?? []).includes(w);
       row.append(btn(w, () => chooseWord(i, w), state.phase === 'sent', 'word' + (chosen ? ' on' : '')));
     });
@@ -271,7 +303,12 @@ function renderReadBox() {
     }, state.phase === 'sent', 'hedge' + (state.hedge[i] ? ' on' : '')));
     box.append(row);
   });
-  if (!box.children.length) box.textContent = 'Every key has a single meaning.';
+  if (![...box.children].some((c) => c.classList.contains('readrow'))) {
+    const none = document.createElement('div');
+    none.className = 'readnote';
+    none.textContent = 'Every key has a single meaning.';
+    box.append(none);
+  }
 }
 
 function chooseWord(i, w) {
@@ -294,21 +331,35 @@ function renderCrew() {
   }));
 }
 
-function renderTable() {
-  // The table is a grid: row digit = category, column letter = word. A key is "row digit + column letter".
-  const rows = Object.entries(tx.rows); // [type, digit]
-  const cols = [...new Set(tx.table.map((e) => e.key[1]))].sort();
+function renderKey() {
+  const root = $('keyInfo');
+  const labels = keyLabels(tx);
+  const ring = (name, list, start) => `<div class="ring"><b>${name}</b> ${list.map((l) => `<span class="lbl${l === start ? ' start' : ''}">${l}</span>`).join('')}</div>`;
+  const digits = (name, list) => `<div class="ring digits"><b>${name}</b> ${list.map((l, d) => `<span class="lbl"><i>${d}</i>${l}</span>`).join('')}</div>`;
+  root.innerHTML =
+    `<p class="indicator">INDICATOR: row <b>${tx.indicator.row}</b> · column <b>${tx.indicator.col}</b></p>` +
+    ring('row ring', act.rings.rows, tx.indicator.row) +
+    ring('col ring', act.rings.cols, tx.indicator.col) +
+    `<p class="rule">The indicator label is digit 0. The next labels of the ring are 1, 2, 3… and the ring wraps around.</p>` +
+    (state.help ? digits('rows', labels.rows) + digits('cols', labels.cols) : '');
+}
+
+function renderMatrix() {
+  const labels = keyLabels(tx);
   const t = document.createElement('table');
-  t.className = 'grid';
+  t.className = 'grid matrix';
   const head = document.createElement('tr');
-  head.innerHTML = '<th></th><th></th>' + cols.map((c) => `<th>${c}</th>`).join('');
+  head.innerHTML = '<th></th>' + [...Array(10).keys()].map((c) => `<th>${c}${state.help ? `<small>${labels.cols[c]}</small>` : ''}</th>`).join('');
   t.append(head);
-  for (const [type, digit] of rows) {
+  for (let r = 0; r < 10; r++) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<th>${digit}</th><th class="rowtype">${type}</th>` + cols.map((c) => {
-      const e = tx.table.find((x) => x.key === digit + c);
-      return `<td class="${e && e.meanings.length > 1 ? 'multi' : ''}">${e ? e.meanings.join(' / ') : '·'}</td>`;
-    }).join('');
+    let html = `<th>${r}${state.help ? `<small>${labels.rows[r]}</small>` : ''}</th>`;
+    for (let c = 0; c < 10; c++) {
+      const cell = cellById(tx, `${r}${c}`);
+      const multi = cell.meanings.length > 1;
+      html += `<td class="k-${cell.kind}${multi ? ' multi' : ''}" title="${r}${c}">${cell.text}</td>`;
+    }
+    tr.innerHTML = html;
     t.append(tr);
   }
   $('codeTable').replaceChildren(t);
@@ -355,11 +406,11 @@ function send() {
   state.intuition = gainIntuition(state.intuition, r.intuitionGain);
 
   $('result').hidden = false;
-  $('resultTime').textContent = 'RECEIVED 14:58';
+  $('resultTime').textContent = `AFTER ${tx.time}`;
   $('message').textContent = `"${r.text}"`;
   $('message').className = `message ${r.severity}`;
 
-  const truthSelection = Object.fromEntries(tx.cipher.map((key, i) => [i, [tx.truth[i] ?? entryFor(tx, key).meanings[0]]]));
+  const truthSelection = Object.fromEntries(tx.cipher.map((id, i) => [i, [tx.truth[i] ?? meaningsOf(tx, i, id)[0]]]));
   const verdict = {
     correct: 'You read it right.',
     hedged: 'You hedged: the right reading was in your answer, but you didn\'t commit to it.',
@@ -370,19 +421,33 @@ function send() {
     <p>Order: <b>${ORDER_LABELS[r.order]}</b>. Intuition ${r.intuitionGain ? '+' + r.intuitionGain : '+0'}.</p>
     <p><i>Why:</i> ${tx.hint}</p>
     <p style="opacity:.7">(Prototype debrief — in the real game you'd only learn this from the next message.)</p>`;
+  $('nextBtn').hidden = txIndex >= act.transmissions.length - 1;
   renderAll();
   $('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+function next() {
+  txIndex += 1;
+  start = { crew: state.crew, intuition: state.intuition };
+  begin();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 $('sendBtn').addEventListener('click', send);
-$('restartBtn').addEventListener('click', reset);
+$('nextBtn').addEventListener('click', next);
+$('restartBtn').addEventListener('click', begin);
+$('restartAllBtn').addEventListener('click', startCampaign);
 $('hintBtn').addEventListener('click', () => {
   const h = $('hint');
   h.textContent = 'Hint: ' + tx.hint;
   h.hidden = !h.hidden;
 });
+$('helpToggle').addEventListener('change', (e) => {
+  state.help = e.target.checked;
+  renderAll();
+});
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && state.anchor !== null) { state.anchor = null; state.hover = null; renderDump(); }
+  if (e.key === 'Escape' && state.anchor !== null) { state.anchor = null; renderDump(); }
 });
 
 boot();

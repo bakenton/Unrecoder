@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Unrecoder — dump prototype</title>
+  <title>Unrecoder — duty radio table prototype</title>
   <style>
 :root {
   --bg: #1a1814;
@@ -27,12 +27,13 @@ body { margin: 0; background: var(--bg); color: var(--paper); }
   grid-template-areas:
     "radio crew"
     "board crew"
-    "table map"
+    "key map"
+    "table table"
     "orders orders"
     "result result";
 }
 .radio { grid-area: radio; } .board { grid-area: board; } .crew { grid-area: crew; }
-.table-sheet { grid-area: table; } .map { grid-area: map; } .orders { grid-area: orders; } .result { grid-area: result; }
+.table-sheet { grid-area: table; } .keysheet { grid-area: key; } .map { grid-area: map; } .orders { grid-area: orders; } .result { grid-area: result; }
 
 .panel { background: var(--paper); color: var(--ink); border: 2px solid var(--line); border-radius: 4px; padding: 10px 12px; }
 .panel > header { display: flex; justify-content: space-between; align-items: center; font-size: 11px; letter-spacing: .12em; border-bottom: 1px solid #b9ae8e; padding-bottom: 6px; margin-bottom: 8px; }
@@ -94,7 +95,7 @@ body { margin: 0; background: var(--bg); color: var(--paper); }
 .tag.correct { background: #3c7a2a; } .tag.hedged { background: #8a6a1a; } .tag.wrong { background: #a4382a; }
 
 @media (max-width: 820px) {
-  .desk { grid-template-columns: 1fr; grid-template-areas: "radio" "board" "orders" "crew" "table" "map" "result"; }
+  .desk { grid-template-columns: 1fr; grid-template-areas: "radio" "board" "key" "table" "orders" "crew" "map" "result"; }
   .dump { font-size: 16px; }
 }
 .table-sheet li i { font-size: 10px; opacity: .6; text-transform: uppercase; align-self: center; }
@@ -107,6 +108,28 @@ body { margin: 0; background: var(--bg); color: var(--paper); }
 .grid td.multi { color: #a5671a; font-weight: bold; }
 .cell.picked, .cell.picked:hover:not(:disabled) { background: #ffcf7a; color: #1a1405; opacity: 1; }
 .fatal { background: #5a1f17; color: #ffd9cf; padding: 12px 14px; border-radius: 4px; grid-column: 1 / -1; }
+
+.cell { width: 2.1em !important; font-size: 15px; letter-spacing: 0; }
+.dump { font-size: 15px; }
+.keysheet .help { font-size: 11px; cursor: pointer; }
+.ring { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin: 4px 0; font-size: 12px; }
+.ring b { width: 5.6em; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; opacity: .75; }
+.ring .lbl { border: 1px solid #b9ae8e; border-radius: 3px; padding: 1px 5px; background: #f1ead2; }
+.ring .lbl.start { background: var(--ink); color: var(--amber); border-color: var(--ink); }
+.ring.digits .lbl i { font-style: normal; opacity: .6; margin-right: 3px; }
+.indicator { margin: 2px 0 6px; font-size: 14px; }
+.rule { font-size: 11px; opacity: .75; margin: 4px 0; }
+.matrix { table-layout: fixed; font-size: 11px; }
+.matrix th small { display: block; font-size: 9px; font-weight: normal; opacity: .75; }
+.matrix td { padding: 3px 2px; line-height: 1.15; word-break: break-word; }
+.matrix td.k-letter { background: #efe8cf; font-weight: bold; font-size: 14px; }
+.matrix td.k-marker { background: #e3d9b0; font-weight: bold; }
+.matrix td.k-service { color: #6a604a; font-style: italic; }
+.matrix td.multi { color: #a5671a; font-weight: bold; }
+.readnote { font-size: 12px; margin-top: 8px; background: #f6efd6; padding: 4px 8px; border-left: 3px solid #8a7a4a; }
+.result-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.result-actions button { font: inherit; padding: 8px 14px; cursor: pointer; }
+.result-actions .send { margin-top: 0; }
 
 </style>
 </head>
@@ -138,14 +161,22 @@ body { margin: 0; background: var(--bg); color: var(--paper); }
       <p class="hint" id="hint" hidden></p>
     </section>
 
-    <section class="panel table-sheet" aria-label="Code table">
-      <header><span>CODE TABLE (THIS TRANSMISSION)</span></header>
-      <div id="codeTable"></div>
+    <section class="panel keysheet" aria-label="Key">
+      <header>
+        <span>KEY FOR THIS TRANSMISSION</span>
+        <label class="help"><input type="checkbox" id="helpToggle"> show key (training)</label>
+      </header>
+      <div id="keyInfo"></div>
     </section>
 
     <section class="panel map" aria-label="Route map">
       <header><span>ROUTE MAP — GLACIER</span></header>
       <svg id="map" viewBox="0 0 440 290" role="img" aria-label="Route map"></svg>
+    </section>
+
+    <section class="panel table-sheet" aria-label="Duty radio table">
+      <header><span>DUTY RADIO TABLE — row digit + column digit = cell number</span></header>
+      <div id="codeTable"></div>
     </section>
 
     <section class="panel orders" aria-label="Orders">
@@ -158,31 +189,62 @@ body { margin: 0; background: var(--bg); color: var(--paper); }
       <header><span>NEXT TRANSMISSION</span><span id="resultTime"></span></header>
       <p class="message" id="message"></p>
       <div class="debrief" id="debrief"></div>
-      <button id="restartBtn" type="button">Replay transmission</button>
+      <div class="result-actions">
+        <button id="nextBtn" type="button" class="send">NEXT TRANSMISSION ▸</button>
+        <button id="restartBtn" type="button">Replay this transmission</button>
+        <button id="restartAllBtn" type="button">Restart from the first</button>
+      </div>
     </section>
   </main>
   <script type="module">
-window.__ACT__ = {"crew":[{"id":"01","role":"Leader","location":"CP4","status":"ok","note":""},{"id":"02","role":"Navigator","location":"CP4","status":"ok","note":""},{"id":"03","role":"Medic","location":"CP4","status":"ok","note":""},{"id":"04","role":"Repair tech","location":"CP3","status":"injured","note":"injured last message, stayed at CP3"},{"id":"05","role":"Geologist","location":"CP4","status":"ok","note":""},{"id":"06","role":"Climber","location":"CP4","status":"ok","note":""},{"id":"07","role":"Climber","location":"CP4","status":"ok","note":""},{"id":"08","role":"Porter","location":"CP4","status":"ok","note":""},{"id":"09","role":"Porter","location":"CP4","status":"ok","note":""},{"id":"10","role":"Cook","location":"CP4","status":"ok","note":""}],"map":{"points":[{"id":"BASE","x":60,"y":250},{"id":"CP1","x":130,"y":190},{"id":"CP2","x":210,"y":215},{"id":"CP3","x":290,"y":150},{"id":"CP4","x":380,"y":100}]},"transmissions":[{"id":"T01-bridge","time":"14:32","cipher":["7c","2d","4b","5a","9c"],"table":[{"key":"7a","type":"who","meanings":["leader"]},{"key":"7c","type":"who","meanings":["team"]},{"key":"2a","type":"place","meanings":["CP3"]},{"key":"2b","type":"place","meanings":["base"]},{"key":"2d","type":"place","meanings":["CP4"]},{"key":"4b","type":"action","meanings":["reached"]},{"key":"4c","type":"action","meanings":["left"]},{"key":"5a","type":"thing","meanings":["bridge"]},{"key":"5d","type":"thing","meanings":["tent"]},{"key":"9a","type":"state","meanings":["injured"]},{"key":"9c","type":"state","meanings":["broken","repaired"]},{"key":"9d","type":"state","meanings":["safe"]}],"clauses":[{"symbols":[0,1,2],"pattern":"The {0} {2} {1}."},{"symbols":[3,4],"pattern":"The {3} is {4}."}],"truth":{"4":"broken"},"hint":"No one on the team can repair the bridge now: the only repair tech (04) is injured and stayed at CP3. So the bridge can only be broken.","outcomes":{"continue":{"severity":"harm","text":"The bridge collapsed. One member injured.","crew":[{"id":"06","status":"injured","note":"injured in the bridge collapse"}],"nearMiss":"We stopped at the bridge. Something felt wrong. No one crossed."},"wait":{"severity":"safe","text":"All safe. Looking for another route.","crew":[]},"back":{"severity":"delay","text":"Back at CP3. We lost half a day, but everyone is safe.","crew":[]},"hurry":{"severity":"harm","text":"We rushed the crossing. The bridge gave way. Two members injured.","crew":[{"id":"06","status":"injured","note":"injured in the bridge collapse"},{"id":"08","status":"injured","note":"injured in the bridge collapse"}],"nearMiss":"We started to rush, then stopped at the edge. No one hurt."},"base":{"severity":"delay","text":"Returning to base. The route is abandoned for now.","crew":[]}},"slots":["who","place","action","thing","state"],"stream":"km71nl7xwx22djajayc2s46g8ne820d2vck7kbxi10j3ya5j647iad0d4qg1s7xoeyx5swfyj2jh4wezl6b9pc9f862j9n3a","rows":{"who":"7","place":"2","action":"4","thing":"5","state":"9"},"cols":12,"cells":[[6,18],[30,31],[37,49],[45,46],[85,86]]}]};
+window.__ACT__ = {"crew":[{"id":"01","role":"Leader","location":"CP4","status":"ok","note":""},{"id":"02","role":"Navigator","location":"CP4","status":"ok","note":""},{"id":"03","role":"Medic","location":"CP4","status":"ok","note":""},{"id":"04","role":"Repair tech","location":"CP3","status":"injured","note":"injured last message, stayed at CP3"},{"id":"05","role":"Geologist","location":"CP4","status":"ok","note":""},{"id":"06","role":"Climber","location":"CP4","status":"ok","note":""},{"id":"07","role":"Climber","location":"CP4","status":"ok","note":""},{"id":"08","role":"Porter","location":"CP4","status":"ok","note":""},{"id":"09","role":"Porter","location":"CP4","status":"ok","note":""},{"id":"10","role":"Cook","location":"CP4","status":"ok","note":""}],"map":{"points":[{"id":"BASE","x":60,"y":250},{"id":"CP1","x":130,"y":190},{"id":"CP2","x":210,"y":215},{"id":"CP3","x":290,"y":150},{"id":"CP4","x":380,"y":100}]},"rings":{"rows":["KO","MI","RA","TU","BE","NO","SA","LI","PE","DU"],"cols":["ZA","FY","HO","VE","GI","XU","JA","WE","YO","QI"]},"matrix":{"rows":10,"cols":10,"cells":{"10":{"kind":"action","text":"climbed","meanings":["climbed"]},"11":{"kind":"service","text":"understood","meanings":["understood"]},"12":{"kind":"thing","text":"tent","meanings":["tent"]},"13":{"kind":"thing","text":"sample","meanings":["sample"]},"14":{"kind":"letter","text":"G","meanings":["G"]},"15":{"kind":"thing","text":"boots","meanings":["boots"]},"16":{"kind":"action","text":"found","meanings":["found"]},"17":{"kind":"thing","text":"food","meanings":["food"]},"18":{"kind":"who","text":"team","meanings":["team"]},"19":{"kind":"letter","text":"O","meanings":["O"]},"20":{"kind":"state","text":"snowing","meanings":["snowing"]},"21":{"kind":"action","text":"resting","meanings":["resting"]},"22":{"kind":"state","text":"ready","meanings":["ready"]},"23":{"kind":"marker","text":"spell","meanings":["spell"]},"24":{"kind":"place","text":"cave","meanings":["cave"]},"25":{"kind":"place","text":"summit","meanings":["summit"]},"26":{"kind":"state","text":"broken / repaired","meanings":["broken","repaired"]},"27":{"kind":"thing","text":"fuel","meanings":["fuel"]},"28":{"kind":"action","text":"moving","meanings":["moving"]},"29":{"kind":"place","text":"CP4","meanings":["CP4"]},"30":{"kind":"letter","text":"J","meanings":["J"]},"31":{"kind":"thing","text":"gloves","meanings":["gloves"]},"32":{"kind":"state","text":"hungry","meanings":["hungry"]},"33":{"kind":"action","text":"left","meanings":["left"]},"34":{"kind":"who","text":"guide","meanings":["guide"]},"35":{"kind":"letter","text":"Z","meanings":["Z"]},"36":{"kind":"state","text":"wet","meanings":["wet"]},"37":{"kind":"action","text":"searching","meanings":["searching"]},"38":{"kind":"action","text":"waiting","meanings":["waiting"]},"39":{"kind":"letter","text":"S","meanings":["S"]},"40":{"kind":"action","text":"returning","meanings":["returning"]},"41":{"kind":"place","text":"CP2","meanings":["CP2"]},"42":{"kind":"letter","text":"T","meanings":["T"]},"43":{"kind":"letter","text":"W","meanings":["W"]},"44":{"kind":"letter","text":"N","meanings":["N"]},"45":{"kind":"letter","text":"Y","meanings":["Y"]},"46":{"kind":"service","text":"stand by","meanings":["stand by"]},"47":{"kind":"thing","text":"rope","meanings":["rope"]},"48":{"kind":"letter","text":"M","meanings":["M"]},"49":{"kind":"thing","text":"blanket","meanings":["blanket"]},"50":{"kind":"marker","text":"number","meanings":["number"]},"51":{"kind":"letter","text":"V","meanings":["V"]},"52":{"kind":"who","text":"leader","meanings":["leader"]},"53":{"kind":"thing","text":"sled","meanings":["sled"]},"54":{"kind":"action","text":"camped","meanings":["camped"]},"55":{"kind":"letter","text":"K","meanings":["K"]},"56":{"kind":"letter","text":"H","meanings":["H"]},"57":{"kind":"who","text":"porter","meanings":["porter"]},"58":{"kind":"thing","text":"bridge","meanings":["bridge"]},"59":{"kind":"letter","text":"B","meanings":["B"]},"60":{"kind":"letter","text":"X","meanings":["X"]},"61":{"kind":"thing","text":"radio","meanings":["radio"]},"62":{"kind":"service","text":"radio check","meanings":["radio check"]},"63":{"kind":"letter","text":"D","meanings":["D"]},"64":{"kind":"place","text":"CP3","meanings":["CP3"]},"65":{"kind":"letter","text":"F","meanings":["F"]},"66":{"kind":"thing","text":"tarp","meanings":["tarp"]},"67":{"kind":"letter","text":"Q","meanings":["Q"]},"68":{"kind":"state","text":"low battery","meanings":["low battery"]},"69":{"kind":"state","text":"injured","meanings":["injured"]},"70":{"kind":"place","text":"valley","meanings":["valley"]},"71":{"kind":"letter","text":"R","meanings":["R"]},"72":{"kind":"thing","text":"compass","meanings":["compass"]},"73":{"kind":"service","text":"no reply","meanings":["no reply"]},"74":{"kind":"place","text":"CP1","meanings":["CP1"]},"75":{"kind":"action","text":"reached","meanings":["reached"]},"76":{"kind":"letter","text":"U","meanings":["U"]},"77":{"kind":"thing","text":"flare","meanings":["flare"]},"78":{"kind":"place","text":"glacier","meanings":["glacier"]},"79":{"kind":"action","text":"crossed","meanings":["crossed"]},"80":{"kind":"place","text":"pass","meanings":["pass"]},"81":{"kind":"thing","text":"camp","meanings":["camp"]},"82":{"kind":"letter","text":"A","meanings":["A"]},"83":{"kind":"who","text":"member","meanings":["member"]},"84":{"kind":"letter","text":"C","meanings":["C"]},"85":{"kind":"place","text":"river","meanings":["river"]},"86":{"kind":"place","text":"south ridge","meanings":["south ridge"]},"87":{"kind":"thing","text":"ice axe","meanings":["ice axe"]},"88":{"kind":"letter","text":"L","meanings":["L"]},"89":{"kind":"place","text":"hut","meanings":["hut"]},"90":{"kind":"action","text":"stopped","meanings":["stopped"]},"91":{"kind":"service","text":"over","meanings":["over"]},"92":{"kind":"place","text":"slope","meanings":["slope"]},"93":{"kind":"letter","text":"P","meanings":["P"]},"94":{"kind":"place","text":"camp site","meanings":["camp site"]},"95":{"kind":"state","text":"tired","meanings":["tired"]},"96":{"kind":"place","text":"ridge","meanings":["ridge"]},"97":{"kind":"service","text":"out","meanings":["out"]},"98":{"kind":"action","text":"descending","meanings":["descending"]},"99":{"kind":"state","text":"lost","meanings":["lost"]},"00":{"kind":"state","text":"windy","meanings":["windy"]},"01":{"kind":"who","text":"medic","meanings":["medic"]},"02":{"kind":"state","text":"cold","meanings":["cold"]},"03":{"kind":"thing","text":"map","meanings":["map"]},"04":{"kind":"state","text":"safe","meanings":["safe"]},"05":{"kind":"letter","text":"E","meanings":["E"]},"06":{"kind":"letter","text":"I","meanings":["I"]},"07":{"kind":"place","text":"base","meanings":["base"]},"08":{"kind":"thing","text":"stove","meanings":["stove"]},"09":{"kind":"service","text":"say again","meanings":["say again"]}}},"transmissions":[{"id":"T01-bridge","time":"14:32","keyHelp":true,"slots":["who","place","action","thing","state"],"cipher":["18","29","75","58","26"],"clauses":[{"pattern":"The {0} {2} {1}."},{"pattern":"The {3} is {4}."}],"truth":{"4":"broken"},"hint":"No one on the team can repair the bridge now: the only repair tech (04) is injured and stayed at CP3. So the bridge can only be broken.","outcomes":{"continue":{"severity":"harm","text":"The bridge collapsed. One member injured.","crew":[{"id":"06","status":"injured","note":"injured in the bridge collapse"}],"nearMiss":"We stopped at the bridge. Something felt wrong. No one crossed."},"wait":{"severity":"safe","text":"All safe. Looking for another route.","crew":[]},"back":{"severity":"delay","text":"Back at CP3. We lost half a day, but everyone is safe.","crew":[]},"hurry":{"severity":"harm","text":"We rushed the crossing. The bridge gave way. Two members injured.","crew":[{"id":"06","status":"injured","note":"injured in the bridge collapse"},{"id":"08","status":"injured","note":"injured in the bridge collapse"}],"nearMiss":"We started to rush, then stopped at the edge. No one hurt."},"base":{"severity":"delay","text":"Returning to base. The route is abandoned for now.","crew":[]}},"indicator":{"row":"RA","col":"HO"},"cols":12,"dump":["GA","LU","TI","MA","GA","WI","LI","TO","PE","HI","DA","BA","GE","HE","NA","FA","JA","HI","GI","HA","NI","ZA","PU","LE","WI","TO","LU","HE","FO","LA","KU","FE","ZI","TU","BU","TI","BI","WO","PE","JA","LE","CE","HU","KI","LO","FU","HI","ME","HU","ZI","SU","XU","NO","BE","FY","LE","NI","NU","WE","HU","PO","VA","KE","DA","KE","WA","HU","KU","LA","SO","DU","TI","RE","WU","KA","VI","GE","BA","TO","ZA","NI","FA","TA","GI","FY","PE","BA","RE","ZU","YO","BE","LI","CI","BA","RU","TU"],"cells":[[21,33],[53,54],[58,70],[79,91],[89,90]]},{"id":"T02-member","time":"15:41","keyHelp":false,"slots":["who","marker","number","state","place"],"cipher":["83","50","06","69","29"],"clauses":[{"pattern":"The {0} {2} is {3} at {4}."}],"truth":{},"hint":"A number in the message is a crew ID: 06 is a climber. After a number marker, the next pair in the noise is the number itself.","outcomes":{"continue":{"severity":"harm","text":"We pushed on. 06 is getting worse. We have to stop.","crew":[{"id":"06","status":"injured","note":"injured, worsening"}],"nearMiss":"We started to move, then stopped. 06 is being treated."},"wait":{"severity":"safe","text":"Medic is with 06. Stable. We rest here.","crew":[{"id":"06","status":"injured","note":"injured, stable at CP4"}]},"back":{"severity":"delay","text":"Carrying 06 back to CP3. It is slow.","crew":[{"id":"06","status":"injured","note":"being carried back"}]},"hurry":{"severity":"harm","text":"Hurrying with an injured man. 06 fell. It is bad.","crew":[{"id":"06","status":"injured","note":"injured, serious"}],"nearMiss":"We almost hurried. We slowed down for 06."},"base":{"severity":"delay","text":"Evacuating 06 to base. The team is following.","crew":[{"id":"06","status":"injured","note":"evacuating to base"}]}},"indicator":{"row":"BE","col":"JA"},"cols":12,"dump":["WA","PO","PA","VO","NU","SI","WI","NE","MU","RI","TO","YO","MO","HE","XU","GU","CA","VO","RA","QI","RO","ZI","SA","DU","WO","GE","LE","FA","HU","BI","GE","NI","FA","SU","QI","GO","ZU","SI","RE","ZE","BE","QI","LU","FA","VI","FU","DE","ZE","TI","GU","LA","LU","TE","JA","DU","GO","KA","LU","LE","HI","CU","BE","HO","FA","FE","RI","ZI","BE","KA","FI","NE","RU","BU","CI","PU","XU","KO","PI","NE","ZA","VO","BE","ME","NU","SA","XU","VO","QI","RO","ZU","CA","SE","WI","VE","BI","BO"],"cells":[[18,19],[53,54],[61,62],[75,76],[84,85]]},{"id":"T03-hut","time":"17:05","keyHelp":false,"slots":["who","action","marker","letter","letter","letter"],"cipher":["18","16","23","56","76","42"],"clauses":[{"pattern":"The {0} {1}: {3}{4}{5}."}],"truth":{},"hint":"After the spell marker, letters follow one by one. Only one of the two spelled words makes sense for a team in the mountains.","outcomes":{"continue":{"severity":"harm","text":"We went past the hut. The weather turned. One frostbitten.","crew":[{"id":"07","status":"injured","note":"frostbite"}],"nearMiss":"We almost went past the hut. We turned back and sheltered."},"wait":{"severity":"safe","text":"We are in the hut. Warm. Waiting out the weather.","crew":[]},"back":{"severity":"delay","text":"Back toward CP3. We will lose the hut.","crew":[]},"hurry":{"severity":"harm","text":"We hurried past the hut into the storm. Two frostbitten.","crew":[{"id":"07","status":"injured","note":"frostbite"},{"id":"09","status":"injured","note":"frostbite"}],"nearMiss":"We almost hurried on. We stopped at the hut instead."},"base":{"severity":"delay","text":"Returning to base. We leave the hut behind.","crew":[]}},"indicator":{"row":"SA","col":"WE"},"cols":12,"dump":["MO","RO","LU","KA","ZO","ZE","GE","SE","NA","QI","FU","TU","XU","GA","ZA","DU","HE","TI","ZE","BA","RU","MI","RI","KA","LI","LI","VE","RE","NE","LE","KA","MI","RE","CO","HU","CI","FU","ZU","VA","DI","CU","VO","KI","WE","KE","LE","HO","MI","GU","HO","SA","TI","DA","JA","DU","LO","TU","VA","LU","RE","BE","VA","LO","PE","FO","VE","MI","WA","GO","TU","VE","NI","KO","PA","GA","ZA","SO","NU","CE","MA","NE","MO","WU","RU","QI","KA","WU","WU","LO","PI","TI","HU","WA","NI","RU","PO"],"cells":[[12,24],[25,26],[63,75],[65,66],[69,70],[72,84]]}]};
 // Pure game logic: no DOM, no fetch. Ports 1:1 to C# later.
 //
-// A transmission is a grid "dump" (tx.stream, tx.cols wide). The real message is a sequence of code keys
-// hidden in it (tx.cipher, at tx.cells). The player finds keys from the code table in the dump
-// (a "pick" = two adjacent cells spelling a table key), and the radio answers Fallout-style
-// with a Likeness count. Once the keys are right, ambiguous keys are resolved by context.
+// The code table is a fixed 10x10 matrix (like the real duty-radio-operator table): every cell holds a
+// phrase, a letter, or a service marker, and its number "rc" (row digit, column digit) can also be read
+// as a number. Each transmission has an indicator that decides which label of the two label rings is
+// digit 0; the labels then run on in ring order. The matrix never changes, the labels do.
+//
+// A transmission is a grid "dump" of 2-letter labels. A key is two orthogonally adjacent cells holding
+// a row label and a column label (either order). The real message is a sequence of keys hidden in the
+// dump; the radio answers Fallout-style with a Likeness count. Once the keys are right, ambiguous
+// phrases are resolved by context.
 
 const ORDERS = ['continue', 'wait', 'back', 'hurry', 'base'];
 const MAX_INTUITION = 5;
 const MAX_TRIES = 5;
 
-function entryFor(tx, key) {
-  return tx.table.find((e) => e.key === key) ?? null;
+/** A transmission with the shared matrix and rings attached. */
+function prepare(act, index) {
+  return { ...act.transmissions[index], matrix: act.matrix, rings: act.rings };
+}
+
+// --- The matrix and the key ---
+
+function cellById(tx, id) {
+  return tx.matrix.cells[id] ?? null;
+}
+
+function digitOf(ring, start, label) {
+  return (ring.indexOf(label) - ring.indexOf(start) + ring.length) % ring.length;
+}
+
+function labelFor(ring, start, digit) {
+  return ring[(ring.indexOf(start) + digit) % ring.length];
+}
+
+/** Label of each digit 0..9 for this transmission's indicator. */
+function keyLabels(tx) {
+  const digits = [...Array(10).keys()];
+  return {
+    rows: digits.map((d) => labelFor(tx.rings.rows, tx.indicator.row, d)),
+    cols: digits.map((d) => labelFor(tx.rings.cols, tx.indicator.col, d)),
+  };
 }
 
 // --- Phase 1: finding keys in the dump ---
-
-// The dump is a grid (tx.cols wide). A key is a pair of orthogonally adjacent cells holding a row
-// digit and a column letter of the code table, in either order, horizontally or vertically.
-// A pick is {a, b}: the two cell indices.
+//
+// A pick is {a, b}: two cell indices of the dump.
 
 function areAdjacent(tx, a, b) {
   const d = Math.abs(a - b);
@@ -190,26 +252,41 @@ function areAdjacent(tx, a, b) {
   return d === 1 && Math.floor(a / tx.cols) === Math.floor(b / tx.cols);
 }
 
-/** The table entry a pair of cells spells (row digit + column letter, either order), or null. */
-function keyOfCells(tx, a, b) {
+/** What a pair of cells spells: {id, row, col, cell}, or null if it is not a row label + column label. */
+function tokenOfCells(tx, a, b) {
   if (a === b || !areAdjacent(tx, a, b)) return null;
-  const ca = tx.stream[a];
-  const cb = tx.stream[b];
-  return entryFor(tx, ca + cb) ?? entryFor(tx, cb + ca);
+  for (const [x, y] of [[tx.dump[a], tx.dump[b]], [tx.dump[b], tx.dump[a]]]) {
+    if (tx.rings.rows.includes(x) && tx.rings.cols.includes(y)) {
+      const row = digitOf(tx.rings.rows, tx.indicator.row, x);
+      const col = digitOf(tx.rings.cols, tx.indicator.col, y);
+      const id = `${row}${col}`;
+      return { id, row, col, cell: cellById(tx, id) };
+    }
+  }
+  return null;
 }
 
-/** Every pair of adjacent cells that spells a table key. */
+function minCell(p) {
+  return Math.min(p.a, p.b);
+}
+
+/** Every pair of adjacent cells that is a valid key, in reading order. */
 function findOccurrences(tx) {
   const out = [];
-  const n = tx.stream.length;
+  const n = tx.dump.length;
   for (let i = 0; i < n; i++) {
     for (const j of [i + 1, i + tx.cols]) {
       if (j >= n) continue;
-      const e = keyOfCells(tx, i, j);
-      if (e) out.push({ key: e.key, a: i, b: j });
+      const t = tokenOfCells(tx, i, j);
+      if (t) out.push({ id: t.id, a: i, b: j });
     }
   }
-  return out;
+  return out.sort((p, q) => minCell(p) - minCell(q));
+}
+
+/** The first key in the dump after `pick` in reading order (what follows a marker). */
+function nextOccurrence(tx, pick) {
+  return findOccurrences(tx).find((o) => minCell(o) > minCell(pick)) ?? null;
 }
 
 function overlaps(p, q) {
@@ -218,28 +295,46 @@ function overlaps(p, q) {
 
 /** Picks ordered by their first cell in reading order. */
 function sortPicks(picks) {
-  return [...picks].sort((p, q) => Math.min(p.a, p.b) - Math.min(q.a, q.b));
+  return [...picks].sort((p, q) => minCell(p) - minCell(q));
 }
 
-/** Do the picks, in reading order, form the message grammar (tx.slots)? */
+function samePick(p, q) {
+  return (p.a === q.a && p.b === q.b) || (p.a === q.b && p.b === q.a);
+}
+
+/** Can this token fill a slot of the given kind? A number slot takes any pair (it is read as digits). */
+function slotAccepts(slot, token) {
+  if (!token) return false;
+  if (slot === 'number') return true;
+  return token.cell?.kind === slot;
+}
+
+/**
+ * Do the picks, in reading order, form the message grammar (tx.slots)?
+ * Number and letter slots must directly follow the previous pick in the dump:
+ * a marker is followed by its number, and spelled letters follow one by one.
+ */
 function parses(tx, picks) {
   const sorted = sortPicks(picks);
   if (sorted.length !== tx.slots.length) return false;
-  return sorted.every((p, i) => keyOfCells(tx, p.a, p.b)?.type === tx.slots[i]);
+  return sorted.every((p, i) => {
+    if (!slotAccepts(tx.slots[i], tokenOfCells(tx, p.a, p.b))) return false;
+    if ((tx.slots[i] === 'number' || tx.slots[i] === 'letter') && i > 0) {
+      const next = nextOccurrence(tx, sorted[i - 1]);
+      if (!next || !samePick(next, p)) return false;
+    }
+    return true;
+  });
 }
 
-/** The keys picked, in reading order. */
+/** Cell ids of the picks, in reading order. */
 function pickedKeys(tx, picks) {
-  return sortPicks(picks).map((p) => keyOfCells(tx, p.a, p.b).key);
+  return sortPicks(picks).map((p) => tokenOfCells(tx, p.a, p.b).id);
 }
 
 /** The real pair of cells of message key `i`. */
 function realPick(tx, i) {
   return { a: tx.cells[i][0], b: tx.cells[i][1] };
-}
-
-function samePick(p, q) {
-  return (p.a === q.a && p.b === q.b) || (p.a === q.b && p.b === q.a);
 }
 
 /** Fallout "Likeness": how many picks are exactly a real key's pair of cells. */
@@ -253,15 +348,20 @@ function isLocked(tx, picks) {
 
 // --- Phase 2: reading the message ---
 
-/** Ambiguity of the key the player ended up with at message index `i`. */
+/** Words a key can stand for at message position `i`. A number slot reads the cell number itself. */
+function meaningsOf(tx, i, id) {
+  if (tx.slots[i] === 'number') return [id];
+  return cellById(tx, id).meanings;
+}
+
 function isAmbiguous(tx, i, keys = null) {
-  return entryFor(tx, keys?.[i] ?? tx.cipher[i]).meanings.length > 1;
+  return meaningsOf(tx, i, keys?.[i] ?? tx.cipher[i]).length > 1;
 }
 
 /**
  * selection: { [messageIndex]: string[] } chosen words per key.
  * Returns 'incomplete' | 'correct' | 'hedged' | 'wrong'.
- * `keys` are the keys the player found (defaults to the true ones).
+ * `keys` are the cell ids the player found (defaults to the true ones).
  */
 function judgeReading(tx, selection, keys = null) {
   let hedged = false;
@@ -269,7 +369,7 @@ function judgeReading(tx, selection, keys = null) {
     const chosen = selection[i] ?? [];
     if (chosen.length === 0) return 'incomplete';
     const key = keys?.[i] ?? tx.cipher[i];
-    const meanings = entryFor(tx, key).meanings;
+    const meanings = meaningsOf(tx, i, key);
     if (!chosen.every((w) => meanings.includes(w))) return 'wrong';
     if (key !== tx.cipher[i]) return 'wrong'; // misread signal
     const truth = tx.truth[i];
@@ -334,13 +434,14 @@ function gainIntuition(points, gain) {
 
 const ORDER_LABELS = { continue: 'Continue', wait: 'Wait', back: 'Back to last CP', hurry: 'Hurry', base: 'Return to base' };
 const START_INTUITION = 3;
-const COLS = 12;
 
 const $ = (id) => document.getElementById(id);
 
 let act;
+let txIndex = 0;
 let tx;
 let state;
+let start; // {crew, intuition} at the start of the current transmission, for Replay
 
 async function boot() {
   try {
@@ -352,8 +453,7 @@ async function boot() {
       'prototype/unrecoder-standalone.html, which needs no server.');
     return;
   }
-  tx = act.transmissions[0];
-  reset();
+  startCampaign();
 }
 
 function showFatal(message) {
@@ -363,23 +463,31 @@ function showFatal(message) {
   document.querySelector('.desk').prepend(el);
 }
 
-function reset() {
+function startCampaign() {
+  txIndex = 0;
+  start = { crew: act.crew, intuition: START_INTUITION };
+  begin();
+}
+
+function begin() {
+  tx = prepare(act, txIndex);
   state = {
     phase: 'find', // 'find' -> 'read' -> 'sent'
-    crew: act.crew,
-    intuition: START_INTUITION,
-    picks: [], // {start, end} spans of the dump the player marked as code keys
-    anchor: null, // first click of a span selection
-    hover: null,
+    crew: start.crew,
+    intuition: start.intuition,
+    picks: [], // {a, b} pairs of dump cells the player marked as keys
+    anchor: null, // first click of a pair
     tries: MAX_TRIES,
     likeness: null,
     note: '',
     selection: {}, // message index -> words
     hedge: {}, // message index -> bool
     order: null,
+    help: tx.keyHelp, // training mode: show the key and decode picks
   };
   $('result').hidden = true;
   $('hint').hidden = true;
+  $('helpToggle').checked = state.help;
   $('txId').textContent = tx.id.split('-')[0].replace('T', 'No.');
   $('txTime').textContent = `RECEIVED ${tx.time}`;
   renderAll();
@@ -391,7 +499,8 @@ function renderAll() {
   renderBoard();
   renderIntuition();
   renderCrew();
-  renderTable();
+  renderKey();
+  renderMatrix();
   renderMap();
   renderOrders();
 }
@@ -406,20 +515,20 @@ function renderDump() {
   const root = $('dump');
   root.replaceChildren();
   const finding = state.phase === 'find';
-  for (let row = 0; row * COLS < tx.stream.length; row++) {
+  for (let row = 0; row * tx.cols < tx.dump.length; row++) {
     const line = document.createElement('div');
     line.className = 'dline';
     const addr = document.createElement('span');
     addr.className = 'addr';
-    addr.textContent = '0x' + (row * COLS).toString(16).toUpperCase().padStart(3, '0');
+    addr.textContent = '0x' + (row * tx.cols).toString(16).toUpperCase().padStart(3, '0');
     line.append(addr);
-    for (let c = 0; c < COLS; c++) {
-      const i = row * COLS + c;
-      if (i >= tx.stream.length) break;
+    for (let c = 0; c < tx.cols; c++) {
+      const i = row * tx.cols + c;
+      if (i >= tx.dump.length) break;
       const cell = document.createElement('button');
       cell.type = 'button';
       cell.className = 'cell';
-      cell.textContent = tx.stream[i];
+      cell.textContent = tx.dump[i];
       cell.dataset.i = String(i);
       if (pickAt(i)) cell.classList.add('picked');
       if (state.anchor === i) cell.classList.add('anchor');
@@ -430,11 +539,12 @@ function renderDump() {
   }
 }
 
-// Delegated listeners: the dump is re-rendered on state changes, never on hover.
+// Delegated listener: the dump is re-rendered on state changes only, never on hover.
 $('dump').addEventListener('click', (e) => {
   const cell = e.target.closest('.cell');
   if (cell && !cell.disabled) onCell(Number(cell.dataset.i));
 });
+
 function onCell(i) {
   const existing = pickAt(i);
   if (existing && state.anchor === null) {
@@ -453,11 +563,11 @@ function onCell(i) {
   if (first === i) {
     state.note = '';
   } else if (!areAdjacent(tx, first, i)) {
-    state.note = 'The two characters of a key touch: side by side or one above the other.';
-  } else if (!keyOfCells(tx, first, i)) {
-    state.note = `"${tx.stream[first]}" + "${tx.stream[i]}" is not a cell of the code table.`;
+    state.note = 'The two labels of a key touch: side by side or one above the other.';
+  } else if (!tokenOfCells(tx, first, i)) {
+    state.note = `${tx.dump[first]} + ${tx.dump[i]} is not a row label with a column label.`;
   } else if (state.picks.some((p) => overlaps(p, pair))) {
-    state.note = 'That uses a character of a key you already marked. Click a marked key to unmark it.';
+    state.note = 'That uses a label of a key you already marked. Click a marked key to unmark it.';
   } else {
     state.picks.push(pair);
     state.note = '';
@@ -472,13 +582,12 @@ function renderStatus() {
   if (state.phase === 'find') {
     el.classList.remove('hedge');
     el.textContent = state.note || (state.likeness === null
-      ? `Find code keys from the table in the noise. A key is a row digit and a column letter that touch (side by side or one above the other, any order): click one, then the other. Message: ${tx.slots.length} keys.`
+      ? `Find the keys in the noise: a row label next to a column label (either order, side by side or stacked). Message: ${tx.slots.length} keys.`
       : `Likeness ${state.likeness}/${tx.slots.length} — ${state.tries} ${state.tries === 1 ? 'try' : 'tries'} left.`);
     return;
   }
-  const reading = judgeReading(tx, state.selection, keysFound());
   el.textContent = renderSentence(tx, state.selection);
-  el.classList.toggle('hedge', reading === 'hedged');
+  el.classList.toggle('hedge', judgeReading(tx, state.selection, keysFound()) === 'hedged');
 }
 
 function keysFound() {
@@ -499,6 +608,8 @@ function btn(label, onClick, disabled = false, cls = '') {
   return b;
 }
 
+const SLOT_LABEL = { who: 'who', place: 'place', action: 'action', thing: 'thing', state: 'state', marker: 'marker', number: 'number', letter: 'letter' };
+
 function renderBoard() {
   const finding = state.phase === 'find';
   $('boardTitle').textContent = finding ? 'DECODING SHEET — FIND THE KEYS' : 'DECODING SHEET — READ THE MESSAGE';
@@ -508,12 +619,22 @@ function renderBoard() {
   const picks = $('picks');
   picks.replaceChildren();
   const sorted = sortPicks(state.picks);
-  tx.slots.forEach((slotType, k) => {
+  tx.slots.forEach((slot, k) => {
     const p = sorted[k];
     const chip = document.createElement('div');
     chip.className = 'pick' + (p ? ' filled' : '');
-    const entry = p ? keyOfCells(tx, p.a, p.b) : null;
-    chip.innerHTML = `<div class="type">${slotType}</div><div class="k">${entry ? entry.key : '···'}</div><div class="m">${entry ? entry.meanings.join(' / ') : ''}</div>`;
+    let main = '···';
+    let sub = '';
+    if (p) {
+      const t = tokenOfCells(tx, p.a, p.b);
+      if (state.help || !finding) {
+        main = t.id;
+        sub = slot === 'number' ? `number ${t.id}` : (t.cell?.text ?? '');
+      } else {
+        main = `${tx.dump[p.a]}·${tx.dump[p.b]}`;
+      }
+    }
+    chip.innerHTML = `<div class="type">${SLOT_LABEL[slot]}</div><div class="k">${main}</div><div class="m">${sub}</div>`;
     picks.append(chip);
   });
   if (sorted.length > tx.slots.length) {
@@ -528,12 +649,12 @@ function renderBoard() {
       btn(`TRY (${'●'.repeat(state.tries)}${'○'.repeat(MAX_TRIES - state.tries)})`, tryPicks, state.tries < 1 || state.picks.length === 0, 'primary'),
       btn('AUTO (1 ●)', autoPick, state.intuition < 1 || realMissing().length === 0),
       btn('Clear', () => { state.picks = []; state.note = ''; renderAll(); }, state.picks.length === 0),
-      btn('Move on with this reading', enterRead, state.likeness === null || !parses(tx, state.picks)),
+      btn('Move on with this reading', enterRead, state.likeness === null || state.picks.length !== tx.slots.length),
     );
-    $('legend').textContent = 'The message is a sequence of code keys hidden in the noise, in grammar order (' + tx.slots.join(' → ') + '). Some keys in the dump are decoys. TRY tells you only how many of your keys are right, not which.';
+    $('legend').textContent = 'Decode the labels with the key (ring + indicator), find the cell in the table, and pick only keys that fit the message: ' + tx.slots.join(' → ') + '. TRY tells you how many keys are right, not which. Numbers and spelled letters follow their marker directly.';
   } else {
     renderReadBox();
-    $('legend').textContent = 'Ambiguous keys have several meanings. Choose from the crew and map context, or HEDGE to hold both.';
+    $('legend').textContent = 'Ambiguous phrases have several meanings. Choose from the crew and map context, or HEDGE to hold both.';
   }
 }
 
@@ -542,9 +663,13 @@ function realMissing() {
 }
 
 function tryPicks() {
-  if (!parses(tx, state.picks)) {
-    const have = sortPicks(state.picks).map((p) => keyOfCells(tx, p.a, p.b).type).join(' → ') || 'nothing';
-    state.note = `Doesn't parse. Need ${tx.slots.join(' → ')} in reading order (left to right, top to bottom); you have: ${have}. (No try used.)`;
+  if (state.picks.length !== tx.slots.length) {
+    state.note = `The message has ${tx.slots.length} keys; you marked ${state.picks.length}. (No try used.)`;
+    return renderAll();
+  }
+  if (state.help && !parses(tx, state.picks)) {
+    const have = sortPicks(state.picks).map((p) => tokenOfCells(tx, p.a, p.b).cell?.kind).join(' → ');
+    state.note = `Doesn't parse. Need ${tx.slots.join(' → ')} in reading order (left to right, top to bottom); you have: ${have}. A number or letter must be the pair right after its marker. (No try used.)`;
     return renderAll();
   }
   state.note = '';
@@ -570,8 +695,8 @@ function autoPick() {
 function enterRead() {
   state.phase = 'read';
   state.note = '';
-  keysFound().forEach((key, i) => {
-    const meanings = entryFor(tx, key).meanings;
+  keysFound().forEach((id, i) => {
+    const meanings = meaningsOf(tx, i, id);
     if (meanings.length === 1) state.selection[i] = [meanings[0]];
   });
   renderAll();
@@ -580,15 +705,22 @@ function enterRead() {
 function renderReadBox() {
   const box = $('readBox');
   box.replaceChildren();
-  keysFound().forEach((key, i) => {
-    const entry = entryFor(tx, key);
-    if (entry.meanings.length < 2) return;
+  keysFound().forEach((id, i) => {
+    const meanings = meaningsOf(tx, i, id);
+    if (tx.slots[i] === 'number') {
+      const m = state.crew.find((c) => c.id === id);
+      const note = document.createElement('div');
+      note.className = 'readnote';
+      note.textContent = m ? `Number ${id} = crew member ${id}: ${m.role} (${m.status}).` : `Number ${id}: no crew member has this ID.`;
+      box.append(note);
+    }
+    if (meanings.length < 2) return;
     const row = document.createElement('div');
     row.className = 'readrow';
     const label = document.createElement('span');
-    label.textContent = `${key} (${entry.type}):`;
+    label.textContent = `${id} (${tx.slots[i]}):`;
     row.append(label);
-    entry.meanings.forEach((w) => {
+    meanings.forEach((w) => {
       const chosen = (state.selection[i] ?? []).includes(w);
       row.append(btn(w, () => chooseWord(i, w), state.phase === 'sent', 'word' + (chosen ? ' on' : '')));
     });
@@ -599,7 +731,12 @@ function renderReadBox() {
     }, state.phase === 'sent', 'hedge' + (state.hedge[i] ? ' on' : '')));
     box.append(row);
   });
-  if (!box.children.length) box.textContent = 'Every key has a single meaning.';
+  if (![...box.children].some((c) => c.classList.contains('readrow'))) {
+    const none = document.createElement('div');
+    none.className = 'readnote';
+    none.textContent = 'Every key has a single meaning.';
+    box.append(none);
+  }
 }
 
 function chooseWord(i, w) {
@@ -622,21 +759,35 @@ function renderCrew() {
   }));
 }
 
-function renderTable() {
-  // The table is a grid: row digit = category, column letter = word. A key is "row digit + column letter".
-  const rows = Object.entries(tx.rows); // [type, digit]
-  const cols = [...new Set(tx.table.map((e) => e.key[1]))].sort();
+function renderKey() {
+  const root = $('keyInfo');
+  const labels = keyLabels(tx);
+  const ring = (name, list, start) => `<div class="ring"><b>${name}</b> ${list.map((l) => `<span class="lbl${l === start ? ' start' : ''}">${l}</span>`).join('')}</div>`;
+  const digits = (name, list) => `<div class="ring digits"><b>${name}</b> ${list.map((l, d) => `<span class="lbl"><i>${d}</i>${l}</span>`).join('')}</div>`;
+  root.innerHTML =
+    `<p class="indicator">INDICATOR: row <b>${tx.indicator.row}</b> · column <b>${tx.indicator.col}</b></p>` +
+    ring('row ring', act.rings.rows, tx.indicator.row) +
+    ring('col ring', act.rings.cols, tx.indicator.col) +
+    `<p class="rule">The indicator label is digit 0. The next labels of the ring are 1, 2, 3… and the ring wraps around.</p>` +
+    (state.help ? digits('rows', labels.rows) + digits('cols', labels.cols) : '');
+}
+
+function renderMatrix() {
+  const labels = keyLabels(tx);
   const t = document.createElement('table');
-  t.className = 'grid';
+  t.className = 'grid matrix';
   const head = document.createElement('tr');
-  head.innerHTML = '<th></th><th></th>' + cols.map((c) => `<th>${c}</th>`).join('');
+  head.innerHTML = '<th></th>' + [...Array(10).keys()].map((c) => `<th>${c}${state.help ? `<small>${labels.cols[c]}</small>` : ''}</th>`).join('');
   t.append(head);
-  for (const [type, digit] of rows) {
+  for (let r = 0; r < 10; r++) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<th>${digit}</th><th class="rowtype">${type}</th>` + cols.map((c) => {
-      const e = tx.table.find((x) => x.key === digit + c);
-      return `<td class="${e && e.meanings.length > 1 ? 'multi' : ''}">${e ? e.meanings.join(' / ') : '·'}</td>`;
-    }).join('');
+    let html = `<th>${r}${state.help ? `<small>${labels.rows[r]}</small>` : ''}</th>`;
+    for (let c = 0; c < 10; c++) {
+      const cell = cellById(tx, `${r}${c}`);
+      const multi = cell.meanings.length > 1;
+      html += `<td class="k-${cell.kind}${multi ? ' multi' : ''}" title="${r}${c}">${cell.text}</td>`;
+    }
+    tr.innerHTML = html;
     t.append(tr);
   }
   $('codeTable').replaceChildren(t);
@@ -683,11 +834,11 @@ function send() {
   state.intuition = gainIntuition(state.intuition, r.intuitionGain);
 
   $('result').hidden = false;
-  $('resultTime').textContent = 'RECEIVED 14:58';
+  $('resultTime').textContent = `AFTER ${tx.time}`;
   $('message').textContent = `"${r.text}"`;
   $('message').className = `message ${r.severity}`;
 
-  const truthSelection = Object.fromEntries(tx.cipher.map((key, i) => [i, [tx.truth[i] ?? entryFor(tx, key).meanings[0]]]));
+  const truthSelection = Object.fromEntries(tx.cipher.map((id, i) => [i, [tx.truth[i] ?? meaningsOf(tx, i, id)[0]]]));
   const verdict = {
     correct: 'You read it right.',
     hedged: 'You hedged: the right reading was in your answer, but you didn\'t commit to it.',
@@ -698,19 +849,33 @@ function send() {
     <p>Order: <b>${ORDER_LABELS[r.order]}</b>. Intuition ${r.intuitionGain ? '+' + r.intuitionGain : '+0'}.</p>
     <p><i>Why:</i> ${tx.hint}</p>
     <p style="opacity:.7">(Prototype debrief — in the real game you'd only learn this from the next message.)</p>`;
+  $('nextBtn').hidden = txIndex >= act.transmissions.length - 1;
   renderAll();
   $('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 }
 
+function next() {
+  txIndex += 1;
+  start = { crew: state.crew, intuition: state.intuition };
+  begin();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 $('sendBtn').addEventListener('click', send);
-$('restartBtn').addEventListener('click', reset);
+$('nextBtn').addEventListener('click', next);
+$('restartBtn').addEventListener('click', begin);
+$('restartAllBtn').addEventListener('click', startCampaign);
 $('hintBtn').addEventListener('click', () => {
   const h = $('hint');
   h.textContent = 'Hint: ' + tx.hint;
   h.hidden = !h.hidden;
 });
+$('helpToggle').addEventListener('change', (e) => {
+  state.help = e.target.checked;
+  renderAll();
+});
 document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && state.anchor !== null) { state.anchor = null; state.hover = null; renderDump(); }
+  if (e.key === 'Escape' && state.anchor !== null) { state.anchor = null; renderDump(); }
 });
 
 boot();

@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Unrecoder — dump prototype</title>
+  <title>Unrecoder — duty radio table prototype</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -34,14 +34,22 @@
       <p class="hint" id="hint" hidden></p>
     </section>
 
-    <section class="panel table-sheet" aria-label="Code table">
-      <header><span>CODE TABLE (THIS TRANSMISSION)</span></header>
-      <div id="codeTable"></div>
+    <section class="panel keysheet" aria-label="Key">
+      <header>
+        <span>KEY FOR THIS TRANSMISSION</span>
+        <label class="help"><input type="checkbox" id="helpToggle"> show key (training)</label>
+      </header>
+      <div id="keyInfo"></div>
     </section>
 
     <section class="panel map" aria-label="Route map">
       <header><span>ROUTE MAP — GLACIER</span></header>
       <svg id="map" viewBox="0 0 440 290" role="img" aria-label="Route map"></svg>
+    </section>
+
+    <section class="panel table-sheet" aria-label="Duty radio table">
+      <header><span>DUTY RADIO TABLE — row digit + column digit = cell number</span></header>
+      <div id="codeTable"></div>
     </section>
 
     <section class="panel orders" aria-label="Orders">
@@ -54,7 +62,11 @@
       <header><span>NEXT TRANSMISSION</span><span id="resultTime"></span></header>
       <p class="message" id="message"></p>
       <div class="debrief" id="debrief"></div>
-      <button id="restartBtn" type="button">Replay transmission</button>
+      <div class="result-actions">
+        <button id="nextBtn" type="button" class="send">NEXT TRANSMISSION ▸</button>
+        <button id="restartBtn" type="button">Replay this transmission</button>
+        <button id="restartAllBtn" type="button">Restart from the first</button>
+      </div>
     </section>
   </main>
   <script type="module" src="src/main.js"></script>

@@ -1,308 +1,1453 @@
 {
-  "crew": [
-    {
-      "id": "01",
-      "role": "Leader",
-      "location": "CP4",
-      "status": "ok",
-      "note": ""
-    },
-    {
-      "id": "02",
-      "role": "Navigator",
-      "location": "CP4",
-      "status": "ok",
-      "note": ""
-    },
-    {
-      "id": "03",
-      "role": "Medic",
-      "location": "CP4",
-      "status": "ok",
-      "note": ""
-    },
-    {
-      "id": "04",
-      "role": "Repair tech",
-      "location": "CP3",
-      "status": "injured",
-      "note": "injured last message, stayed at CP3"
-    },
-    {
-      "id": "05",
-      "role": "Geologist",
-      "location": "CP4",
-      "status": "ok",
-      "note": ""
-    },
-    {
-      "id": "06",
-      "role": "Climber",
-      "location": "CP4",
-      "status": "ok",
-      "note": ""
-    },
-    {
-      "id": "07",
-      "role": "Climber",
-      "location": "CP4",
-      "status": "ok",
-      "note": ""
-    },
-    {
-      "id": "08",
-      "role": "Porter",
-      "location": "CP4",
-      "status": "ok",
-      "note": ""
-    },
-    {
-      "id": "09",
-      "role": "Porter",
-      "location": "CP4",
-      "status": "ok",
-      "note": ""
-    },
-    {
-      "id": "10",
-      "role": "Cook",
-      "location": "CP4",
-      "status": "ok",
-      "note": ""
-    }
-  ],
-  "map": {
-    "points": [
-      {
-        "id": "BASE",
-        "x": 60,
-        "y": 250
-      },
-      {
-        "id": "CP1",
-        "x": 130,
-        "y": 190
-      },
-      {
-        "id": "CP2",
-        "x": 210,
-        "y": 215
-      },
-      {
-        "id": "CP3",
-        "x": 290,
-        "y": 150
-      },
-      {
-        "id": "CP4",
-        "x": 380,
-        "y": 100
-      }
-    ]
+ "crew": [
+  {
+   "id": "01",
+   "role": "Leader",
+   "location": "CP4",
+   "status": "ok",
+   "note": ""
   },
-  "transmissions": [
-    {
-      "id": "T01-bridge",
-      "time": "14:32",
-      "cipher": [
-        "7c",
-        "2d",
-        "4b",
-        "5a",
-        "9c"
-      ],
-      "table": [
-        {
-          "key": "7a",
-          "type": "who",
-          "meanings": [
-            "leader"
-          ]
-        },
-        {
-          "key": "7c",
-          "type": "who",
-          "meanings": [
-            "team"
-          ]
-        },
-        {
-          "key": "2a",
-          "type": "place",
-          "meanings": [
-            "CP3"
-          ]
-        },
-        {
-          "key": "2b",
-          "type": "place",
-          "meanings": [
-            "base"
-          ]
-        },
-        {
-          "key": "2d",
-          "type": "place",
-          "meanings": [
-            "CP4"
-          ]
-        },
-        {
-          "key": "4b",
-          "type": "action",
-          "meanings": [
-            "reached"
-          ]
-        },
-        {
-          "key": "4c",
-          "type": "action",
-          "meanings": [
-            "left"
-          ]
-        },
-        {
-          "key": "5a",
-          "type": "thing",
-          "meanings": [
-            "bridge"
-          ]
-        },
-        {
-          "key": "5d",
-          "type": "thing",
-          "meanings": [
-            "tent"
-          ]
-        },
-        {
-          "key": "9a",
-          "type": "state",
-          "meanings": [
-            "injured"
-          ]
-        },
-        {
-          "key": "9c",
-          "type": "state",
-          "meanings": [
-            "broken",
-            "repaired"
-          ]
-        },
-        {
-          "key": "9d",
-          "type": "state",
-          "meanings": [
-            "safe"
-          ]
-        }
-      ],
-      "clauses": [
-        {
-          "symbols": [
-            0,
-            1,
-            2
-          ],
-          "pattern": "The {0} {2} {1}."
-        },
-        {
-          "symbols": [
-            3,
-            4
-          ],
-          "pattern": "The {3} is {4}."
-        }
-      ],
-      "truth": {
-        "4": "broken"
-      },
-      "hint": "No one on the team can repair the bridge now: the only repair tech (04) is injured and stayed at CP3. So the bridge can only be broken.",
-      "outcomes": {
-        "continue": {
-          "severity": "harm",
-          "text": "The bridge collapsed. One member injured.",
-          "crew": [
-            {
-              "id": "06",
-              "status": "injured",
-              "note": "injured in the bridge collapse"
-            }
-          ],
-          "nearMiss": "We stopped at the bridge. Something felt wrong. No one crossed."
-        },
-        "wait": {
-          "severity": "safe",
-          "text": "All safe. Looking for another route.",
-          "crew": []
-        },
-        "back": {
-          "severity": "delay",
-          "text": "Back at CP3. We lost half a day, but everyone is safe.",
-          "crew": []
-        },
-        "hurry": {
-          "severity": "harm",
-          "text": "We rushed the crossing. The bridge gave way. Two members injured.",
-          "crew": [
-            {
-              "id": "06",
-              "status": "injured",
-              "note": "injured in the bridge collapse"
-            },
-            {
-              "id": "08",
-              "status": "injured",
-              "note": "injured in the bridge collapse"
-            }
-          ],
-          "nearMiss": "We started to rush, then stopped at the edge. No one hurt."
-        },
-        "base": {
-          "severity": "delay",
-          "text": "Returning to base. The route is abandoned for now.",
-          "crew": []
-        }
-      },
-      "slots": [
-        "who",
-        "place",
-        "action",
-        "thing",
-        "state"
-      ],
-      "stream": "km71nl7xwx22djajayc2s46g8ne820d2vck7kbxi10j3ya5j647iad0d4qg1s7xoeyx5swfyj2jh4wezl6b9pc9f862j9n3a",
-      "rows": {
-        "who": "7",
-        "place": "2",
-        "action": "4",
-        "thing": "5",
-        "state": "9"
-      },
-      "cols": 12,
-      "cells": [
-        [
-          6,
-          18
-        ],
-        [
-          30,
-          31
-        ],
-        [
-          37,
-          49
-        ],
-        [
-          45,
-          46
-        ],
-        [
-          85,
-          86
-        ]
-      ]
-    }
+  {
+   "id": "02",
+   "role": "Navigator",
+   "location": "CP4",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "id": "03",
+   "role": "Medic",
+   "location": "CP4",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "id": "04",
+   "role": "Repair tech",
+   "location": "CP3",
+   "status": "injured",
+   "note": "injured last message, stayed at CP3"
+  },
+  {
+   "id": "05",
+   "role": "Geologist",
+   "location": "CP4",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "id": "06",
+   "role": "Climber",
+   "location": "CP4",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "id": "07",
+   "role": "Climber",
+   "location": "CP4",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "id": "08",
+   "role": "Porter",
+   "location": "CP4",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "id": "09",
+   "role": "Porter",
+   "location": "CP4",
+   "status": "ok",
+   "note": ""
+  },
+  {
+   "id": "10",
+   "role": "Cook",
+   "location": "CP4",
+   "status": "ok",
+   "note": ""
+  }
+ ],
+ "map": {
+  "points": [
+   {
+    "id": "BASE",
+    "x": 60,
+    "y": 250
+   },
+   {
+    "id": "CP1",
+    "x": 130,
+    "y": 190
+   },
+   {
+    "id": "CP2",
+    "x": 210,
+    "y": 215
+   },
+   {
+    "id": "CP3",
+    "x": 290,
+    "y": 150
+   },
+   {
+    "id": "CP4",
+    "x": 380,
+    "y": 100
+   }
   ]
+ },
+ "rings": {
+  "rows": [
+   "KO",
+   "MI",
+   "RA",
+   "TU",
+   "BE",
+   "NO",
+   "SA",
+   "LI",
+   "PE",
+   "DU"
+  ],
+  "cols": [
+   "ZA",
+   "FY",
+   "HO",
+   "VE",
+   "GI",
+   "XU",
+   "JA",
+   "WE",
+   "YO",
+   "QI"
+  ]
+ },
+ "matrix": {
+  "rows": 10,
+  "cols": 10,
+  "cells": {
+   "00": {
+    "kind": "state",
+    "text": "windy",
+    "meanings": [
+     "windy"
+    ]
+   },
+   "01": {
+    "kind": "who",
+    "text": "medic",
+    "meanings": [
+     "medic"
+    ]
+   },
+   "02": {
+    "kind": "state",
+    "text": "cold",
+    "meanings": [
+     "cold"
+    ]
+   },
+   "03": {
+    "kind": "thing",
+    "text": "map",
+    "meanings": [
+     "map"
+    ]
+   },
+   "04": {
+    "kind": "state",
+    "text": "safe",
+    "meanings": [
+     "safe"
+    ]
+   },
+   "05": {
+    "kind": "letter",
+    "text": "E",
+    "meanings": [
+     "E"
+    ]
+   },
+   "06": {
+    "kind": "letter",
+    "text": "I",
+    "meanings": [
+     "I"
+    ]
+   },
+   "07": {
+    "kind": "place",
+    "text": "base",
+    "meanings": [
+     "base"
+    ]
+   },
+   "08": {
+    "kind": "thing",
+    "text": "stove",
+    "meanings": [
+     "stove"
+    ]
+   },
+   "09": {
+    "kind": "service",
+    "text": "say again",
+    "meanings": [
+     "say again"
+    ]
+   },
+   "10": {
+    "kind": "action",
+    "text": "climbed",
+    "meanings": [
+     "climbed"
+    ]
+   },
+   "11": {
+    "kind": "service",
+    "text": "understood",
+    "meanings": [
+     "understood"
+    ]
+   },
+   "12": {
+    "kind": "thing",
+    "text": "tent",
+    "meanings": [
+     "tent"
+    ]
+   },
+   "13": {
+    "kind": "thing",
+    "text": "sample",
+    "meanings": [
+     "sample"
+    ]
+   },
+   "14": {
+    "kind": "letter",
+    "text": "G",
+    "meanings": [
+     "G"
+    ]
+   },
+   "15": {
+    "kind": "thing",
+    "text": "boots",
+    "meanings": [
+     "boots"
+    ]
+   },
+   "16": {
+    "kind": "action",
+    "text": "found",
+    "meanings": [
+     "found"
+    ]
+   },
+   "17": {
+    "kind": "thing",
+    "text": "food",
+    "meanings": [
+     "food"
+    ]
+   },
+   "18": {
+    "kind": "who",
+    "text": "team",
+    "meanings": [
+     "team"
+    ]
+   },
+   "19": {
+    "kind": "letter",
+    "text": "O",
+    "meanings": [
+     "O"
+    ]
+   },
+   "20": {
+    "kind": "state",
+    "text": "snowing",
+    "meanings": [
+     "snowing"
+    ]
+   },
+   "21": {
+    "kind": "action",
+    "text": "resting",
+    "meanings": [
+     "resting"
+    ]
+   },
+   "22": {
+    "kind": "state",
+    "text": "ready",
+    "meanings": [
+     "ready"
+    ]
+   },
+   "23": {
+    "kind": "marker",
+    "text": "spell",
+    "meanings": [
+     "spell"
+    ]
+   },
+   "24": {
+    "kind": "place",
+    "text": "cave",
+    "meanings": [
+     "cave"
+    ]
+   },
+   "25": {
+    "kind": "place",
+    "text": "summit",
+    "meanings": [
+     "summit"
+    ]
+   },
+   "26": {
+    "kind": "state",
+    "text": "broken / repaired",
+    "meanings": [
+     "broken",
+     "repaired"
+    ]
+   },
+   "27": {
+    "kind": "thing",
+    "text": "fuel",
+    "meanings": [
+     "fuel"
+    ]
+   },
+   "28": {
+    "kind": "action",
+    "text": "moving",
+    "meanings": [
+     "moving"
+    ]
+   },
+   "29": {
+    "kind": "place",
+    "text": "CP4",
+    "meanings": [
+     "CP4"
+    ]
+   },
+   "30": {
+    "kind": "letter",
+    "text": "J",
+    "meanings": [
+     "J"
+    ]
+   },
+   "31": {
+    "kind": "thing",
+    "text": "gloves",
+    "meanings": [
+     "gloves"
+    ]
+   },
+   "32": {
+    "kind": "state",
+    "text": "hungry",
+    "meanings": [
+     "hungry"
+    ]
+   },
+   "33": {
+    "kind": "action",
+    "text": "left",
+    "meanings": [
+     "left"
+    ]
+   },
+   "34": {
+    "kind": "who",
+    "text": "guide",
+    "meanings": [
+     "guide"
+    ]
+   },
+   "35": {
+    "kind": "letter",
+    "text": "Z",
+    "meanings": [
+     "Z"
+    ]
+   },
+   "36": {
+    "kind": "state",
+    "text": "wet",
+    "meanings": [
+     "wet"
+    ]
+   },
+   "37": {
+    "kind": "action",
+    "text": "searching",
+    "meanings": [
+     "searching"
+    ]
+   },
+   "38": {
+    "kind": "action",
+    "text": "waiting",
+    "meanings": [
+     "waiting"
+    ]
+   },
+   "39": {
+    "kind": "letter",
+    "text": "S",
+    "meanings": [
+     "S"
+    ]
+   },
+   "40": {
+    "kind": "action",
+    "text": "returning",
+    "meanings": [
+     "returning"
+    ]
+   },
+   "41": {
+    "kind": "place",
+    "text": "CP2",
+    "meanings": [
+     "CP2"
+    ]
+   },
+   "42": {
+    "kind": "letter",
+    "text": "T",
+    "meanings": [
+     "T"
+    ]
+   },
+   "43": {
+    "kind": "letter",
+    "text": "W",
+    "meanings": [
+     "W"
+    ]
+   },
+   "44": {
+    "kind": "letter",
+    "text": "N",
+    "meanings": [
+     "N"
+    ]
+   },
+   "45": {
+    "kind": "letter",
+    "text": "Y",
+    "meanings": [
+     "Y"
+    ]
+   },
+   "46": {
+    "kind": "service",
+    "text": "stand by",
+    "meanings": [
+     "stand by"
+    ]
+   },
+   "47": {
+    "kind": "thing",
+    "text": "rope",
+    "meanings": [
+     "rope"
+    ]
+   },
+   "48": {
+    "kind": "letter",
+    "text": "M",
+    "meanings": [
+     "M"
+    ]
+   },
+   "49": {
+    "kind": "thing",
+    "text": "blanket",
+    "meanings": [
+     "blanket"
+    ]
+   },
+   "50": {
+    "kind": "marker",
+    "text": "number",
+    "meanings": [
+     "number"
+    ]
+   },
+   "51": {
+    "kind": "letter",
+    "text": "V",
+    "meanings": [
+     "V"
+    ]
+   },
+   "52": {
+    "kind": "who",
+    "text": "leader",
+    "meanings": [
+     "leader"
+    ]
+   },
+   "53": {
+    "kind": "thing",
+    "text": "sled",
+    "meanings": [
+     "sled"
+    ]
+   },
+   "54": {
+    "kind": "action",
+    "text": "camped",
+    "meanings": [
+     "camped"
+    ]
+   },
+   "55": {
+    "kind": "letter",
+    "text": "K",
+    "meanings": [
+     "K"
+    ]
+   },
+   "56": {
+    "kind": "letter",
+    "text": "H",
+    "meanings": [
+     "H"
+    ]
+   },
+   "57": {
+    "kind": "who",
+    "text": "porter",
+    "meanings": [
+     "porter"
+    ]
+   },
+   "58": {
+    "kind": "thing",
+    "text": "bridge",
+    "meanings": [
+     "bridge"
+    ]
+   },
+   "59": {
+    "kind": "letter",
+    "text": "B",
+    "meanings": [
+     "B"
+    ]
+   },
+   "60": {
+    "kind": "letter",
+    "text": "X",
+    "meanings": [
+     "X"
+    ]
+   },
+   "61": {
+    "kind": "thing",
+    "text": "radio",
+    "meanings": [
+     "radio"
+    ]
+   },
+   "62": {
+    "kind": "service",
+    "text": "radio check",
+    "meanings": [
+     "radio check"
+    ]
+   },
+   "63": {
+    "kind": "letter",
+    "text": "D",
+    "meanings": [
+     "D"
+    ]
+   },
+   "64": {
+    "kind": "place",
+    "text": "CP3",
+    "meanings": [
+     "CP3"
+    ]
+   },
+   "65": {
+    "kind": "letter",
+    "text": "F",
+    "meanings": [
+     "F"
+    ]
+   },
+   "66": {
+    "kind": "thing",
+    "text": "tarp",
+    "meanings": [
+     "tarp"
+    ]
+   },
+   "67": {
+    "kind": "letter",
+    "text": "Q",
+    "meanings": [
+     "Q"
+    ]
+   },
+   "68": {
+    "kind": "state",
+    "text": "low battery",
+    "meanings": [
+     "low battery"
+    ]
+   },
+   "69": {
+    "kind": "state",
+    "text": "injured",
+    "meanings": [
+     "injured"
+    ]
+   },
+   "70": {
+    "kind": "place",
+    "text": "valley",
+    "meanings": [
+     "valley"
+    ]
+   },
+   "71": {
+    "kind": "letter",
+    "text": "R",
+    "meanings": [
+     "R"
+    ]
+   },
+   "72": {
+    "kind": "thing",
+    "text": "compass",
+    "meanings": [
+     "compass"
+    ]
+   },
+   "73": {
+    "kind": "service",
+    "text": "no reply",
+    "meanings": [
+     "no reply"
+    ]
+   },
+   "74": {
+    "kind": "place",
+    "text": "CP1",
+    "meanings": [
+     "CP1"
+    ]
+   },
+   "75": {
+    "kind": "action",
+    "text": "reached",
+    "meanings": [
+     "reached"
+    ]
+   },
+   "76": {
+    "kind": "letter",
+    "text": "U",
+    "meanings": [
+     "U"
+    ]
+   },
+   "77": {
+    "kind": "thing",
+    "text": "flare",
+    "meanings": [
+     "flare"
+    ]
+   },
+   "78": {
+    "kind": "place",
+    "text": "glacier",
+    "meanings": [
+     "glacier"
+    ]
+   },
+   "79": {
+    "kind": "action",
+    "text": "crossed",
+    "meanings": [
+     "crossed"
+    ]
+   },
+   "80": {
+    "kind": "place",
+    "text": "pass",
+    "meanings": [
+     "pass"
+    ]
+   },
+   "81": {
+    "kind": "thing",
+    "text": "camp",
+    "meanings": [
+     "camp"
+    ]
+   },
+   "82": {
+    "kind": "letter",
+    "text": "A",
+    "meanings": [
+     "A"
+    ]
+   },
+   "83": {
+    "kind": "who",
+    "text": "member",
+    "meanings": [
+     "member"
+    ]
+   },
+   "84": {
+    "kind": "letter",
+    "text": "C",
+    "meanings": [
+     "C"
+    ]
+   },
+   "85": {
+    "kind": "place",
+    "text": "river",
+    "meanings": [
+     "river"
+    ]
+   },
+   "86": {
+    "kind": "place",
+    "text": "south ridge",
+    "meanings": [
+     "south ridge"
+    ]
+   },
+   "87": {
+    "kind": "thing",
+    "text": "ice axe",
+    "meanings": [
+     "ice axe"
+    ]
+   },
+   "88": {
+    "kind": "letter",
+    "text": "L",
+    "meanings": [
+     "L"
+    ]
+   },
+   "89": {
+    "kind": "place",
+    "text": "hut",
+    "meanings": [
+     "hut"
+    ]
+   },
+   "90": {
+    "kind": "action",
+    "text": "stopped",
+    "meanings": [
+     "stopped"
+    ]
+   },
+   "91": {
+    "kind": "service",
+    "text": "over",
+    "meanings": [
+     "over"
+    ]
+   },
+   "92": {
+    "kind": "place",
+    "text": "slope",
+    "meanings": [
+     "slope"
+    ]
+   },
+   "93": {
+    "kind": "letter",
+    "text": "P",
+    "meanings": [
+     "P"
+    ]
+   },
+   "94": {
+    "kind": "place",
+    "text": "camp site",
+    "meanings": [
+     "camp site"
+    ]
+   },
+   "95": {
+    "kind": "state",
+    "text": "tired",
+    "meanings": [
+     "tired"
+    ]
+   },
+   "96": {
+    "kind": "place",
+    "text": "ridge",
+    "meanings": [
+     "ridge"
+    ]
+   },
+   "97": {
+    "kind": "service",
+    "text": "out",
+    "meanings": [
+     "out"
+    ]
+   },
+   "98": {
+    "kind": "action",
+    "text": "descending",
+    "meanings": [
+     "descending"
+    ]
+   },
+   "99": {
+    "kind": "state",
+    "text": "lost",
+    "meanings": [
+     "lost"
+    ]
+   }
+  }
+ },
+ "transmissions": [
+  {
+   "id": "T01-bridge",
+   "time": "14:32",
+   "keyHelp": true,
+   "slots": [
+    "who",
+    "place",
+    "action",
+    "thing",
+    "state"
+   ],
+   "cipher": [
+    "18",
+    "29",
+    "75",
+    "58",
+    "26"
+   ],
+   "clauses": [
+    {
+     "pattern": "The {0} {2} {1}."
+    },
+    {
+     "pattern": "The {3} is {4}."
+    }
+   ],
+   "truth": {
+    "4": "broken"
+   },
+   "hint": "No one on the team can repair the bridge now: the only repair tech (04) is injured and stayed at CP3. So the bridge can only be broken.",
+   "outcomes": {
+    "continue": {
+     "severity": "harm",
+     "text": "The bridge collapsed. One member injured.",
+     "crew": [
+      {
+       "id": "06",
+       "status": "injured",
+       "note": "injured in the bridge collapse"
+      }
+     ],
+     "nearMiss": "We stopped at the bridge. Something felt wrong. No one crossed."
+    },
+    "wait": {
+     "severity": "safe",
+     "text": "All safe. Looking for another route.",
+     "crew": []
+    },
+    "back": {
+     "severity": "delay",
+     "text": "Back at CP3. We lost half a day, but everyone is safe.",
+     "crew": []
+    },
+    "hurry": {
+     "severity": "harm",
+     "text": "We rushed the crossing. The bridge gave way. Two members injured.",
+     "crew": [
+      {
+       "id": "06",
+       "status": "injured",
+       "note": "injured in the bridge collapse"
+      },
+      {
+       "id": "08",
+       "status": "injured",
+       "note": "injured in the bridge collapse"
+      }
+     ],
+     "nearMiss": "We started to rush, then stopped at the edge. No one hurt."
+    },
+    "base": {
+     "severity": "delay",
+     "text": "Returning to base. The route is abandoned for now.",
+     "crew": []
+    }
+   },
+   "indicator": {
+    "row": "RA",
+    "col": "HO"
+   },
+   "cols": 12,
+   "dump": [
+    "GA",
+    "LU",
+    "TI",
+    "MA",
+    "GA",
+    "WI",
+    "LI",
+    "TO",
+    "PE",
+    "HI",
+    "DA",
+    "BA",
+    "GE",
+    "HE",
+    "NA",
+    "FA",
+    "JA",
+    "HI",
+    "GI",
+    "HA",
+    "NI",
+    "ZA",
+    "PU",
+    "LE",
+    "WI",
+    "TO",
+    "LU",
+    "HE",
+    "FO",
+    "LA",
+    "KU",
+    "FE",
+    "ZI",
+    "TU",
+    "BU",
+    "TI",
+    "BI",
+    "WO",
+    "PE",
+    "JA",
+    "LE",
+    "CE",
+    "HU",
+    "KI",
+    "LO",
+    "FU",
+    "HI",
+    "ME",
+    "HU",
+    "ZI",
+    "SU",
+    "XU",
+    "NO",
+    "BE",
+    "FY",
+    "LE",
+    "NI",
+    "NU",
+    "WE",
+    "HU",
+    "PO",
+    "VA",
+    "KE",
+    "DA",
+    "KE",
+    "WA",
+    "HU",
+    "KU",
+    "LA",
+    "SO",
+    "DU",
+    "TI",
+    "RE",
+    "WU",
+    "KA",
+    "VI",
+    "GE",
+    "BA",
+    "TO",
+    "ZA",
+    "NI",
+    "FA",
+    "TA",
+    "GI",
+    "FY",
+    "PE",
+    "BA",
+    "RE",
+    "ZU",
+    "YO",
+    "BE",
+    "LI",
+    "CI",
+    "BA",
+    "RU",
+    "TU"
+   ],
+   "cells": [
+    [
+     21,
+     33
+    ],
+    [
+     53,
+     54
+    ],
+    [
+     58,
+     70
+    ],
+    [
+     79,
+     91
+    ],
+    [
+     89,
+     90
+    ]
+   ]
+  },
+  {
+   "id": "T02-member",
+   "time": "15:41",
+   "keyHelp": false,
+   "slots": [
+    "who",
+    "marker",
+    "number",
+    "state",
+    "place"
+   ],
+   "cipher": [
+    "83",
+    "50",
+    "06",
+    "69",
+    "29"
+   ],
+   "clauses": [
+    {
+     "pattern": "The {0} {2} is {3} at {4}."
+    }
+   ],
+   "truth": {},
+   "hint": "A number in the message is a crew ID: 06 is a climber. After a number marker, the next pair in the noise is the number itself.",
+   "outcomes": {
+    "continue": {
+     "severity": "harm",
+     "text": "We pushed on. 06 is getting worse. We have to stop.",
+     "crew": [
+      {
+       "id": "06",
+       "status": "injured",
+       "note": "injured, worsening"
+      }
+     ],
+     "nearMiss": "We started to move, then stopped. 06 is being treated."
+    },
+    "wait": {
+     "severity": "safe",
+     "text": "Medic is with 06. Stable. We rest here.",
+     "crew": [
+      {
+       "id": "06",
+       "status": "injured",
+       "note": "injured, stable at CP4"
+      }
+     ]
+    },
+    "back": {
+     "severity": "delay",
+     "text": "Carrying 06 back to CP3. It is slow.",
+     "crew": [
+      {
+       "id": "06",
+       "status": "injured",
+       "note": "being carried back"
+      }
+     ]
+    },
+    "hurry": {
+     "severity": "harm",
+     "text": "Hurrying with an injured man. 06 fell. It is bad.",
+     "crew": [
+      {
+       "id": "06",
+       "status": "injured",
+       "note": "injured, serious"
+      }
+     ],
+     "nearMiss": "We almost hurried. We slowed down for 06."
+    },
+    "base": {
+     "severity": "delay",
+     "text": "Evacuating 06 to base. The team is following.",
+     "crew": [
+      {
+       "id": "06",
+       "status": "injured",
+       "note": "evacuating to base"
+      }
+     ]
+    }
+   },
+   "indicator": {
+    "row": "BE",
+    "col": "JA"
+   },
+   "cols": 12,
+   "dump": [
+    "WA",
+    "PO",
+    "PA",
+    "VO",
+    "NU",
+    "SI",
+    "WI",
+    "NE",
+    "MU",
+    "RI",
+    "TO",
+    "YO",
+    "MO",
+    "HE",
+    "XU",
+    "GU",
+    "CA",
+    "VO",
+    "RA",
+    "QI",
+    "RO",
+    "ZI",
+    "SA",
+    "DU",
+    "WO",
+    "GE",
+    "LE",
+    "FA",
+    "HU",
+    "BI",
+    "GE",
+    "NI",
+    "FA",
+    "SU",
+    "QI",
+    "GO",
+    "ZU",
+    "SI",
+    "RE",
+    "ZE",
+    "BE",
+    "QI",
+    "LU",
+    "FA",
+    "VI",
+    "FU",
+    "DE",
+    "ZE",
+    "TI",
+    "GU",
+    "LA",
+    "LU",
+    "TE",
+    "JA",
+    "DU",
+    "GO",
+    "KA",
+    "LU",
+    "LE",
+    "HI",
+    "CU",
+    "BE",
+    "HO",
+    "FA",
+    "FE",
+    "RI",
+    "ZI",
+    "BE",
+    "KA",
+    "FI",
+    "NE",
+    "RU",
+    "BU",
+    "CI",
+    "PU",
+    "XU",
+    "KO",
+    "PI",
+    "NE",
+    "ZA",
+    "VO",
+    "BE",
+    "ME",
+    "NU",
+    "SA",
+    "XU",
+    "VO",
+    "QI",
+    "RO",
+    "ZU",
+    "CA",
+    "SE",
+    "WI",
+    "VE",
+    "BI",
+    "BO"
+   ],
+   "cells": [
+    [
+     18,
+     19
+    ],
+    [
+     53,
+     54
+    ],
+    [
+     61,
+     62
+    ],
+    [
+     75,
+     76
+    ],
+    [
+     84,
+     85
+    ]
+   ]
+  },
+  {
+   "id": "T03-hut",
+   "time": "17:05",
+   "keyHelp": false,
+   "slots": [
+    "who",
+    "action",
+    "marker",
+    "letter",
+    "letter",
+    "letter"
+   ],
+   "cipher": [
+    "18",
+    "16",
+    "23",
+    "56",
+    "76",
+    "42"
+   ],
+   "clauses": [
+    {
+     "pattern": "The {0} {1}: {3}{4}{5}."
+    }
+   ],
+   "truth": {},
+   "hint": "After the spell marker, letters follow one by one. Only one of the two spelled words makes sense for a team in the mountains.",
+   "outcomes": {
+    "continue": {
+     "severity": "harm",
+     "text": "We went past the hut. The weather turned. One frostbitten.",
+     "crew": [
+      {
+       "id": "07",
+       "status": "injured",
+       "note": "frostbite"
+      }
+     ],
+     "nearMiss": "We almost went past the hut. We turned back and sheltered."
+    },
+    "wait": {
+     "severity": "safe",
+     "text": "We are in the hut. Warm. Waiting out the weather.",
+     "crew": []
+    },
+    "back": {
+     "severity": "delay",
+     "text": "Back toward CP3. We will lose the hut.",
+     "crew": []
+    },
+    "hurry": {
+     "severity": "harm",
+     "text": "We hurried past the hut into the storm. Two frostbitten.",
+     "crew": [
+      {
+       "id": "07",
+       "status": "injured",
+       "note": "frostbite"
+      },
+      {
+       "id": "09",
+       "status": "injured",
+       "note": "frostbite"
+      }
+     ],
+     "nearMiss": "We almost hurried on. We stopped at the hut instead."
+    },
+    "base": {
+     "severity": "delay",
+     "text": "Returning to base. We leave the hut behind.",
+     "crew": []
+    }
+   },
+   "indicator": {
+    "row": "SA",
+    "col": "WE"
+   },
+   "cols": 12,
+   "dump": [
+    "MO",
+    "RO",
+    "LU",
+    "KA",
+    "ZO",
+    "ZE",
+    "GE",
+    "SE",
+    "NA",
+    "QI",
+    "FU",
+    "TU",
+    "XU",
+    "GA",
+    "ZA",
+    "DU",
+    "HE",
+    "TI",
+    "ZE",
+    "BA",
+    "RU",
+    "MI",
+    "RI",
+    "KA",
+    "LI",
+    "LI",
+    "VE",
+    "RE",
+    "NE",
+    "LE",
+    "KA",
+    "MI",
+    "RE",
+    "CO",
+    "HU",
+    "CI",
+    "FU",
+    "ZU",
+    "VA",
+    "DI",
+    "CU",
+    "VO",
+    "KI",
+    "WE",
+    "KE",
+    "LE",
+    "HO",
+    "MI",
+    "GU",
+    "HO",
+    "SA",
+    "TI",
+    "DA",
+    "JA",
+    "DU",
+    "LO",
+    "TU",
+    "VA",
+    "LU",
+    "RE",
+    "BE",
+    "VA",
+    "LO",
+    "PE",
+    "FO",
+    "VE",
+    "MI",
+    "WA",
+    "GO",
+    "TU",
+    "VE",
+    "NI",
+    "KO",
+    "PA",
+    "GA",
+    "ZA",
+    "SO",
+    "NU",
+    "CE",
+    "MA",
+    "NE",
+    "MO",
+    "WU",
+    "RU",
+    "QI",
+    "KA",
+    "WU",
+    "WU",
+    "LO",
+    "PI",
+    "TI",
+    "HU",
+    "WA",
+    "NI",
+    "RU",
+    "PO"
+   ],
+   "cells": [
+    [
+     12,
+     24
+    ],
+    [
+     25,
+     26
+    ],
+    [
+     63,
+     75
+    ],
+    [
+     65,
+     66
+    ],
+    [
+     69,
+     70
+    ],
+    [
+     72,
+     84
+    ]
+   ]
+  }
+ ]
 }
