@@ -1,8 +1,8 @@
 // Pure game logic: no DOM, no fetch. Ports 1:1 to C# later.
 //
-// A transmission is a continuous "dump" (tx.stream). The real message is a sequence of code keys
-// hidden in it (tx.cipher, at tx.positions). The player finds keys from the code table in the dump
-// (a "pick" = a span of the stream that equals a table key), and the radio answers Fallout-style
+// A transmission is a grid "dump" (tx.stream, tx.cols wide). The real message is a sequence of code keys
+// hidden in it (tx.cipher, at tx.cells). The player finds keys from the code table in the dump
+// (a "pick" = two adjacent cells spelling a table key), and the radio answers Fallout-style
 // with a Likeness count. Once the keys are right, ambiguous keys are resolved by context.
 
 export const ORDERS = ['continue', 'wait', 'back', 'hurry', 'base'];
@@ -15,55 +15,75 @@ export function entryFor(tx, key) {
 
 // --- Phase 1: finding keys in the dump ---
 
-/** Every place in the dump where a table key appears (overlaps allowed). */
+// The dump is a grid (tx.cols wide). A key is a pair of orthogonally adjacent cells holding a row
+// digit and a column letter of the code table, in either order, horizontally or vertically.
+// A pick is {a, b}: the two cell indices.
+
+export function areAdjacent(tx, a, b) {
+  const d = Math.abs(a - b);
+  if (d === tx.cols) return true;
+  return d === 1 && Math.floor(a / tx.cols) === Math.floor(b / tx.cols);
+}
+
+/** The table entry a pair of cells spells (row digit + column letter, either order), or null. */
+export function keyOfCells(tx, a, b) {
+  if (a === b || !areAdjacent(tx, a, b)) return null;
+  const ca = tx.stream[a];
+  const cb = tx.stream[b];
+  return entryFor(tx, ca + cb) ?? entryFor(tx, cb + ca);
+}
+
+/** Every pair of adjacent cells that spells a table key. */
 export function findOccurrences(tx) {
   const out = [];
-  for (const { key } of tx.table) {
-    for (let i = tx.stream.indexOf(key); i !== -1; i = tx.stream.indexOf(key, i + 1)) {
-      out.push({ key, start: i, end: i + key.length });
+  const n = tx.stream.length;
+  for (let i = 0; i < n; i++) {
+    for (const j of [i + 1, i + tx.cols]) {
+      if (j >= n) continue;
+      const e = keyOfCells(tx, i, j);
+      if (e) out.push({ key: e.key, a: i, b: j });
     }
   }
-  return out.sort((a, b) => a.start - b.start || a.end - b.end);
+  return out;
 }
 
-/** The table entry a span of the dump spells, or null if it is not a code key. */
-export function keyAtSpan(tx, start, end) {
-  return entryFor(tx, tx.stream.slice(start, end));
+export function overlaps(p, q) {
+  return p.a === q.a || p.a === q.b || p.b === q.a || p.b === q.b;
 }
 
-export function overlaps(a, b) {
-  return a.start < b.end && b.start < a.end;
-}
-
-/** Picks are {start, end} spans. Returns them ordered by position in the dump. */
+/** Picks ordered by their first cell in reading order. */
 export function sortPicks(picks) {
-  return [...picks].sort((a, b) => a.start - b.start);
+  return [...picks].sort((p, q) => Math.min(p.a, p.b) - Math.min(q.a, q.b));
 }
 
-/** Do the picks, in stream order, form the message grammar (tx.slots)? */
+/** Do the picks, in reading order, form the message grammar (tx.slots)? */
 export function parses(tx, picks) {
   const sorted = sortPicks(picks);
   if (sorted.length !== tx.slots.length) return false;
-  return sorted.every((p, i) => keyAtSpan(tx, p.start, p.end)?.type === tx.slots[i]);
+  return sorted.every((p, i) => keyOfCells(tx, p.a, p.b)?.type === tx.slots[i]);
 }
 
-/** The keys picked, in stream order. */
+/** The keys picked, in reading order. */
 export function pickedKeys(tx, picks) {
-  return sortPicks(picks).map((p) => tx.stream.slice(p.start, p.end));
+  return sortPicks(picks).map((p) => keyOfCells(tx, p.a, p.b).key);
 }
 
-/** Fallout "Likeness": how many picks are exactly a real key at its real position. */
+/** The real pair of cells of message key `i`. */
+export function realPick(tx, i) {
+  return { a: tx.cells[i][0], b: tx.cells[i][1] };
+}
+
+export function samePick(p, q) {
+  return (p.a === q.a && p.b === q.b) || (p.a === q.b && p.b === q.a);
+}
+
+/** Fallout "Likeness": how many picks are exactly a real key's pair of cells. */
 export function likeness(tx, picks) {
-  return picks.filter((p) => tx.positions.some((pos, i) => pos === p.start && tx.cipher[i].length === p.end - p.start)).length;
+  return picks.filter((p) => tx.cipher.some((_, i) => samePick(p, realPick(tx, i)))).length;
 }
 
 export function isLocked(tx, picks) {
   return picks.length === tx.cipher.length && likeness(tx, picks) === tx.cipher.length;
-}
-
-/** The real span of message key `i`. */
-export function realSpan(tx, i) {
-  return { start: tx.positions[i], end: tx.positions[i] + tx.cipher[i].length };
 }
 
 // --- Phase 2: reading the message ---

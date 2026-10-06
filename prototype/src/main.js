@@ -1,6 +1,7 @@
 import {
   ORDERS, MAX_INTUITION, MAX_TRIES, entryFor, judgeReading, renderSentence, resolve, applyCrew,
-  spendIntuition, gainIntuition, keyAtSpan, overlaps, parses, pickedKeys, likeness, isLocked, realSpan,
+  spendIntuition, gainIntuition, keyOfCells, areAdjacent, overlaps, parses, pickedKeys, likeness, isLocked, realPick,
+  sortPicks, samePick,
 } from './core/engine.js';
 
 const ORDER_LABELS = { continue: 'Continue', wait: 'Wait', back: 'Back to last CP', hurry: 'Hurry', base: 'Return to base' };
@@ -56,18 +57,12 @@ function renderAll() {
 // ---------- dump ----------
 
 function pickAt(i) {
-  return state.picks.find((p) => p.start <= i && i < p.end);
-}
-
-function previewRange() {
-  if (state.anchor === null || state.hover === null) return null;
-  return { start: Math.min(state.anchor, state.hover), end: Math.max(state.anchor, state.hover) + 1 };
+  return state.picks.find((p) => p.a === i || p.b === i);
 }
 
 function renderDump() {
   const root = $('dump');
   root.replaceChildren();
-  const preview = previewRange();
   const finding = state.phase === 'find';
   for (let row = 0; row * COLS < tx.stream.length; row++) {
     const line = document.createElement('div');
@@ -86,7 +81,6 @@ function renderDump() {
       cell.dataset.i = String(i);
       if (pickAt(i)) cell.classList.add('picked');
       if (state.anchor === i) cell.classList.add('anchor');
-      if (preview && i >= preview.start && i < preview.end && !pickAt(i)) cell.classList.add('preview');
       if (!finding) cell.disabled = true;
       line.append(cell);
     }
@@ -99,17 +93,6 @@ $('dump').addEventListener('click', (e) => {
   const cell = e.target.closest('.cell');
   if (cell && !cell.disabled) onCell(Number(cell.dataset.i));
 });
-$('dump').addEventListener('pointerover', (e) => {
-  const cell = e.target.closest('.cell');
-  if (!cell || state.anchor === null) return;
-  state.hover = Number(cell.dataset.i);
-  const preview = previewRange();
-  $('dump').querySelectorAll('.cell').forEach((c) => {
-    const i = Number(c.dataset.i);
-    c.classList.toggle('preview', i >= preview.start && i < preview.end && !pickAt(i) && i !== state.anchor);
-  });
-});
-
 function onCell(i) {
   const existing = pickAt(i);
   if (existing && state.anchor === null) {
@@ -119,19 +102,22 @@ function onCell(i) {
   }
   if (state.anchor === null) {
     state.anchor = i;
-    state.hover = i;
+    state.note = '';
     return renderAll();
   }
-  const span = { start: Math.min(state.anchor, i), end: Math.max(state.anchor, i) + 1 };
+  const first = state.anchor;
   state.anchor = null;
-  state.hover = null;
-  const entry = keyAtSpan(tx, span.start, span.end);
-  if (!entry) {
-    state.note = `"${tx.stream.slice(span.start, span.end)}" is not in the code table.`;
-  } else if (state.picks.some((p) => overlaps(p, span))) {
-    state.note = 'That overlaps a key you already marked. Click a marked key to unmark it.';
+  const pair = { a: first, b: i };
+  if (first === i) {
+    state.note = '';
+  } else if (!areAdjacent(tx, first, i)) {
+    state.note = 'The two characters of a key touch: side by side or one above the other.';
+  } else if (!keyOfCells(tx, first, i)) {
+    state.note = `"${tx.stream[first]}" + "${tx.stream[i]}" is not a cell of the code table.`;
+  } else if (state.picks.some((p) => overlaps(p, pair))) {
+    state.note = 'That uses a character of a key you already marked. Click a marked key to unmark it.';
   } else {
-    state.picks.push(span);
+    state.picks.push(pair);
     state.note = '';
   }
   renderAll();
@@ -144,7 +130,7 @@ function renderStatus() {
   if (state.phase === 'find') {
     el.classList.remove('hedge');
     el.textContent = state.note || (state.likeness === null
-      ? `Find code keys from the table in the noise. A key is two characters: click the first, then the second (row digit + column letter in the table). Message: ${tx.slots.length} keys.`
+      ? `Find code keys from the table in the noise. A key is a row digit and a column letter that touch (side by side or one above the other, any order): click one, then the other. Message: ${tx.slots.length} keys.`
       : `Likeness ${state.likeness}/${tx.slots.length} — ${state.tries} ${state.tries === 1 ? 'try' : 'tries'} left.`);
     return;
   }
@@ -179,12 +165,12 @@ function renderBoard() {
 
   const picks = $('picks');
   picks.replaceChildren();
-  const sorted = [...state.picks].sort((a, b) => a.start - b.start);
+  const sorted = sortPicks(state.picks);
   tx.slots.forEach((slotType, k) => {
     const p = sorted[k];
     const chip = document.createElement('div');
     chip.className = 'pick' + (p ? ' filled' : '');
-    const entry = p ? keyAtSpan(tx, p.start, p.end) : null;
+    const entry = p ? keyOfCells(tx, p.a, p.b) : null;
     chip.innerHTML = `<div class="type">${slotType}</div><div class="k">${entry ? entry.key : '···'}</div><div class="m">${entry ? entry.meanings.join(' / ') : ''}</div>`;
     picks.append(chip);
   });
@@ -210,13 +196,13 @@ function renderBoard() {
 }
 
 function realMissing() {
-  return tx.cipher.map((_, i) => realSpan(tx, i)).filter((r) => !state.picks.some((p) => p.start === r.start && p.end === r.end));
+  return tx.cipher.map((_, i) => realPick(tx, i)).filter((r) => !state.picks.some((p) => samePick(p, r)));
 }
 
 function tryPicks() {
   if (!parses(tx, state.picks)) {
-    const have = [...state.picks].sort((a, b) => a.start - b.start).map((p) => keyAtSpan(tx, p.start, p.end).type).join(' → ') || 'nothing';
-    state.note = `Doesn't parse. Need ${tx.slots.join(' → ')} in stream order; you have: ${have}. (No try used.)`;
+    const have = sortPicks(state.picks).map((p) => keyOfCells(tx, p.a, p.b).type).join(' → ') || 'nothing';
+    state.note = `Doesn't parse. Need ${tx.slots.join(' → ')} in reading order (left to right, top to bottom); you have: ${have}. (No try used.)`;
     return renderAll();
   }
   state.note = '';

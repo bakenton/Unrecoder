@@ -272,21 +272,37 @@
         "thing",
         "state"
       ],
-      "stream": "4g7v7auod6v17cr0she62a111y04cdr1xes2dzemeet4b1qz6b5a7lwrw5djivw9a2ufpqb9cnzn5sw6axpnv1u2jpaawe0c",
-      "positions": [
-        12,
-        35,
-        43,
-        50,
-        71
-      ],
+      "stream": "km71nl7xwx22djajayc2s46g8ne820d2vck7kbxi10j3ya5j647iad0d4qg1s7xoeyx5swfyj2jh4wezl6b9pc9f862j9n3a",
       "rows": {
         "who": "7",
         "place": "2",
         "action": "4",
         "thing": "5",
         "state": "9"
-      }
+      },
+      "cols": 12,
+      "cells": [
+        [
+          6,
+          18
+        ],
+        [
+          30,
+          31
+        ],
+        [
+          37,
+          49
+        ],
+        [
+          45,
+          46
+        ],
+        [
+          85,
+          86
+        ]
+      ]
     }
   ]
 }

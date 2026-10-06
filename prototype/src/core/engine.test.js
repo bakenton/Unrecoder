@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, resolve as pathResolve } from 'node:path';
 import {
   judgeReading, renderSentence, resolve, isAmbiguous, ORDERS, applyCrew, spendIntuition, gainIntuition,
-  likeness, isLocked, findOccurrences, keyAtSpan, parses, pickedKeys, realSpan, MAX_TRIES,
+  likeness, isLocked, findOccurrences, keyOfCells, areAdjacent, parses, pickedKeys, realPick, samePick, MAX_TRIES,
 } from './engine.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -99,73 +99,80 @@ test('crew and Intuition helpers', () => {
 
 // --- dump / tuning ---
 
-const span = (key, start) => ({ start, end: start + key.length });
-const realPicks = () => tx.cipher.map((_, i) => realSpan(tx, i));
-const posOf = Object.fromEntries(findOccurrences(tx).map((o) => [o.key, o.start]));
+const realPicks = () => tx.cipher.map((_, i) => realPick(tx, i));
+const occ = findOccurrences(tx);
+const pickOf = (key) => { const o = occ.find((x) => x.key === key); return { a: o.a, b: o.b }; };
+const minCell = (p) => Math.min(p.a, p.b);
 
-test('the real keys sit in the dump at their recorded positions', () => {
-  tx.cipher.forEach((key, i) => assert.equal(tx.stream.slice(tx.positions[i], tx.positions[i] + key.length), key));
+test('real keys sit in the dump as adjacent cells that spell them', () => {
+  tx.cipher.forEach((key, i) => assert.equal(keyOfCells(tx, ...tx.cells[i]).key, key));
 });
 
-test('the dump has no accidental key matches: only the intended real keys and decoys', () => {
-  const found = findOccurrences(tx).map((o) => o.key);
+test('the dump has no accidental key pairs: only real keys and decoys, horizontal and vertical', () => {
+  const found = occ.map((o) => o.key);
   assert.equal(new Set(found).size, found.length, 'a key appears twice');
-  // 5 real + 5 decoys = 10; the remaining 2 table cells (base, safe) are not in the dump
-  assert.equal(found.length, 10);
+  assert.equal(found.length, 10); // 5 real + 5 decoys; base and safe are not in the dump
+  const vertical = occ.filter((o) => o.b - o.a === tx.cols).length;
+  assert.ok(vertical >= 2 && vertical <= 8, `orientations should be mixed (vertical: ${vertical})`);
 });
 
-test('keyAtSpan accepts only real table keys', () => {
-  assert.equal(keyAtSpan(tx, posOf['2d'], posOf['2d'] + 2).key, '2d');
-  assert.equal(keyAtSpan(tx, posOf['2d'], posOf['2d'] + 1), null);
-  assert.equal(keyAtSpan(tx, 0, 2), null);
+test('adjacency is horizontal or vertical only and never wraps around a row end', () => {
+  assert.ok(areAdjacent(tx, 5, 6));
+  assert.ok(areAdjacent(tx, 5, 5 + tx.cols));
+  assert.ok(!areAdjacent(tx, 11, 12));
+  assert.ok(!areAdjacent(tx, 5, 5 + tx.cols + 1));
+  assert.ok(!areAdjacent(tx, 5, 7));
 });
 
-test('likeness counts picks that are the real key at the real place, not which', () => {
+test('keyOfCells takes a row digit and column letter in either order, rejects the rest', () => {
+  const o = occ[0];
+  assert.equal(keyOfCells(tx, o.a, o.b)?.key, o.key);
+  assert.equal(keyOfCells(tx, o.b, o.a)?.key, o.key);
+  assert.equal(keyOfCells(tx, o.a, o.a), null);
+  assert.equal(keyOfCells(tx, 0, 1), null);
+});
+
+test('likeness counts picks that are exactly a real key pair, not which', () => {
   const real = realPicks();
   assert.equal(likeness(tx, real), 5);
   assert.ok(isLocked(tx, real));
-  const decoyWho = span('7a', posOf['7a']);
-  const picks = [decoyWho, ...real.slice(1)];
+  const picks = [pickOf('7a'), ...real.slice(1)];
   assert.equal(likeness(tx, picks), 4);
   assert.ok(!isLocked(tx, picks));
-  // same key text elsewhere does not count (position matters)
-  assert.equal(likeness(tx, [span('2a', posOf['2a'])]), 0);
 });
 
-test('parses: picks must follow the grammar in stream order', () => {
+test('parses follows reading order of the pairs', () => {
   assert.ok(parses(tx, realPicks()));
   assert.ok(!parses(tx, realPicks().slice(0, 4)));
-  // decoy action "lft" sits before real place "c4": left-then-reached-CP4 is not WHO PLACE ACTION THING STATE
-  const bad = [span('7c', posOf['7c']), span('2d', posOf['2d']), span('4c', posOf['4c']), span('5a', posOf['5a']), span('9c', posOf['9c'])];
-  assert.ok(!parses(tx, bad));
+  const bad = [pickOf('7c'), pickOf('2d'), pickOf('4c'), pickOf('5a'), pickOf('9c')];
+  const types = [...bad].sort((p, q) => minCell(p) - minCell(q)).map((p) => keyOfCells(tx, p.a, p.b).type);
+  assert.equal(parses(tx, bad), types.join() === tx.slots.join());
 });
 
-test('pickedKeys returns keys in stream order whatever the pick order', () => {
+test('pickedKeys returns keys in reading order whatever the pick order', () => {
   assert.deepEqual(pickedKeys(tx, [...realPicks()].reverse()), tx.cipher);
 });
 
 test('the dump is solvable within MAX_TRIES by a likeness-driven strategy', () => {
-  const slots = tx.slots;
-  const decoysAndReal = findOccurrences(tx).filter((o) => o.start >= 0);
-  const byType = (t) => decoysAndReal.filter((o) => keyAtSpan(tx, o.start, o.end).type === t);
+  const byType = (t) => occ.filter((o) => keyOfCells(tx, o.a, o.b).type === t);
   let pool = [[]];
-  for (const t of slots) pool = pool.flatMap((p) => byType(t).map((o) => [...p, o]));
-  pool = pool.filter((c) => c.every((o, i) => i === 0 || c[i - 1].end <= o.start));
+  for (const t of tx.slots) pool = pool.flatMap((p) => byType(t).map((o) => [...p, o]));
+  pool = pool.filter((c) => c.every((o, i) => i === 0 || minCell(c[i - 1]) < minCell(o)));
   const truth = realPicks();
-  const lk = (a, b) => a.filter((o, i) => o.start === b[i].start).length;
+  const lk = (g, h) => g.filter((o, i) => samePick(o, h[i])).length;
   let tries = 0;
   while (pool.length) {
     const guess = pool[0];
     tries += 1;
     const l = lk(guess, truth);
-    if (l === slots.length) break;
+    if (l === tx.slots.length) break;
     pool = pool.filter((c) => c !== guess && lk(c, guess) === l);
   }
   assert.ok(tries <= MAX_TRIES, `needed ${tries} tries`);
 });
 
 test('a misread key makes the reading wrong even if the words look plausible', () => {
-  const keys = ['7c', '2a', '4b', '5a', '9c']; // CP3 instead of CP4
+  const keys = ['7c', '2a', '4b', '5a', '9c'];
   const sel = { 0: ['team'], 1: ['CP3'], 2: ['reached'], 3: ['bridge'], 4: ['broken'] };
   assert.equal(judgeReading(tx, sel, keys), 'wrong');
   assert.equal(judgeReading(tx, A, tx.cipher), 'correct');
