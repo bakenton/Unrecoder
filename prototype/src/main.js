@@ -1,6 +1,6 @@
 import {
-  ORDERS, MAX_INTUITION, entryFor, isAmbiguous, judgeReading, renderSentence,
-  resolve, applyCrew, spendIntuition, gainIntuition,
+  ORDERS, MAX_INTUITION, MAX_TRIES, entryFor, isAmbiguous, judgeReading, renderSentence,
+  resolve, applyCrew, spendIntuition, gainIntuition, noiseCandidates, likeness, isLocked,
 } from './core/engine.js';
 
 const ORDER_LABELS = { continue: 'Continue', wait: 'Wait', back: 'Back to last CP', hurry: 'Hurry', base: 'Return to base' };
@@ -23,6 +23,10 @@ function reset() {
   state = {
     crew: act.crew,
     intuition: START_INTUITION,
+    phase: 'tune', // 'tune' -> 'read' -> 'sent'
+    glyphs: tx.cipher.map((_, i) => noiseCandidates(tx, i)[0]), // the player's current guess per position
+    tries: MAX_TRIES,
+    likeness: null,
     selection: {}, // cipherIndex -> string[]
     pos: Object.fromEntries(tx.cipher.map((_, i) => [i, 0])), // drum position per reel
     hedge: {}, // cipherIndex -> bool
@@ -48,7 +52,18 @@ function renderAll() {
 }
 
 function renderCipher() {
-  $('cipher').replaceChildren(...tx.cipher.map((s) => Object.assign(document.createElement('span'), { textContent: s })));
+  $('cipher').replaceChildren(...tx.cipher.map((_, i) => {
+    const el = document.createElement('span');
+    const cands = noiseCandidates(tx, i);
+    if (state.phase === 'tune' && cands.length > 1) {
+      el.className = 'smear';
+      el.innerHTML = cands.map((g) => `<i>${g}</i>`).join('');
+    } else {
+      el.textContent = state.glyphs[i];
+      if (state.phase !== 'tune' && !isLocked(tx, state.glyphs)) el.classList.add('weak');
+    }
+    return el;
+  }));
 }
 
 function renderIntuition() {
@@ -56,20 +71,81 @@ function renderIntuition() {
 }
 
 function renderSentence_() {
-  const reading = judgeReading(tx, state.selection);
+  if (state.phase === 'tune') {
+    $('sentence').textContent = state.likeness === null
+      ? 'Signal is noisy. Tune each smeared symbol, then TRY.'
+      : `Likeness ${state.likeness}/${tx.cipher.length} — ${state.tries} ${state.tries === 1 ? 'try' : 'tries'} left.`;
+    $('sentence').classList.remove('hedge');
+    return;
+  }
+  const reading = judgeReading(tx, state.selection, state.glyphs);
   const text = renderSentence(tx, state.selection);
   $('sentence').textContent = text;
   $('sentence').classList.toggle('hedge', reading === 'hedged');
 }
 
 function candidates(i) {
-  return entryFor(tx, tx.cipher[i]).meanings;
+  return entryFor(tx, state.glyphs[i]).meanings;
+}
+
+function renderTuning() {
+  const root = $('reels');
+  root.replaceChildren();
+  tx.cipher.forEach((_, i) => {
+    const cands = noiseCandidates(tx, i);
+    const cell = document.createElement('div');
+    cell.className = 'reel tune';
+    cell.innerHTML = `<div class="type">slot ${i + 1}</div><div class="type">${tx.slots[i]}</div>`;
+    const chips = document.createElement('div');
+    chips.className = 'chips';
+    cands.forEach((g) => {
+      const c = btn(g, () => { state.glyphs[i] = g; renderAll(); });
+      c.className = 'chip' + (state.glyphs[i] === g ? ' on' : '');
+      chips.append(c);
+    });
+    const tools = document.createElement('div');
+    tools.className = 'tools';
+    tools.append(btn('AUTO', () => autoTune(i), state.intuition < 1 || cands.length < 2));
+    cell.append(chips, tools);
+    root.append(cell);
+  });
+  const bar = document.createElement('div');
+  bar.className = 'tunebar';
+  bar.append(btn(`TRY (${'●'.repeat(state.tries)}${'○'.repeat(MAX_TRIES - state.tries)})`, tryTune, state.tries < 1));
+  bar.append(btn('Give up tuning', () => enterRead(), state.likeness === null));
+  root.append(bar);
+}
+
+function tryTune() {
+  state.tries -= 1;
+  state.likeness = likeness(tx, state.glyphs);
+  if (isLocked(tx, state.glyphs) || state.tries === 0) enterRead();
+  else renderAll();
+}
+
+function autoTune(i) {
+  const left = spendIntuition(state.intuition);
+  if (left === null) return;
+  state.intuition = left;
+  state.glyphs[i] = tx.cipher[i];
+  renderAll();
+}
+
+function enterRead() {
+  state.phase = 'read';
+  // Single-meaning symbols decode straight from the table; ambiguous ones are the player's call.
+  tx.cipher.forEach((_, i) => {
+    const meanings = entryFor(tx, state.glyphs[i]).meanings;
+    if (meanings.length === 1) state.selection[i] = [meanings[0]];
+  });
+  renderAll();
 }
 
 function renderReels() {
+  if (state.phase === 'tune') return renderTuning();
   const root = $('reels');
   root.replaceChildren();
-  tx.cipher.forEach((symbol, i) => {
+  state.glyphs.forEach((symbol, i) => {
     const cands = candidates(i);
     const multi = cands.length > 1;
     const chosen = state.selection[i] ?? [];
@@ -92,7 +168,7 @@ function renderReels() {
       row.className = 'row' + (off === 0 ? ' mid' : '');
       row.textContent = w;
       if (locked(w)) row.classList.add('locked');
-      if (off === 0 && !state.sent) row.addEventListener('click', () => toggle(i, w));
+      if (off === 0 && multi && !state.sent) row.addEventListener('click', () => toggle(i, w));
       return row;
     }));
     win.addEventListener('wheel', (e) => { if (multi && !state.sent) { e.preventDefault(); spin(i, Math.sign(e.deltaY)); } }, { passive: false });
@@ -103,8 +179,6 @@ function renderReels() {
       const h = btn('HEDGE', () => { state.hedge[i] = !state.hedge[i]; if (!state.hedge[i] && chosen.length > 1) state.selection[i] = [chosen[0]]; renderAll(); }, state.sent);
       h.classList.toggle('on', !!state.hedge[i]);
       tools.append(h);
-    } else {
-      tools.append(btn('AUTO', () => auto(i), state.sent || chosen.length > 0 || state.intuition < 1));
     }
     reel.append(up, win, down, tools);
     root.append(reel);
@@ -136,14 +210,6 @@ function toggle(i, word) {
     state.selection[i] = [word];
   }
   if (state.selection[i].length === 0) delete state.selection[i];
-  renderAll();
-}
-
-function auto(i) {
-  const left = spendIntuition(state.intuition);
-  if (left === null) return;
-  state.intuition = left;
-  state.selection[i] = [candidates(i)[0]];
   renderAll();
 }
 
@@ -193,17 +259,18 @@ function renderMap() {
 function renderOrders() {
   const root = $('orders');
   root.replaceChildren(...ORDERS.map((o) => {
-    const b = btn(ORDER_LABELS[o], () => { state.order = o; renderOrders(); }, state.sent);
+    const b = btn(ORDER_LABELS[o], () => { state.order = o; renderOrders(); }, state.phase !== 'read');
     b.setAttribute('aria-pressed', String(state.order === o));
     return b;
   }));
-  const ready = judgeReading(tx, state.selection) !== 'incomplete' && state.order && !state.sent;
+  const ready = state.phase === 'read' && judgeReading(tx, state.selection, state.glyphs) !== 'incomplete' && state.order && !state.sent;
   $('sendBtn').disabled = !ready;
 }
 
 function send() {
-  const r = resolve(tx, state.selection, state.order);
+  const r = resolve(tx, state.selection, state.order, state.glyphs);
   state.sent = true;
+  state.phase = 'sent';
   state.crew = applyCrew(state.crew, r.crew);
   state.intuition = gainIntuition(state.intuition, r.intuitionGain);
 

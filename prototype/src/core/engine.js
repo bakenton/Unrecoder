@@ -8,8 +8,36 @@ export function entryFor(tx, symbol) {
   return tx.table.find((e) => e.symbol === symbol) ?? null;
 }
 
-export function isAmbiguous(tx, index) {
-  return entryFor(tx, tx.cipher[index]).meanings.length > 1;
+/** The glyph the player currently believes sits at `index` (falls back to the true one). */
+function glyphAt(tx, glyphs, index) {
+  return glyphs?.[index] ?? tx.cipher[index];
+}
+
+export function isAmbiguous(tx, index, glyphs = null) {
+  return entryFor(tx, glyphAt(tx, glyphs, index)).meanings.length > 1;
+}
+
+// --- Phase 1: tuning the noisy signal (Fallout-style) ---
+
+export const MAX_TRIES = 4;
+
+/** Glyphs that the noise could be hiding at `index`. A clean position has one candidate. */
+export function noiseCandidates(tx, index) {
+  return tx.noise?.[index] ?? [tx.cipher[index]];
+}
+
+/** Does this glyph's table entry have the type the message grammar expects at `index`? */
+export function typeFits(tx, index, glyph) {
+  return entryFor(tx, glyph)?.type === tx.slots[index];
+}
+
+/** Fallout "Likeness": how many positions of the guess are the real glyph. Says nothing about which. */
+export function likeness(tx, glyphs) {
+  return tx.cipher.reduce((n, g, i) => n + (glyphs[i] === g ? 1 : 0), 0);
+}
+
+export function isLocked(tx, glyphs) {
+  return likeness(tx, glyphs) === tx.cipher.length;
 }
 
 /**
@@ -17,13 +45,14 @@ export function isAmbiguous(tx, index) {
  * Returns 'incomplete' | 'correct' | 'hedged' | 'wrong'.
  * Unambiguous reels must hold their single meaning; truth only lists ambiguous reels.
  */
-export function judgeReading(tx, selection) {
+export function judgeReading(tx, selection, glyphs = null) {
   let hedged = false;
   for (let i = 0; i < tx.cipher.length; i++) {
     const chosen = selection[i] ?? [];
     if (chosen.length === 0) return 'incomplete';
-    const meanings = entryFor(tx, tx.cipher[i]).meanings;
+    const meanings = entryFor(tx, glyphAt(tx, glyphs, i)).meanings;
     if (!chosen.every((w) => meanings.includes(w))) return 'wrong';
+    if (glyphs && glyphs[i] !== tx.cipher[i]) return 'wrong'; // misread signal
     const truth = tx.truth[i];
     if (truth === undefined) {
       // Unambiguous reel: any selection from its single meaning is right.
@@ -55,8 +84,8 @@ export function renderSentence(tx, selection) {
  *  - hedged (contains truth)   -> harm softened to a near miss, no Intuition
  *  - wrong reading             -> full outcome, no Intuition
  */
-export function resolve(tx, selection, order) {
-  const reading = judgeReading(tx, selection);
+export function resolve(tx, selection, order, glyphs = null) {
+  const reading = judgeReading(tx, selection, glyphs);
   if (reading === 'incomplete') throw new Error('Reading is incomplete');
   const outcome = tx.outcomes[order];
   if (!outcome) throw new Error(`Unknown order: ${order}`);

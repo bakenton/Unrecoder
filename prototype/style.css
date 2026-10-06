@@ -84,3 +84,16 @@ body { margin: 0; background: var(--bg); color: var(--paper); }
   .desk { grid-template-columns: 1fr; grid-template-areas: "radio" "board" "orders" "crew" "table" "map" "result"; }
   .signal { font-size: 26px; }
 }
+
+.signal .smear { display: inline-flex; flex-direction: column; line-height: .9; vertical-align: middle; opacity: .85; }
+.signal .smear i { font-style: normal; font-size: 22px; filter: blur(.6px); }
+.signal .smear i + i { opacity: .6; }
+.signal .weak { opacity: .55; text-decoration: underline wavy var(--bad); }
+.reel.tune { width: 96px; }
+.chips { display: flex; gap: 6px; justify-content: center; margin: 8px 0; }
+.chip { font-size: 20px !important; width: 36px !important; height: 36px; border: 1px solid #5a4e30 !important; border-radius: 4px; color: var(--amber) !important; }
+.chip.on { background: var(--amber) !important; color: #2b261c !important; }
+.tunebar { width: 100%; display: flex; gap: 10px; margin-top: 4px; }
+.tunebar button { font: inherit; padding: 8px 14px; border: 0; border-radius: 4px; cursor: pointer; background: var(--amber); color: #2b261c; font-weight: bold; }
+.tunebar button:last-child { background: none; border: 1px solid #8a7a4a; color: var(--ink); font-weight: normal; }
+.tunebar button:disabled { opacity: .4; cursor: default; }

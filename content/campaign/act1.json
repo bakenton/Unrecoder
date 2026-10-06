@@ -1,52 +1,221 @@
 {
   "crew": [
-    { "id": "01", "role": "Leader", "location": "CP4", "status": "ok", "note": "" },
-    { "id": "02", "role": "Navigator", "location": "CP4", "status": "ok", "note": "" },
-    { "id": "03", "role": "Medic", "location": "CP4", "status": "ok", "note": "" },
-    { "id": "04", "role": "Repair tech", "location": "CP3", "status": "injured", "note": "injured last message, stayed at CP3" },
-    { "id": "05", "role": "Geologist", "location": "CP4", "status": "ok", "note": "" },
-    { "id": "06", "role": "Climber", "location": "CP4", "status": "ok", "note": "" },
-    { "id": "07", "role": "Climber", "location": "CP4", "status": "ok", "note": "" },
-    { "id": "08", "role": "Porter", "location": "CP4", "status": "ok", "note": "" },
-    { "id": "09", "role": "Porter", "location": "CP4", "status": "ok", "note": "" },
-    { "id": "10", "role": "Cook", "location": "CP4", "status": "ok", "note": "" }
+    {
+      "id": "01",
+      "role": "Leader",
+      "location": "CP4",
+      "status": "ok",
+      "note": ""
+    },
+    {
+      "id": "02",
+      "role": "Navigator",
+      "location": "CP4",
+      "status": "ok",
+      "note": ""
+    },
+    {
+      "id": "03",
+      "role": "Medic",
+      "location": "CP4",
+      "status": "ok",
+      "note": ""
+    },
+    {
+      "id": "04",
+      "role": "Repair tech",
+      "location": "CP3",
+      "status": "injured",
+      "note": "injured last message, stayed at CP3"
+    },
+    {
+      "id": "05",
+      "role": "Geologist",
+      "location": "CP4",
+      "status": "ok",
+      "note": ""
+    },
+    {
+      "id": "06",
+      "role": "Climber",
+      "location": "CP4",
+      "status": "ok",
+      "note": ""
+    },
+    {
+      "id": "07",
+      "role": "Climber",
+      "location": "CP4",
+      "status": "ok",
+      "note": ""
+    },
+    {
+      "id": "08",
+      "role": "Porter",
+      "location": "CP4",
+      "status": "ok",
+      "note": ""
+    },
+    {
+      "id": "09",
+      "role": "Porter",
+      "location": "CP4",
+      "status": "ok",
+      "note": ""
+    },
+    {
+      "id": "10",
+      "role": "Cook",
+      "location": "CP4",
+      "status": "ok",
+      "note": ""
+    }
   ],
   "map": {
     "points": [
-      { "id": "BASE", "x": 60, "y": 250 },
-      { "id": "CP1", "x": 130, "y": 190 },
-      { "id": "CP2", "x": 210, "y": 215 },
-      { "id": "CP3", "x": 290, "y": 150 },
-      { "id": "CP4", "x": 380, "y": 100 }
+      {
+        "id": "BASE",
+        "x": 60,
+        "y": 250
+      },
+      {
+        "id": "CP1",
+        "x": 130,
+        "y": 190
+      },
+      {
+        "id": "CP2",
+        "x": 210,
+        "y": 215
+      },
+      {
+        "id": "CP3",
+        "x": 290,
+        "y": 150
+      },
+      {
+        "id": "CP4",
+        "x": 380,
+        "y": 100
+      }
     ]
   },
   "transmissions": [
     {
       "id": "T01-bridge",
       "time": "14:32",
-      "cipher": ["7", "2", "a", "b", "c"],
+      "cipher": [
+        "7",
+        "2",
+        "a",
+        "b",
+        "c"
+      ],
       "table": [
-        { "symbol": "7", "type": "who", "meanings": ["team"] },
-        { "symbol": "2", "type": "place", "meanings": ["CP4"] },
-        { "symbol": "a", "type": "action", "meanings": ["reached"] },
-        { "symbol": "b", "type": "thing", "meanings": ["bridge"] },
-        { "symbol": "c", "type": "state", "meanings": ["broken", "repaired"] },
-        { "symbol": "4", "type": "place", "meanings": ["CP3"] },
-        { "symbol": "9", "type": "state", "meanings": ["injured"] },
-        { "symbol": "d", "type": "action", "meanings": ["left"] },
-        { "symbol": "e", "type": "thing", "meanings": ["camp"] }
+        {
+          "symbol": "7",
+          "type": "who",
+          "meanings": [
+            "team"
+          ]
+        },
+        {
+          "symbol": "1",
+          "type": "thing",
+          "meanings": [
+            "rope"
+          ]
+        },
+        {
+          "symbol": "2",
+          "type": "place",
+          "meanings": [
+            "CP4"
+          ]
+        },
+        {
+          "symbol": "4",
+          "type": "place",
+          "meanings": [
+            "CP3"
+          ]
+        },
+        {
+          "symbol": "a",
+          "type": "action",
+          "meanings": [
+            "reached"
+          ]
+        },
+        {
+          "symbol": "d",
+          "type": "action",
+          "meanings": [
+            "left"
+          ]
+        },
+        {
+          "symbol": "b",
+          "type": "thing",
+          "meanings": [
+            "bridge"
+          ]
+        },
+        {
+          "symbol": "e",
+          "type": "thing",
+          "meanings": [
+            "camp"
+          ]
+        },
+        {
+          "symbol": "c",
+          "type": "state",
+          "meanings": [
+            "broken",
+            "repaired"
+          ]
+        },
+        {
+          "symbol": "9",
+          "type": "state",
+          "meanings": [
+            "injured"
+          ]
+        }
       ],
       "clauses": [
-        { "symbols": [0, 1, 2], "pattern": "The {0} {2} {1}." },
-        { "symbols": [3, 4], "pattern": "The {3} is {4}." }
+        {
+          "symbols": [
+            0,
+            1,
+            2
+          ],
+          "pattern": "The {0} {2} {1}."
+        },
+        {
+          "symbols": [
+            3,
+            4
+          ],
+          "pattern": "The {3} is {4}."
+        }
       ],
-      "truth": { "4": "broken" },
+      "truth": {
+        "4": "broken"
+      },
       "hint": "No one on the team can repair the bridge now: the only repair tech (04) is injured and stayed at CP3. So the bridge can only be broken.",
       "outcomes": {
         "continue": {
           "severity": "harm",
           "text": "The bridge collapsed. One member injured.",
-          "crew": [{ "id": "06", "status": "injured", "note": "injured in the bridge collapse" }],
+          "crew": [
+            {
+              "id": "06",
+              "status": "injured",
+              "note": "injured in the bridge collapse"
+            }
+          ],
           "nearMiss": "We stopped at the bridge. Something felt wrong. No one crossed."
         },
         "wait": {
@@ -63,8 +232,16 @@
           "severity": "harm",
           "text": "We rushed the crossing. The bridge gave way. Two members injured.",
           "crew": [
-            { "id": "06", "status": "injured", "note": "injured in the bridge collapse" },
-            { "id": "08", "status": "injured", "note": "injured in the bridge collapse" }
+            {
+              "id": "06",
+              "status": "injured",
+              "note": "injured in the bridge collapse"
+            },
+            {
+              "id": "08",
+              "status": "injured",
+              "note": "injured in the bridge collapse"
+            }
           ],
           "nearMiss": "We started to rush, then stopped at the edge. No one hurt."
         },
@@ -73,6 +250,35 @@
           "text": "Returning to base. The route is abandoned for now.",
           "crew": []
         }
+      },
+      "slots": [
+        "who",
+        "place",
+        "action",
+        "thing",
+        "state"
+      ],
+      "noise": {
+        "0": [
+          "7",
+          "1"
+        ],
+        "1": [
+          "4",
+          "2"
+        ],
+        "2": [
+          "d",
+          "a"
+        ],
+        "3": [
+          "b",
+          "e"
+        ],
+        "4": [
+          "9",
+          "c"
+        ]
       }
     }
   ]

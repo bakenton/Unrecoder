@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, resolve as pathResolve } from 'node:path';
-import { judgeReading, renderSentence, resolve, isAmbiguous, ORDERS, applyCrew, spendIntuition, gainIntuition } from './engine.js';
+import { judgeReading, renderSentence, resolve, isAmbiguous, ORDERS, applyCrew, spendIntuition, gainIntuition, likeness, isLocked, typeFits, noiseCandidates, MAX_TRIES } from './engine.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
 const act = JSON.parse(readFileSync(pathResolve(here, '../../../content/campaign/act1.json'), 'utf8'));
@@ -91,4 +91,50 @@ test('crew and Intuition helpers', () => {
   assert.equal(spendIntuition(0), null);
   assert.equal(spendIntuition(3), 2);
   assert.equal(gainIntuition(5, 1), 5);
+});
+
+test('tuning: likeness counts correct glyph positions without saying which', () => {
+  assert.equal(likeness(tx, ['7', '4', 'd', 'b', '9']), 2); // 7 and b right
+  assert.equal(likeness(tx, ['7', '2', 'a', 'b', 'c']), 5);
+  assert.ok(isLocked(tx, tx.cipher));
+  assert.ok(!isLocked(tx, ['7', '4', 'd', 'b', '9']));
+});
+
+test('tuning: the true glyph is always among the noise candidates and fits its slot type', () => {
+  tx.cipher.forEach((g, i) => {
+    assert.ok(noiseCandidates(tx, i).includes(g));
+    assert.ok(typeFits(tx, i, g));
+  });
+});
+
+test('tuning: slot 0 is solvable by the table alone (wrong candidate has the wrong type)', () => {
+  const wrong = noiseCandidates(tx, 0).find((g) => g !== tx.cipher[0]);
+  assert.ok(!typeFits(tx, 0, wrong));
+});
+
+test('tuning is solvable within MAX_TRIES by a likeness-driven strategy', () => {
+  // Brute-force strategy: every guess consistent with all previous likeness feedback.
+  const cands = tx.cipher.map((_, i) => noiseCandidates(tx, i));
+  let pool = [[]];
+  cands.forEach((c) => { pool = pool.flatMap((p) => c.map((g) => [...p, g])); });
+  let tries = 0;
+  while (pool.length) {
+    const guess = pool[0];
+    tries += 1;
+    const l = likeness(tx, guess);
+    if (l === tx.cipher.length) break;
+    pool = pool.filter((g) => g !== guess && likenessBetween(g, guess) === l);
+  }
+  assert.ok(tries <= MAX_TRIES, `needed ${tries} tries`);
+});
+
+function likenessBetween(a, b) {
+  return a.reduce((n, x, i) => n + (x === b[i] ? 1 : 0), 0);
+}
+
+test('a misread signal makes the reading wrong even if the words look plausible', () => {
+  const badGlyphs = ['7', '4', 'a', 'b', 'c']; // CP3 instead of CP4
+  const sel = { 0: ['team'], 1: ['CP3'], 2: ['reached'], 3: ['bridge'], 4: ['broken'] };
+  assert.equal(judgeReading(tx, sel, badGlyphs), 'wrong');
+  assert.equal(judgeReading(tx, { ...A }, tx.cipher), 'correct');
 });
