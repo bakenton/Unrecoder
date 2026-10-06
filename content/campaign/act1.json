@@ -105,78 +105,85 @@
       "id": "T01-bridge",
       "time": "14:32",
       "cipher": [
-        "7k",
-        "c4",
-        "rea",
-        "bri",
-        "x9"
+        "7c",
+        "2d",
+        "4b",
+        "5a",
+        "9c"
       ],
       "table": [
         {
-          "key": "7k",
-          "type": "who",
-          "meanings": [
-            "team"
-          ]
-        },
-        {
-          "key": "3r",
+          "key": "7a",
           "type": "who",
           "meanings": [
             "leader"
           ]
         },
         {
-          "key": "c4",
-          "type": "place",
+          "key": "7c",
+          "type": "who",
           "meanings": [
-            "CP4"
+            "team"
           ]
         },
         {
-          "key": "c3",
+          "key": "2a",
           "type": "place",
           "meanings": [
             "CP3"
           ]
         },
         {
-          "key": "hq",
+          "key": "2b",
           "type": "place",
           "meanings": [
             "base"
           ]
         },
         {
-          "key": "rea",
+          "key": "2d",
+          "type": "place",
+          "meanings": [
+            "CP4"
+          ]
+        },
+        {
+          "key": "4b",
           "type": "action",
           "meanings": [
             "reached"
           ]
         },
         {
-          "key": "lft",
+          "key": "4c",
           "type": "action",
           "meanings": [
             "left"
           ]
         },
         {
-          "key": "bri",
+          "key": "5a",
           "type": "thing",
           "meanings": [
             "bridge"
           ]
         },
         {
-          "key": "tnt",
+          "key": "5d",
           "type": "thing",
           "meanings": [
             "tent"
           ]
         },
         {
-          "key": "x9",
+          "key": "9a",
+          "type": "state",
+          "meanings": [
+            "injured"
+          ]
+        },
+        {
+          "key": "9c",
           "type": "state",
           "meanings": [
             "broken",
@@ -184,14 +191,7 @@
           ]
         },
         {
-          "key": "inj",
-          "type": "state",
-          "meanings": [
-            "injured"
-          ]
-        },
-        {
-          "key": "ok2",
+          "key": "9d",
           "type": "state",
           "meanings": [
             "safe"
@@ -272,14 +272,21 @@
         "thing",
         "state"
       ],
-      "stream": "4g7v3ruod6v17kr0she6c3111y0lftdr1xesc4zemeetrea1qz6bbri7lwrwtntjivwinj2ufpqbx9nzn5sw6axpnv1u2jpa",
+      "stream": "4g7v7auod6v17cr0she62a111y04cdr1xes2dzemeet4b1qz6b5a7lwrw5djivw9a2ufpqb9cnzn5sw6axpnv1u2jpaawe0c",
       "positions": [
         12,
-        36,
-        44,
-        52,
-        76
-      ]
+        35,
+        43,
+        50,
+        71
+      ],
+      "rows": {
+        "who": "7",
+        "place": "2",
+        "action": "4",
+        "thing": "5",
+        "state": "9"
+      }
     }
   ]
 }

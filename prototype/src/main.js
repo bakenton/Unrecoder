@@ -88,13 +88,27 @@ function renderDump() {
       if (state.anchor === i) cell.classList.add('anchor');
       if (preview && i >= preview.start && i < preview.end && !pickAt(i)) cell.classList.add('preview');
       if (!finding) cell.disabled = true;
-      cell.addEventListener('click', () => onCell(i));
-      cell.addEventListener('pointerenter', () => { if (state.anchor !== null) { state.hover = i; renderDump(); } });
       line.append(cell);
     }
     root.append(line);
   }
 }
+
+// Delegated listeners: the dump is re-rendered on state changes, never on hover.
+$('dump').addEventListener('click', (e) => {
+  const cell = e.target.closest('.cell');
+  if (cell && !cell.disabled) onCell(Number(cell.dataset.i));
+});
+$('dump').addEventListener('pointerover', (e) => {
+  const cell = e.target.closest('.cell');
+  if (!cell || state.anchor === null) return;
+  state.hover = Number(cell.dataset.i);
+  const preview = previewRange();
+  $('dump').querySelectorAll('.cell').forEach((c) => {
+    const i = Number(c.dataset.i);
+    c.classList.toggle('preview', i >= preview.start && i < preview.end && !pickAt(i) && i !== state.anchor);
+  });
+});
 
 function onCell(i) {
   const existing = pickAt(i);
@@ -130,7 +144,7 @@ function renderStatus() {
   if (state.phase === 'find') {
     el.classList.remove('hedge');
     el.textContent = state.note || (state.likeness === null
-      ? `Find code keys from the table in the noise. Click the first and last character of a key. Message: ${tx.slots.length} keys.`
+      ? `Find code keys from the table in the noise. A key is two characters: click the first, then the second (row digit + column letter in the table). Message: ${tx.slots.length} keys.`
       : `Likeness ${state.likeness}/${tx.slots.length} — ${state.tries} ${state.tries === 1 ? 'try' : 'tries'} left.`);
     return;
   }
@@ -281,12 +295,23 @@ function renderCrew() {
 }
 
 function renderTable() {
-  $('codeTable').replaceChildren(...tx.table.map((e) => {
-    const li = document.createElement('li');
-    const multi = e.meanings.length > 1;
-    li.innerHTML = `<b>${e.key}</b><span class="${multi ? 'multi' : ''}">${e.meanings.join(' / ')}</span><i>${e.type}</i>`;
-    return li;
-  }));
+  // The table is a grid: row digit = category, column letter = word. A key is "row digit + column letter".
+  const rows = Object.entries(tx.rows); // [type, digit]
+  const cols = [...new Set(tx.table.map((e) => e.key[1]))].sort();
+  const t = document.createElement('table');
+  t.className = 'grid';
+  const head = document.createElement('tr');
+  head.innerHTML = '<th></th><th></th>' + cols.map((c) => `<th>${c}</th>`).join('');
+  t.append(head);
+  for (const [type, digit] of rows) {
+    const tr = document.createElement('tr');
+    tr.innerHTML = `<th>${digit}</th><th class="rowtype">${type}</th>` + cols.map((c) => {
+      const e = tx.table.find((x) => x.key === digit + c);
+      return `<td class="${e && e.meanings.length > 1 ? 'multi' : ''}">${e ? e.meanings.join(' / ') : '·'}</td>`;
+    }).join('');
+    t.append(tr);
+  }
+  $('codeTable').replaceChildren(t);
 }
 
 function renderMap() {

@@ -92,3 +92,10 @@ body { margin: 0; background: var(--bg); color: var(--paper); }
 }
 .table-sheet li i { font-size: 10px; opacity: .6; text-transform: uppercase; align-self: center; }
 [hidden] { display: none !important; }
+
+.grid { width: 100%; border-collapse: collapse; font-size: 13px; }
+.grid th, .grid td { border: 1px solid #b9ae8e; padding: 4px 6px; text-align: center; }
+.grid th { background: #d8cfb1; font-size: 15px; }
+.grid th.rowtype { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; opacity: .75; }
+.grid td.multi { color: #a5671a; font-weight: bold; }
+.cell.picked, .cell.picked:hover:not(:disabled) { background: #ffcf7a; color: #1a1405; opacity: 1; }

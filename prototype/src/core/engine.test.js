@@ -110,13 +110,13 @@ test('the real keys sit in the dump at their recorded positions', () => {
 test('the dump has no accidental key matches: only the intended real keys and decoys', () => {
   const found = findOccurrences(tx).map((o) => o.key);
   assert.equal(new Set(found).size, found.length, 'a key appears twice');
-  // 5 real + 5 decoys = 10; the remaining 2 table keys (base, safe) are not in the dump
+  // 5 real + 5 decoys = 10; the remaining 2 table cells (base, safe) are not in the dump
   assert.equal(found.length, 10);
 });
 
 test('keyAtSpan accepts only real table keys', () => {
-  assert.equal(keyAtSpan(tx, posOf['c4'], posOf['c4'] + 2).key, 'c4');
-  assert.equal(keyAtSpan(tx, posOf['c4'], posOf['c4'] + 1), null);
+  assert.equal(keyAtSpan(tx, posOf['2d'], posOf['2d'] + 2).key, '2d');
+  assert.equal(keyAtSpan(tx, posOf['2d'], posOf['2d'] + 1), null);
   assert.equal(keyAtSpan(tx, 0, 2), null);
 });
 
@@ -124,19 +124,19 @@ test('likeness counts picks that are the real key at the real place, not which',
   const real = realPicks();
   assert.equal(likeness(tx, real), 5);
   assert.ok(isLocked(tx, real));
-  const decoyWho = span('3r', posOf['3r']);
+  const decoyWho = span('7a', posOf['7a']);
   const picks = [decoyWho, ...real.slice(1)];
   assert.equal(likeness(tx, picks), 4);
   assert.ok(!isLocked(tx, picks));
   // same key text elsewhere does not count (position matters)
-  assert.equal(likeness(tx, [span('c3', posOf['c3'])]), 0);
+  assert.equal(likeness(tx, [span('2a', posOf['2a'])]), 0);
 });
 
 test('parses: picks must follow the grammar in stream order', () => {
   assert.ok(parses(tx, realPicks()));
   assert.ok(!parses(tx, realPicks().slice(0, 4)));
   // decoy action "lft" sits before real place "c4": left-then-reached-CP4 is not WHO PLACE ACTION THING STATE
-  const bad = [span('7k', posOf['7k']), span('c4', posOf['c4']), span('lft', posOf['lft']), span('bri', posOf['bri']), span('x9', posOf['x9'])];
+  const bad = [span('7c', posOf['7c']), span('2d', posOf['2d']), span('4c', posOf['4c']), span('5a', posOf['5a']), span('9c', posOf['9c'])];
   assert.ok(!parses(tx, bad));
 });
 
@@ -165,7 +165,7 @@ test('the dump is solvable within MAX_TRIES by a likeness-driven strategy', () =
 });
 
 test('a misread key makes the reading wrong even if the words look plausible', () => {
-  const keys = ['7k', 'c3', 'rea', 'bri', 'x9']; // CP3 instead of CP4
+  const keys = ['7c', '2a', '4b', '5a', '9c']; // CP3 instead of CP4
   const sel = { 0: ['team'], 1: ['CP3'], 2: ['reached'], 3: ['bridge'], 4: ['broken'] };
   assert.equal(judgeReading(tx, sel, keys), 'wrong');
   assert.equal(judgeReading(tx, A, tx.cipher), 'correct');
