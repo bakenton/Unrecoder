@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unrecoder — черновики интерфейса</title>
+<style>
+  :root {
+    --paper: #ece2c4; --paper-2: #e2d6b1; --paper-dark: #cbbd92; --ink: #2b261c; --ink-soft: #6a5f48;
+    --red: #a4382a; --amber: #e0a13a; --wood: #3a2a1c; --wood-2: #4a3523; --felt: #2f4a3a; --cork: #b08a5a;
+    --k-who: #cfe3f6; --k-place: #d3ecd0; --k-action: #f7dfc2; --k-state: #f4d0cc; --k-result: #e3d3f1; --k-other: #f1ead2;
+    font-family: "Courier Prime", "Courier New", ui-monospace, monospace;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #17140f; color: var(--paper); padding: 20px; }
+  h1 { font-size: 18px; margin: 0 0 4px; letter-spacing: .08em; }
+  .lead { font-size: 13px; opacity: .75; margin: 0 0 22px; max-width: 900px; line-height: 1.5; }
+  h2 { font-size: 15px; margin: 34px 0 4px; letter-spacing: .06em; color: var(--amber); }
+  .note { font-size: 13px; opacity: .8; margin: 0 0 10px; max-width: 900px; line-height: 1.5; }
+  .frame { position: relative; width: 1200px; height: 675px; overflow: hidden; border: 2px solid #000; border-radius: 6px; color: var(--ink); }
+  .scroll { overflow-x: auto; }
+
+  /* shared pieces */
+  .sheet { position: absolute; background: var(--paper); box-shadow: 0 6px 14px rgba(0,0,0,.45); padding: 12px 14px; }
+  .sheet h3 { margin: 0 0 8px; font-size: 11px; letter-spacing: .14em; border-bottom: 1px solid var(--paper-dark); padding-bottom: 5px; display: flex; justify-content: space-between; }
+  .sig { display: grid; grid-template-columns: repeat(16, 1fr); font-size: 15px; line-height: 1.55; text-align: center; }
+  .sig span.sel { background: var(--amber); font-weight: bold; }
+  .sig span.q { color: var(--red); font-weight: bold; }
+  .sig span.done { font-weight: bold; }
+  .tbl { display: grid; grid-template-columns: 18px repeat(10, 1fr); gap: 1px; font-size: 8px; line-height: 1.1; text-align: center; }
+  .tbl div { padding: 3px 1px; min-height: 22px; display: flex; align-items: center; justify-content: center; overflow: hidden; }
+  .tbl .h { background: var(--paper-dark); font-weight: bold; font-size: 11px; }
+  .key { font-size: 12px; display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 6px; }
+  .key span { border: 1px solid var(--paper-dark); padding: 0 5px; background: var(--k-other); }
+  .key b { background: var(--ink); color: var(--amber); padding: 0 4px; margin-right: 3px; }
+  .msg { font-size: 16px; line-height: 2; }
+  .blank { display: inline-block; padding: 0 8px; border: 1px dashed #777; font-size: 12px; text-transform: uppercase; }
+  .blank.f { border-style: solid; text-transform: none; font-size: 15px; font-weight: bold; }
+  .who { background: var(--k-who); } .place { background: var(--k-place); } .action { background: var(--k-action); }
+  .state { background: var(--k-state); } .result { background: var(--k-result); } .other { background: var(--k-other); }
+  .card { position: absolute; width: 150px; background: #f4ecd2; box-shadow: 0 3px 8px rgba(0,0,0,.4); padding: 7px 9px; font-size: 11px; line-height: 1.35; }
+  .card b { font-size: 13px; letter-spacing: .06em; }
+  .card.out { color: var(--red); }
+  .stamp { position: absolute; border: 3px solid var(--red); color: var(--red); font-weight: bold; letter-spacing: .14em; padding: 3px 10px; opacity: .75; font-size: 15px; }
+  .pin { position: absolute; width: 10px; height: 10px; border-radius: 50%; background: var(--red); box-shadow: 0 2px 2px rgba(0,0,0,.5); top: -5px; left: 50%; }
+  .btn { display: inline-block; margin-top: 10px; padding: 7px 14px; background: var(--ink); color: var(--amber); font-weight: bold; font-size: 13px; letter-spacing: .08em; }
+
+  /* A: desk seen from above */
+  .A { background: radial-gradient(ellipse at 18% 0%, rgba(255,214,140,.38), transparent 55%), repeating-linear-gradient(92deg, var(--wood) 0 38px, var(--wood-2) 38px 41px, var(--wood) 41px 90px); }
+  .A .felt { position: absolute; inset: 60px 250px 40px 40px; background: var(--felt); border: 10px solid #24382c; box-shadow: inset 0 0 40px rgba(0,0,0,.5); }
+  .A .ring { position: absolute; width: 74px; height: 74px; border-radius: 50%; border: 5px solid rgba(90,55,25,.35); }
+  .A .tape { position: absolute; left: 0; top: 14px; width: 620px; height: 30px; background: #f1e9cf; box-shadow: 0 3px 6px rgba(0,0,0,.5); font-size: 12px; line-height: 30px; padding-left: 16px; letter-spacing: .3em; color: var(--ink-soft); }
+
+  /* B: the station room */
+  .B { background: linear-gradient(#5a5240 0 46%, #2b241a 46% 47%, var(--wood) 47% 100%); }
+  .B .wall { position: absolute; inset: 0 0 54% 0; background: repeating-linear-gradient(90deg, rgba(0,0,0,.05) 0 2px, transparent 2px 60px); }
+  .B .cork { position: absolute; left: 330px; top: 22px; width: 560px; height: 262px; background: var(--cork); border: 9px solid #5b4027; box-shadow: inset 0 0 30px rgba(0,0,0,.35), 0 6px 12px rgba(0,0,0,.5);
+    background-image: radial-gradient(rgba(0,0,0,.14) 1px, transparent 1.4px); background-size: 7px 7px; }
+  .B .cork .card { width: 122px; font-size: 10px; }
+  .B .window { position: absolute; left: 40px; top: 30px; width: 230px; height: 220px; border: 8px solid #3a2e20; background: repeating-linear-gradient(#c9b98a 0 10px, #6f6447 10px 14px); box-shadow: inset 0 0 0 2px #000; }
+  .B .mate { position: absolute; top: 150px; width: 210px; height: 160px; }
+  .B .mate .lamp { position: absolute; left: 60px; top: 0; width: 70px; height: 34px; background: #23402f; border-radius: 34px 34px 0 0; box-shadow: 0 30px 60px 20px rgba(255,210,130,.28); }
+  .B .mate .head { position: absolute; left: 118px; top: 44px; width: 44px; height: 50px; border-radius: 50% 50% 40% 40%; background: #1c1812; }
+  .B .mate .body { position: absolute; left: 96px; top: 88px; width: 90px; height: 70px; border-radius: 40px 40px 0 0; background: #1c1812; }
+  .B .mate .desk { position: absolute; left: 0; top: 128px; width: 210px; height: 32px; background: #2a1f14; }
+  .B .clock { position: absolute; left: 945px; top: 26px; width: 66px; height: 66px; border-radius: 50%; background: var(--paper); border: 6px solid #2a1f14; }
+  .B .clock::after { content: ""; position: absolute; left: 50%; top: 50%; width: 2px; height: 22px; background: var(--ink); transform-origin: top; transform: rotate(200deg); box-shadow: 14px -6px 0 0 var(--ink); }
+  .B .tbl div { min-height: 16px; padding: 1px; }
+  .B svg.strings { position: absolute; inset: 0; pointer-events: none; }
+
+  /* C: the case folder */
+  .C { background: #6b5a3a; }
+  .C .folder { position: absolute; inset: 44px 30px 24px 30px; background: #d9c58f; border-radius: 4px; box-shadow: 0 10px 24px rgba(0,0,0,.55); }
+  .C .tab { position: absolute; top: 12px; height: 34px; padding: 8px 18px; background: #c9b47c; border-radius: 8px 8px 0 0; font-size: 12px; letter-spacing: .12em; font-weight: bold; color: var(--ink-soft); }
+  .C .tab.on { background: #d9c58f; color: var(--ink); }
+  .C .sheet { box-shadow: 0 2px 5px rgba(0,0,0,.3); }
+  .C .clip { position: absolute; width: 16px; height: 46px; border: 3px solid #8a8a86; border-radius: 9px; }
+  .C .photo { width: 40px; height: 48px; background: linear-gradient(#8f8672, #5e5747); float: left; margin-right: 8px; position: relative; }
+  .C .photo::after { content: ""; position: absolute; left: 12px; top: 9px; width: 16px; height: 16px; border-radius: 50%; background: #2b261c; box-shadow: 0 22px 0 8px #2b261c; }
+</style>
+</head>
+<body>
+<h1>UNRECODER — ЧЕРНОВИКИ ИНТЕРФЕЙСА</h1>
+<p class="lead">Варианты A–C: один и тот же экран в трёх раскладках (выбран C + доска из B). Варианты D и E ниже: два новых фона для комнаты. Три варианта одного и того же экрана: сигнал, ключ дня, кодовая таблица, предложение с пропусками, агенты. Это статичные картинки без игры: оценивается общий образ, раскладка и где живёт список агентов. Цвета типов фраз одинаковы во всех трёх.</p>
+
+<h2>A. СТОЛ СВЕРХУ</h2>
+<p class="note">Виден только ваш стол. Сигнал приходит лентой с телетайпа, таблица и ключ лежат раскрытой кодовой книгой, агенты — картотека справа. Ближе всего к текущему прототипу, проще всего сделать; штаба и коллег не видно.</p>
+<div class="scroll"><div class="frame A">
+  <div class="tape">— 06:40 — ПРИЁМ — FINCH — 160 ЗН —</div>
+  <div class="felt"></div>
+  <div class="ring" style="left:870px;top:560px"></div>
+  <div class="sheet" style="left:70px;top:86px;width:400px;transform:rotate(-1.2deg)"><h3><span>ПЕРЕХВАТ № 01</span><span>06:40</span></h3><div class="sig" data-sig></div></div>
+  <div class="sheet" style="left:86px;top:410px;width:540px;transform:rotate(.6deg)"><h3><span>РАСШИФРОВКА</span><span>2 / 5 · ОШИБОК 1</span></h3><div class="msg" data-msg></div></div>
+  <div class="sheet" style="left:500px;top:74px;width:430px;transform:rotate(.8deg);background:var(--paper-2)"><h3><span>КОДОВАЯ КНИГА · КЛЮЧ ДНЯ</span><span>стр. 14</span></h3><div class="key" data-key></div><div class="tbl" data-tbl></div></div>
+  <div class="card" style="left:985px;top:70px;transform:rotate(2deg)"><b>FINCH</b> · 01<br>курьер<br>порт</div>
+  <div class="card" style="left:1000px;top:158px;transform:rotate(-2deg)"><b>HERON</b> · 02<br>резидент<br>посольство</div>
+  <div class="card out" style="left:980px;top:246px;transform:rotate(1deg)"><b>CROW</b> · 04<br>наблюдатель<br>арестован; знал закладку в порту</div>
+  <div class="card" style="left:1004px;top:352px;transform:rotate(-1deg)"><b>ROOK</b> · 05<br>наблюдатель<br>граница</div>
+  <div class="card" style="left:986px;top:440px;transform:rotate(2deg)"><b>DOVE</b> · 07<br>связной<br>граница</div>
+  <div class="stamp" style="left:700px;top:560px;transform:rotate(-8deg)">СОВ. СЕКРЕТНО</div>
+</div></div>
+
+<h2>B. ШТАБ</h2>
+<p class="note">Сверху комната: окно с жалюзи, коллеги за столами, пробковая доска. Агенты живут на доске как карточки с нитками, арестованный перечёркнут. Снизу ваш стол с бумагами. Самый «шпионский» и атмосферный вариант; рабочая зона меньше, таблица мельче.</p>
+<div class="scroll"><div class="frame B">
+  <div class="wall"></div>
+  <div class="window"></div>
+  <div class="clock"></div>
+  <div class="mate" style="left:930px"><div class="lamp"></div><div class="head"></div><div class="body"></div><div class="desk"></div></div>
+  <div class="cork">
+    <div class="card" style="left:14px;top:18px;transform:rotate(-2deg)"><span class="pin"></span><b>FINCH</b> 01<br>курьер · порт</div>
+    <div class="card" style="left:150px;top:10px;transform:rotate(1deg)"><span class="pin"></span><b>HERON</b> 02<br>резидент · посольство</div>
+    <div class="card out" style="left:288px;top:20px;transform:rotate(-1deg);text-decoration:line-through"><span class="pin"></span><b>CROW</b> 04<br>арестован · знал порт</div>
+    <div class="card" style="left:424px;top:12px;transform:rotate(2deg)"><span class="pin"></span><b>ROOK</b> 05<br>наблюдатель · граница</div>
+    <div class="card other" style="left:60px;top:150px;width:110px;transform:rotate(2deg)"><span class="pin"></span>ПОРТ<br>закладка № 3</div>
+    <div class="card other" style="left:230px;top:160px;width:110px;transform:rotate(-2deg)"><span class="pin"></span>ПОСОЛЬСТВО</div>
+    <div class="card other" style="left:400px;top:150px;width:110px;transform:rotate(1deg)"><span class="pin"></span>ГРАНИЦА<br>пост 7</div>
+    <svg class="strings" viewBox="0 0 560 262"><g stroke="#a4382a" stroke-width="1.6" fill="none"><path d="M75 20 L115 152"/><path d="M349 22 L118 152"/><path d="M211 12 L285 162"/><path d="M485 14 L455 152"/></g></svg>
+  </div>
+  <div class="sheet" style="left:28px;top:330px;width:372px;transform:rotate(-1deg)"><h3><span>ПЕРЕХВАТ № 01</span><span>06:40</span></h3><div class="sig" data-sig style="font-size:13.5px"></div></div>
+  <div class="sheet" style="left:420px;top:322px;width:400px;background:var(--paper-2)"><h3><span>КОДОВАЯ ТАБЛИЦА · КЛЮЧ ДНЯ</span><span></span></h3><div class="key" data-key style="font-size:10.5px"></div><div class="tbl" data-tbl></div></div>
+  <div class="sheet" style="left:840px;top:340px;width:336px;transform:rotate(1deg)"><h3><span>РАСШИФРОВКА</span><span>2 / 5</span></h3><div class="msg" data-msg style="font-size:14px"></div><span class="btn">В ПАПКУ ▸</span></div>
+</div></div>
+
+<h2>C. ПАПКА-ДОСЬЕ</h2>
+<p class="note">Весь экран — раскрытая папка дела с закладками. Слева сигнал и расшифровка, справа таблица на всю высоту, агенты — фото на скрепках. Самый чистый и читаемый вариант, таблица самая крупная; меньше всего «места действия», зато легко добавлять новые закладки (ответ агенту, архив).</p>
+<div class="scroll"><div class="frame C">
+  <div class="tab on" style="left:50px">ДЕЛО № 01 · ПОРТ</div>
+  <div class="tab" style="left:250px">АГЕНТЫ</div>
+  <div class="tab" style="left:366px">АРХИВ</div>
+  <div class="tab" style="left:476px">ОТВЕТ АГЕНТУ</div>
+  <div class="folder"></div>
+  <div class="sheet" style="left:54px;top:70px;width:420px"><h3><span>ПЕРЕХВАТ № 01</span><span>06:40</span></h3><div class="sig" data-sig></div></div>
+  <div class="sheet" style="left:54px;top:372px;width:420px"><h3><span>РАСШИФРОВКА</span><span>2 / 5 · ОШИБОК 1</span></h3><div class="msg" data-msg style="font-size:14.5px"></div><span class="btn">В ПАПКУ ▸</span></div>
+  <div class="sheet" style="left:494px;top:70px;width:480px;height:560px;background:var(--paper-2)"><h3><span>КОДОВАЯ ТАБЛИЦА</span><span>КЛЮЧ ДНЯ 13.10</span></h3><div class="key" data-key></div><div class="tbl" data-tbl style="font-size:9.5px"></div></div>
+  <div class="card" style="left:994px;top:80px;width:160px"><div class="photo"></div><b>FINCH</b><br>курьер<br>порт</div>
+  <div class="card" style="left:994px;top:162px;width:160px"><div class="photo"></div><b>HERON</b><br>резидент<br>посольство</div>
+  <div class="card out" style="left:994px;top:244px;width:160px"><div class="photo"></div><b>CROW</b><br>арестован<br>знал порт</div>
+  <div class="card" style="left:994px;top:326px;width:160px"><div class="photo"></div><b>ROOK</b><br>наблюдатель<br>граница</div>
+  <div class="card" style="left:994px;top:408px;width:160px"><div class="photo"></div><b>DOVE</b><br>связной<br>граница</div>
+  <div class="clip" style="left:1130px;top:58px"></div>
+  <div class="stamp" style="left:1010px;top:540px;transform:rotate(-10deg)">СЕКРЕТНО</div>
+</div></div>
+
+<style>
+  .bg { height: 600px; }
+  .bg .folders { position: absolute; left: 60px; bottom: 60px; display: flex; gap: 22px; }
+  .bg .sf { width: 150px; height: 104px; background: #d9c58f; border-radius: 3px 12px 3px 3px; box-shadow: 0 8px 14px rgba(0,0,0,.55); padding: 12px; font-size: 11px; transform: rotate(-2deg); position: relative; }
+  .bg .sf:nth-child(even) { transform: rotate(2deg); }
+  .bg .sf b { display: block; border: 2px solid var(--ink); background: #f4ecd2; padding: 3px 6px; font-size: 12px; letter-spacing: .08em; margin-bottom: 6px; }
+  .bg .sf.lock { opacity: .45; }
+  .bg .sf i { position: absolute; right: 8px; bottom: 8px; font-style: normal; font-weight: bold; color: var(--red); border: 2px solid var(--red); padding: 0 5px; transform: rotate(-10deg); font-size: 10px; }
+  .bg .pike { position: absolute; right: 30px; bottom: 30px; width: 300px; background: #f4ecd2; border: 2px solid var(--ink); padding: 8px 10px; font-size: 11px; line-height: 1.4; box-shadow: 0 8px 18px rgba(0,0,0,.6); }
+  .bg .pike b { letter-spacing: .1em; }
+
+  /* D: night station with a wall map */
+  .D { background: linear-gradient(#27323a 0 58%, #141a1e 58% 59%, #2a2118 59%); }
+  .D .map { position: absolute; left: 250px; top: 26px; width: 520px; height: 290px; background: #cdbf95; border: 8px solid #3a2e20; box-shadow: 0 8px 18px rgba(0,0,0,.6);
+    background-image: linear-gradient(rgba(60,50,30,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(60,50,30,.18) 1px, transparent 1px); background-size: 40px 40px; }
+  .D .map svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+  .D .rain { position: absolute; left: 40px; top: 40px; width: 160px; height: 240px; border: 8px solid #1c1812; background: repeating-linear-gradient(100deg, #3c5266 0 3px, #2b3b4a 3px 11px); }
+  .D .rain::after { content: ""; position: absolute; left: 50%; top: 0; width: 6px; height: 100%; background: #1c1812; margin-left: -3px; }
+  .D .cone { position: absolute; top: 0; width: 0; height: 0; border-left: 150px solid transparent; border-right: 150px solid transparent; border-bottom: 420px solid rgba(255,214,140,.13); }
+  .D .shade { position: absolute; top: 0; width: 80px; height: 26px; background: #23402f; border-radius: 0 0 40px 40px; }
+  .D .rack { position: absolute; right: 40px; top: 90px; width: 230px; height: 230px; background: #20262a; border: 4px solid #0f1214; box-shadow: 0 8px 18px rgba(0,0,0,.6); padding: 14px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .D .dial { border-radius: 50%; aspect-ratio: 1; background: radial-gradient(circle at 50% 50%, #ffd98a 0 18%, #5a4a22 20% 60%, #14181a 62%); box-shadow: 0 0 14px rgba(255,200,110,.5); }
+  .D .meter { grid-column: span 3; height: 34px; background: linear-gradient(90deg, #7fbf6a 0 55%, #e0a13a 55% 80%, #a4382a 80%); border: 3px solid #0f1214; }
+  .D .tele { position: absolute; left: 820px; bottom: 150px; width: 170px; height: 90px; background: #2f3a33; border-radius: 8px 8px 2px 2px; box-shadow: 0 8px 14px rgba(0,0,0,.6); }
+  .D .tele::before { content: ""; position: absolute; left: 30px; top: -70px; width: 60px; height: 90px; background: #f1e9cf; transform: rotate(-4deg); box-shadow: 0 2px 5px rgba(0,0,0,.4); }
+  .D .tele::after { content: ""; position: absolute; left: 14px; bottom: 12px; width: 142px; height: 22px; background: repeating-linear-gradient(90deg, #cbbd92 0 10px, #2f3a33 10px 14px); }
+
+  /* E: the archive basement */
+  .E { background: linear-gradient(#4b4335 0 60%, #1d1812 60% 61%, #33271b 61%); }
+  .E .cab { position: absolute; top: 40px; width: 150px; height: 320px; background: #5d6a55; border: 3px solid #2e3529; display: grid; grid-template-rows: repeat(4, 1fr); gap: 6px; padding: 6px; box-shadow: 0 8px 16px rgba(0,0,0,.5); }
+  .E .cab div { background: #6c7a63; border: 2px solid #3d4737; position: relative; }
+  .E .cab div::before { content: ""; position: absolute; left: 50%; top: 10px; width: 54px; height: 16px; margin-left: -27px; background: #ece2c4; }
+  .E .cab div::after { content: ""; position: absolute; left: 50%; bottom: 14px; width: 40px; height: 7px; margin-left: -20px; background: #2e3529; border-radius: 4px; }
+  .E .pipe { position: absolute; background: #8a6a3a; box-shadow: inset 0 -4px 0 rgba(0,0,0,.3); }
+  .E .bulb { position: absolute; left: 600px; top: 0; width: 3px; height: 70px; background: #1c1812; }
+  .E .bulb::after { content: ""; position: absolute; left: -11px; top: 70px; width: 24px; height: 30px; border-radius: 50%; background: #ffe7a8; box-shadow: 0 0 80px 60px rgba(255,214,140,.28); }
+  .E .wallboard { position: absolute; left: 700px; top: 60px; width: 300px; height: 200px; background-color: #b08a5a; border: 8px solid #5b4027; background-image: radial-gradient(rgba(0,0,0,.14) 1px, transparent 1.4px); background-size: 7px 7px; }
+  .E .wallboard span { position: absolute; width: 70px; height: 44px; background: #f4ecd2; box-shadow: 0 2px 4px rgba(0,0,0,.4); }
+  .E .type { position: absolute; left: 860px; bottom: 150px; width: 190px; height: 70px; background: #1f2421; border-radius: 10px 10px 4px 4px; box-shadow: 0 8px 14px rgba(0,0,0,.6); }
+  .E .type::before { content: ""; position: absolute; left: 35px; top: -60px; width: 120px; height: 70px; background: #f1e9cf; }
+  .E .type::after { content: ""; position: absolute; left: 12px; bottom: 8px; width: 166px; height: 26px; background: radial-gradient(circle, #cbbd92 4px, transparent 5px) 0 0 / 16px 13px; }
+  .E .crate { position: absolute; right: 30px; top: 250px; width: 130px; height: 110px; background: repeating-linear-gradient(0deg, #6b5334 0 26px, #4a3823 26px 29px); border: 3px solid #33271b; }
+</style>
+
+<h2>D. НОЧНОЙ ШТАБ С КАРТОЙ</h2>
+<p class="note">Фон без папки. Ночь, дождь за окном, две лампы с конусами света. Вместо пробковой доски большая карта района: агенты — булавки на местах, нитки тянутся к штабу. Справа стойка с приборами, на столе телетайп, из которого выходит лента. Папки смен лежат на столе, Пайк появляется в углу.</p>
+<div class="scroll"><div class="frame bg D">
+  <div class="rain"></div>
+  <div class="cone" style="left:330px"></div><div class="shade" style="left:440px"></div>
+  <div class="cone" style="left:760px"></div><div class="shade" style="left:870px"></div>
+  <div class="map"><svg viewBox="0 0 520 290">
+    <path d="M0 210 C80 170 120 240 200 200 S330 150 380 190 460 230 520 180 V290 H0Z" fill="#9fb3b0" opacity=".7"/>
+    <path d="M60 40 L180 90 L300 60 L430 120" fill="none" stroke="#6a5f48" stroke-width="3" stroke-dasharray="8 6"/>
+    <g stroke="#a4382a" stroke-width="1.6" fill="none"><path d="M250 150 L90 205"/><path d="M250 150 L180 90"/><path d="M250 150 L430 120"/><path d="M250 150 L330 220"/><path d="M250 150 L60 40"/></g>
+    <g fill="#a4382a"><circle cx="90" cy="205" r="7"/><circle cx="180" cy="90" r="7"/><circle cx="430" cy="120" r="7"/><circle cx="330" cy="220" r="7"/><circle cx="60" cy="40" r="7"/></g>
+    <rect x="236" y="138" width="28" height="24" fill="#2b261c"/>
+    <g font-size="11" font-family="monospace" fill="#2b261c"><text x="60" y="228">ПОРТ · FINCH</text><text x="150" y="78">ПОСОЛЬСТВО · HERON</text><text x="386" y="108">ГРАНИЦА · ROOK</text><text x="300" y="244">РЫНОК · OWL</text><text x="30" y="28">ВОКЗАЛ · SWIFT</text><text x="226" y="178">ШТАБ</text></g>
+  </svg></div>
+  <div class="rack"><div class="dial"></div><div class="dial"></div><div class="dial"></div><div class="meter"></div><div class="dial"></div><div class="dial"></div><div class="dial"></div></div>
+  <div class="tele"></div>
+  <div class="folders"><div class="sf"><b>СМЕНА 1</b>Первая ночь<i>СДАНО</i></div><div class="sf"><b>СМЕНА 2</b>Граница<i>СДАНО</i></div><div class="sf"><b>СМЕНА 3</b>Склад<br>открыть</div><div class="sf lock"><b>СМЕНА 4</b>закрыто</div><div class="sf lock"><b>СМЕНА 5</b>закрыто</div></div>
+  <div class="pike"><b>МИСТЕР ПАЙК</b><br>Лента пошла. Ищи группы: Z и две буквы за ней.</div>
+</div></div>
+
+<h2>E. ПОДВАЛ-АРХИВ</h2>
+<p class="note">Фон без папки. Подвал под штабом: ряды картотечных шкафов, трубы пневмопочты под потолком, голая лампа. Пробковая доска остаётся, но меньше. На столе пишущая машинка и ящик с делами. Теплее и теснее, чем D; хорошо ложится на идею «прогресс = папки в архиве».</p>
+<div class="scroll"><div class="frame bg E">
+  <div class="pipe" style="left:0;top:14px;width:100%;height:14px"></div>
+  <div class="pipe" style="left:520px;top:14px;width:14px;height:330px"></div>
+  <div class="pipe" style="left:1090px;top:28px;width:14px;height:200px"></div>
+  <div class="cab" style="left:40px"><div></div><div></div><div></div><div></div></div>
+  <div class="cab" style="left:200px"><div></div><div></div><div></div><div></div></div>
+  <div class="cab" style="left:360px"><div></div><div></div><div></div><div></div></div>
+  <div class="bulb"></div>
+  <div class="wallboard"><span style="left:14px;top:14px"></span><span style="left:112px;top:22px"></span><span style="left:208px;top:12px"></span><span style="left:60px;top:110px;background:#d3ecd0"></span><span style="left:170px;top:116px;background:#d3ecd0"></span>
+    <svg viewBox="0 0 300 200" style="position:absolute;inset:0"><g stroke="#a4382a" stroke-width="1.6"><path d="M50 20 L95 115"/><path d="M148 28 L205 120"/><path d="M244 18 L205 120"/></g></svg></div>
+  <div class="crate"></div>
+  <div class="type"></div>
+  <div class="folders"><div class="sf"><b>СМЕНА 1</b>Первая ночь<i>СДАНО</i></div><div class="sf"><b>СМЕНА 2</b>Граница<i>СДАНО</i></div><div class="sf"><b>СМЕНА 3</b>Склад<br>открыть</div><div class="sf lock"><b>СМЕНА 4</b>закрыто</div><div class="sf lock"><b>СМЕНА 5</b>закрыто</div></div>
+  <div class="pike"><b>МИСТЕР ПАЙК</b><br>Не угадывай. Вторая буква — строка, третья — столбец.</div>
+</div></div>
+
+<script>
+  // The same sample content in every draft: the first message of the prototype, two blanks filled.
+  const SIG = 'VCZOSSHGBWYNOJQKYPCZAQQSTWCUCFHGCKWFUAZACLDNNUXDJVYYOBIECZ?RKHQWUUUOGJVZQNJDOYFSCMDHJCTECWAOTRPGTOWVHSJZUCLSCEBQRBCZQUOOOOKHSGVMZVHATGPNKSJTDOGFJPSZAYDJZSWPSQEP';
+  const MARK = { 38: 'done who', 39: 'done who', 40: 'done who', 57: 'sel', 58: 'sel q', 59: 'sel', 71: 'done result', 72: 'done result', 73: 'done result' };
+  for (const el of document.querySelectorAll('[data-sig]')) {
+    el.innerHTML = [...SIG].map((ch, i) => `<span class="${MARK[i] ?? ''}">${ch}</span>`).join('');
+  }
+  const KEY = ['HKO', 'ERS', 'DNV', 'QU', 'CGW', 'JL', 'BM', 'FI', 'AX', 'PTY'];
+  for (const el of document.querySelectorAll('[data-key]')) {
+    el.innerHTML = KEY.map((ls, d) => `<span><b>${d}</b>${ls}</span>`).join('');
+  }
+  const KINDS = ['who', 'place', 'action', 'state', 'result', 'other'];
+  const WORDS = { who: ['курьер', 'резидент', 'связной', 'патруль'], place: ['порт', 'вокзал', 'граница', 'отель'], action: ['оставил пакет', 'за ним шли', 'сжёг бумаги'],
+    state: ['чисто / провал', 'ранен', 'цел'], result: ['жду приказа', 'молчу', 'прошу вывоз'], other: ['A', 'K', 'приём', 'T', 'M'] };
+  for (const el of document.querySelectorAll('[data-tbl]')) {
+    let html = '<div class="h"></div>' + [...'0123456789'].map((c) => `<div class="h">${c}</div>`).join('');
+    for (let r = 0; r < 10; r++) {
+      html += `<div class="h">${r}</div>`;
+      for (let c = 0; c < 10; c++) {
+        const kind = KINDS[(r * 7 + c * 3 + ((r * c) % 4)) % KINDS.length];
+        html += `<div class="${kind}">${WORDS[kind][(r + c * 2) % WORDS[kind].length]}</div>`;
+      }
+    }
+    el.innerHTML = html;
+  }
+  for (const el of document.querySelectorAll('[data-msg]')) {
+    el.innerHTML = '<span class="blank f who">Курьер</span> в <span class="blank place">место</span> <span class="blank action">действие</span>. ' +
+      'Точка: <span class="blank state">состояние</span>. Далее: <span class="blank f result">жду приказа</span>.';
+  }
+</script>
+</body>
+</html>

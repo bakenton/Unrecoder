@@ -3,76 +3,101 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Unrecoder — duty radio table prototype</title>
+  <title>Unrecoder — intercept desk prototype</title>
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
-  <main class="desk">
-    <section class="panel radio" aria-label="Radio">
-      <header>
-        <span>EXPEDITION RADIO LOG <b id="txId"></b></span>
-        <span id="txTime"></span>
-      </header>
-      <div class="dump" id="dump" aria-label="Received signal"></div>
-      <div class="frame" id="frame" aria-label="Sentence to fill"></div>
-      <div class="status" id="status" aria-live="polite"></div>
-    </section>
+  <main class="room">
+    <div class="wall">
+      <div class="window" aria-hidden="true"></div>
+      <section class="map" id="board" aria-label="Map of the district: where the agents are"></section>
+      <div class="rack" aria-hidden="true"><i></i><i></i><i></i><b></b><i></i><i></i><i></i></div>
+    </div>
+    <div class="lamp" style="left: 30%" aria-hidden="true"></div>
+    <div class="lamp" style="left: 64%" aria-hidden="true"></div>
+    <div class="teletype" aria-hidden="true"></div>
 
-    <section class="panel board" aria-label="Decoding sheet">
-      <header>
-        <span id="boardTitle">DECODING SHEET</span>
-        <span class="intuition" id="intuition" title="Intuition Points"></span>
-      </header>
-      <div id="picks" class="picks"></div>
-      <div id="controls" class="controls"></div>
-      <div id="readBox" class="readbox" hidden></div>
-      <p class="legend" id="legend"></p>
-    </section>
+    <div class="desktop">
+      <div class="desklabel">YOUR DESK — SHIFTS
+        <span class="logbar">GAME LOG: <span id="logCount"></span>
+          <button id="logSave" type="button">Save as JSON</button>
+          <button id="logClear" type="button">Clear</button></span>
+      </div>
+      <div class="shelf" id="shelf" aria-label="Shift folders"></div>
+    </div>
 
-    <section class="panel crew" aria-label="Crew list">
-      <header><span>CREW LIST</span><button id="hintBtn" type="button">Hint</button></header>
-      <ul id="crewList"></ul>
-      <p class="hint" id="hint" hidden></p>
-    </section>
+    <section class="folder" id="folder" aria-label="Case folder">
+      <div class="tabs">
+        <span class="tab on" id="tabLabel"></span>
+        <span class="tab info">INTUITION <span class="intuition" id="intuition" title="Intuition Points"></span></span>
+        <button id="askPike" class="tab ask" type="button">ASK PIKE</button>
+        <button id="closeFolder" class="tab close" type="button">BACK TO THE DESK ✕</button>
+      </div>
+      <div class="pages">
+        <div class="col">
+          <section class="sheet" aria-label="Incoming message">
+            <header><span id="sheetTitle"></span><span id="txTime"></span></header>
+            <div class="dump" id="dump" aria-label="Received signal"></div>
+            <div class="orderpaper" id="orderPaper" hidden></div>
+          </section>
+          <section class="sheet" aria-label="Decoding sheet">
+            <header><span id="boardTitle"></span></header>
+            <div class="frame" id="frame" aria-label="Sentence to fill"></div>
+            <div class="status" id="status" aria-live="polite"></div>
+            <div id="controls" class="controls"></div>
+            <div id="readBox" class="readbox" hidden></div>
+            <button id="sendBtn" type="button" class="send" hidden></button>
+            <div class="result" id="result" hidden>
+              <p class="message" id="message"></p>
+              <div class="debrief" id="debrief"></div>
+              <div class="result-actions">
+                <button id="nextBtn" type="button" class="send"></button>
+                <button id="restartBtn" type="button">Replay this one</button>
+              </div>
+            </div>
+          </section>
+        </div>
 
-    <section class="panel guide" aria-label="How to read">
-      <header><span>TODAY'S KEY</span></header>
-      <div class="keycard" id="keyCard"></div>
-      <ol class="steps">
-        <li><b>Find the groups.</b> A group is the letter <b>Z</b> and the two letters after it. Click a Z to mark it, click a marked group to unmark it. Careful: some Z groups are decoys. The real ones read as a sentence, in order.</li>
-        <li>Ignore the Z. The <b>second</b> letter gives the row (vertical key above), the <b>third</b> gives the column (horizontal key).</li>
-        <li>Click that cell in the table. The word fills its blank; each blank has a colour. A word that does not fit its blank means a decoy: unmark it.</li>
-        <li>A <b>?</b> is a lost letter: the other letter still gives a row or a column. Pick the cell of the right colour in it.</li>
-      </ol>
-      <div class="kinds" id="kinds"></div>
-    </section>
+        <section class="sheet book" aria-label="Code table">
+          <header><span>CODE TABLE</span><span id="keyTitle"></span></header>
+          <div class="keycard" id="keyCard"></div>
+          <div id="codeTable"></div>
+          <div class="kinds" id="kinds"></div>
+          <details class="howto">
+            <summary>How to read</summary>
+            <ol class="steps" id="steps"></ol>
+          </details>
+        </section>
 
-    <section class="panel map" aria-label="Route map">
-      <header><span>ROUTE MAP — GLACIER</span></header>
-      <svg id="map" viewBox="0 0 440 290" role="img" aria-label="Route map"></svg>
-    </section>
-
-    <section class="panel table-sheet" aria-label="Duty radio table">
-      <header><span>DUTY RADIO TABLE — click the cell of the selected group</span></header>
-      <div id="codeTable"></div>
-    </section>
-
-    <section class="panel orders" aria-label="Orders">
-      <header><span>ORDERS (CHOOSE 1 OF 5)</span></header>
-      <div class="order-row" id="orders"></div>
-      <button id="sendBtn" type="button" class="send" disabled>TRANSMIT ORDER</button>
-    </section>
-
-    <section class="panel result" id="result" aria-label="Next transmission" hidden>
-      <header><span>NEXT TRANSMISSION</span><span id="resultTime"></span></header>
-      <p class="message" id="message"></p>
-      <div class="debrief" id="debrief"></div>
-      <div class="result-actions">
-        <button id="nextBtn" type="button" class="send">NEXT TRANSMISSION ▸</button>
-        <button id="restartBtn" type="button">Replay this transmission</button>
-        <button id="restartAllBtn" type="button">Restart from the first</button>
+        <div class="col cards" aria-label="Agents">
+          <ul id="crewList"></ul>
+          <div class="stamp" aria-hidden="true">SECRET</div>
+        </div>
       </div>
     </section>
+
+    <aside class="advisor" id="advisor" aria-live="polite" hidden>
+      <svg class="avatar" viewBox="0 0 64 76" role="img" aria-label="Mr. Pike">
+        <rect width="64" height="76" fill="#cbbd92"/>
+        <path d="M6 76c0-16 10-24 26-24s26 8 26 24z" fill="#2b261c"/>
+        <path d="M27 50h10l-5 12z" fill="#ece2c4"/>
+        <ellipse cx="32" cy="32" rx="14" ry="17" fill="#d9b991"/>
+        <path d="M17 26c2-11 9-15 15-15s13 4 15 15c-9-4-21-4-30 0z" fill="#6a5f48"/>
+        <path d="M13 27c12-6 26-6 38 0l2 4c-13-5-29-5-42 0z" fill="#2f5a3f"/>
+        <circle cx="25" cy="35" r="5" fill="none" stroke="#2b261c" stroke-width="1.6"/>
+        <circle cx="39" cy="35" r="5" fill="none" stroke="#2b261c" stroke-width="1.6"/>
+        <path d="M30 35h4" stroke="#2b261c" stroke-width="1.6"/>
+        <path d="M24 43c4-3 12-3 16 0-4 2-12 2-16 0z" fill="#4a3523"/>
+      </svg>
+      <div class="says">
+        <div class="who">MR. PIKE <span>head of the cipher room</span></div>
+        <p id="advice"></p>
+        <div class="advisor-actions">
+          <button id="adviceOk" type="button" class="send">GOT IT</button>
+          <button id="adviceSkip" type="button">Skip his advice</button>
+        </div>
+      </div>
+    </aside>
   </main>
   <script type="module" src="src/main.js"></script>
 </body>

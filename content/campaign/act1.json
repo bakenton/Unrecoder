@@ -2,1411 +2,7355 @@
  "crew": [
   {
    "id": "01",
-   "role": "Leader",
-   "location": "CP4",
+   "name": "FINCH",
+   "role": "Courier",
+   "location": "Harbour",
    "status": "ok",
    "note": ""
   },
   {
    "id": "02",
-   "role": "Navigator",
-   "location": "CP4",
+   "name": "HERON",
+   "role": "Resident",
+   "location": "Embassy",
    "status": "ok",
    "note": ""
   },
   {
    "id": "03",
-   "role": "Medic",
-   "location": "CP4",
+   "name": "WREN",
+   "role": "Radio operator",
+   "location": "Safe house",
    "status": "ok",
    "note": ""
   },
   {
    "id": "04",
-   "role": "Repair tech",
-   "location": "CP3",
-   "status": "injured",
-   "note": "injured last message, stayed at CP3"
+   "name": "CROW",
+   "role": "Watcher",
+   "location": "Unknown",
+   "status": "arrested",
+   "note": "arrested last night; knew the harbour dead drop"
   },
   {
    "id": "05",
-   "role": "Geologist",
-   "location": "CP4",
+   "name": "ROOK",
+   "role": "Watcher",
+   "location": "Border",
    "status": "ok",
    "note": ""
   },
   {
    "id": "06",
-   "role": "Climber",
-   "location": "CP4",
+   "name": "SWIFT",
+   "role": "Pickup man",
+   "location": "Station",
    "status": "ok",
    "note": ""
   },
   {
    "id": "07",
-   "role": "Climber",
-   "location": "CP4",
+   "name": "DOVE",
+   "role": "Contact",
+   "location": "Border",
    "status": "ok",
    "note": ""
   },
   {
    "id": "08",
-   "role": "Porter",
-   "location": "CP4",
+   "name": "KITE",
+   "role": "Driver",
+   "location": "Hotel",
    "status": "ok",
    "note": ""
   },
   {
    "id": "09",
-   "role": "Porter",
-   "location": "CP4",
+   "name": "LARK",
+   "role": "Cipher clerk",
+   "location": "Embassy",
    "status": "ok",
    "note": ""
   },
   {
    "id": "10",
-   "role": "Cook",
-   "location": "CP4",
+   "name": "OWL",
+   "role": "Informer",
+   "location": "Market",
    "status": "ok",
    "note": ""
   }
  ],
- "map": {
-  "points": [
-   {
-    "id": "BASE",
-    "x": 60,
-    "y": 250
-   },
-   {
-    "id": "CP1",
-    "x": 130,
-    "y": 190
-   },
-   {
-    "id": "CP2",
-    "x": 210,
-    "y": 215
-   },
-   {
-    "id": "CP3",
-    "x": 290,
-    "y": 150
-   },
-   {
-    "id": "CP4",
-    "x": 380,
-    "y": 100
-   }
-  ]
- },
  "matrix": {
   "rows": "0123456789",
   "cols": "0123456789",
   "cells": {
    "10": {
-    "kind": "action",
-    "text": "climbed",
-    "meanings": [
-     "climbed"
-    ]
-   },
-   "11": {
-    "kind": "service",
-    "text": "understood",
-    "meanings": [
-     "understood"
-    ]
-   },
-   "12": {
-    "kind": "thing",
-    "text": "tent",
-    "meanings": [
-     "tent"
-    ]
-   },
-   "13": {
-    "kind": "thing",
-    "text": "sample",
-    "meanings": [
-     "sample"
-    ]
-   },
-   "14": {
-    "kind": "letter",
-    "text": "G",
-    "meanings": [
-     "G"
-    ]
-   },
-   "15": {
-    "kind": "thing",
-    "text": "boots",
-    "meanings": [
-     "boots"
-    ]
-   },
-   "16": {
-    "kind": "action",
-    "text": "found",
-    "meanings": [
-     "found"
-    ]
-   },
-   "17": {
-    "kind": "thing",
-    "text": "food",
-    "meanings": [
-     "food"
-    ]
-   },
-   "18": {
-    "kind": "who",
-    "text": "team",
-    "meanings": [
-     "team"
-    ]
-   },
-   "19": {
-    "kind": "letter",
-    "text": "O",
-    "meanings": [
-     "O"
-    ]
-   },
-   "20": {
-    "kind": "state",
-    "text": "snowing",
-    "meanings": [
-     "snowing"
-    ]
-   },
-   "21": {
-    "kind": "action",
-    "text": "resting",
-    "meanings": [
-     "resting"
-    ]
-   },
-   "22": {
-    "kind": "state",
-    "text": "ready",
-    "meanings": [
-     "ready"
-    ]
-   },
-   "23": {
-    "kind": "marker",
-    "text": "spell",
-    "meanings": [
-     "spell"
-    ]
-   },
-   "24": {
-    "kind": "place",
-    "text": "cave",
-    "meanings": [
-     "cave"
-    ]
-   },
-   "25": {
-    "kind": "place",
-    "text": "summit",
-    "meanings": [
-     "summit"
-    ]
-   },
-   "26": {
-    "kind": "state",
-    "text": "broken / repaired",
-    "meanings": [
-     "broken",
-     "repaired"
-    ]
-   },
-   "27": {
-    "kind": "thing",
-    "text": "fuel",
-    "meanings": [
-     "fuel"
-    ]
-   },
-   "28": {
-    "kind": "action",
-    "text": "moving",
-    "meanings": [
-     "moving"
-    ]
-   },
-   "29": {
-    "kind": "place",
-    "text": "CP4",
-    "meanings": [
-     "CP4"
-    ]
-   },
-   "30": {
-    "kind": "letter",
-    "text": "J",
-    "meanings": [
-     "J"
-    ]
-   },
-   "31": {
-    "kind": "thing",
-    "text": "gloves",
-    "meanings": [
-     "gloves"
-    ]
-   },
-   "32": {
-    "kind": "state",
-    "text": "hungry",
-    "meanings": [
-     "hungry"
-    ]
-   },
-   "33": {
-    "kind": "action",
-    "text": "left",
-    "meanings": [
-     "left"
-    ]
-   },
-   "34": {
-    "kind": "who",
-    "text": "guide",
-    "meanings": [
-     "guide"
-    ]
-   },
-   "35": {
-    "kind": "letter",
-    "text": "Z",
-    "meanings": [
-     "Z"
-    ]
-   },
-   "36": {
-    "kind": "state",
-    "text": "wet",
-    "meanings": [
-     "wet"
-    ]
-   },
-   "37": {
-    "kind": "action",
-    "text": "searching",
-    "meanings": [
-     "searching"
-    ]
-   },
-   "38": {
-    "kind": "action",
-    "text": "waiting",
-    "meanings": [
-     "waiting"
-    ]
-   },
-   "39": {
-    "kind": "letter",
-    "text": "S",
-    "meanings": [
-     "S"
-    ]
-   },
-   "40": {
-    "kind": "action",
-    "text": "returning",
-    "meanings": [
-     "returning"
-    ]
-   },
-   "41": {
-    "kind": "place",
-    "text": "CP2",
-    "meanings": [
-     "CP2"
-    ]
-   },
-   "42": {
-    "kind": "letter",
-    "text": "T",
-    "meanings": [
-     "T"
-    ]
-   },
-   "43": {
-    "kind": "letter",
-    "text": "W",
-    "meanings": [
-     "W"
-    ]
-   },
-   "44": {
-    "kind": "letter",
-    "text": "N",
-    "meanings": [
-     "N"
-    ]
-   },
-   "45": {
-    "kind": "letter",
-    "text": "Y",
-    "meanings": [
-     "Y"
-    ]
-   },
-   "46": {
-    "kind": "service",
-    "text": "stand by",
-    "meanings": [
-     "stand by"
-    ]
-   },
-   "47": {
-    "kind": "thing",
-    "text": "rope",
-    "meanings": [
-     "rope"
-    ]
-   },
-   "48": {
-    "kind": "letter",
-    "text": "M",
-    "meanings": [
-     "M"
-    ]
-   },
-   "49": {
-    "kind": "thing",
-    "text": "blanket",
-    "meanings": [
-     "blanket"
-    ]
-   },
-   "50": {
-    "kind": "marker",
-    "text": "number",
-    "meanings": [
-     "number"
-    ]
-   },
-   "51": {
-    "kind": "letter",
-    "text": "V",
-    "meanings": [
-     "V"
-    ]
-   },
-   "52": {
-    "kind": "who",
-    "text": "leader",
-    "meanings": [
-     "leader"
-    ]
-   },
-   "53": {
-    "kind": "thing",
-    "text": "sled",
-    "meanings": [
-     "sled"
-    ]
-   },
-   "54": {
-    "kind": "action",
-    "text": "camped",
-    "meanings": [
-     "camped"
-    ]
-   },
-   "55": {
-    "kind": "letter",
-    "text": "K",
-    "meanings": [
-     "K"
-    ]
-   },
-   "56": {
-    "kind": "letter",
-    "text": "H",
-    "meanings": [
-     "H"
-    ]
-   },
-   "57": {
-    "kind": "who",
-    "text": "porter",
-    "meanings": [
-     "porter"
-    ]
-   },
-   "58": {
-    "kind": "thing",
-    "text": "bridge",
-    "meanings": [
-     "bridge"
-    ]
-   },
-   "59": {
-    "kind": "letter",
-    "text": "B",
-    "meanings": [
-     "B"
-    ]
-   },
-   "60": {
-    "kind": "letter",
-    "text": "X",
-    "meanings": [
-     "X"
-    ]
-   },
-   "61": {
-    "kind": "thing",
-    "text": "radio",
-    "meanings": [
-     "radio"
-    ]
-   },
-   "62": {
-    "kind": "service",
-    "text": "radio check",
-    "meanings": [
-     "radio check"
-    ]
-   },
-   "63": {
-    "kind": "letter",
-    "text": "D",
-    "meanings": [
-     "D"
-    ]
-   },
-   "64": {
-    "kind": "place",
-    "text": "CP3",
-    "meanings": [
-     "CP3"
-    ]
-   },
-   "65": {
-    "kind": "letter",
-    "text": "F",
-    "meanings": [
-     "F"
-    ]
-   },
-   "66": {
-    "kind": "thing",
-    "text": "tarp",
-    "meanings": [
-     "tarp"
-    ]
-   },
-   "67": {
-    "kind": "letter",
-    "text": "Q",
-    "meanings": [
-     "Q"
-    ]
-   },
-   "68": {
-    "kind": "state",
-    "text": "low battery",
-    "meanings": [
-     "low battery"
-    ]
-   },
-   "69": {
-    "kind": "state",
-    "text": "injured",
-    "meanings": [
-     "injured"
-    ]
-   },
-   "70": {
-    "kind": "place",
-    "text": "valley",
-    "meanings": [
-     "valley"
-    ]
-   },
-   "71": {
-    "kind": "letter",
-    "text": "R",
-    "meanings": [
-     "R"
-    ]
-   },
-   "72": {
-    "kind": "thing",
-    "text": "compass",
-    "meanings": [
-     "compass"
-    ]
-   },
-   "73": {
-    "kind": "service",
-    "text": "no reply",
-    "meanings": [
-     "no reply"
-    ]
-   },
-   "74": {
-    "kind": "place",
-    "text": "CP1",
-    "meanings": [
-     "CP1"
-    ]
-   },
-   "75": {
-    "kind": "action",
-    "text": "reached",
-    "meanings": [
-     "reached"
-    ]
-   },
-   "76": {
-    "kind": "letter",
-    "text": "U",
-    "meanings": [
-     "U"
-    ]
-   },
-   "77": {
-    "kind": "thing",
-    "text": "flare",
-    "meanings": [
-     "flare"
-    ]
-   },
-   "78": {
-    "kind": "place",
-    "text": "glacier",
-    "meanings": [
-     "glacier"
-    ]
-   },
-   "79": {
-    "kind": "action",
-    "text": "crossed",
-    "meanings": [
-     "crossed"
-    ]
-   },
-   "80": {
-    "kind": "place",
-    "text": "pass",
-    "meanings": [
-     "pass"
-    ]
-   },
-   "81": {
-    "kind": "thing",
-    "text": "camp",
-    "meanings": [
-     "camp"
-    ]
-   },
-   "82": {
-    "kind": "letter",
-    "text": "A",
-    "meanings": [
-     "A"
-    ]
-   },
-   "83": {
-    "kind": "who",
-    "text": "member",
-    "meanings": [
-     "member"
-    ]
-   },
-   "84": {
-    "kind": "letter",
-    "text": "C",
-    "meanings": [
-     "C"
-    ]
-   },
-   "85": {
-    "kind": "place",
-    "text": "river",
-    "meanings": [
-     "river"
-    ]
-   },
-   "86": {
-    "kind": "place",
-    "text": "south ridge",
-    "meanings": [
-     "south ridge"
-    ]
-   },
-   "87": {
-    "kind": "thing",
-    "text": "ice axe",
-    "meanings": [
-     "ice axe"
-    ]
-   },
-   "88": {
     "kind": "letter",
     "text": "L",
     "meanings": [
      "L"
     ]
    },
-   "89": {
-    "kind": "place",
-    "text": "hut",
-    "meanings": [
-     "hut"
-    ]
-   },
-   "90": {
-    "kind": "action",
-    "text": "stopped",
-    "meanings": [
-     "stopped"
-    ]
-   },
-   "91": {
-    "kind": "service",
-    "text": "over",
-    "meanings": [
-     "over"
-    ]
-   },
-   "92": {
-    "kind": "place",
-    "text": "slope",
-    "meanings": [
-     "slope"
-    ]
-   },
-   "93": {
+   "11": {
     "kind": "letter",
-    "text": "P",
+    "text": "D",
     "meanings": [
-     "P"
+     "D"
     ]
    },
-   "94": {
-    "kind": "place",
-    "text": "camp site",
+   "12": {
+    "kind": "letter",
+    "text": "M",
     "meanings": [
-     "camp site"
+     "M"
     ]
    },
-   "95": {
+   "13": {
     "kind": "state",
-    "text": "tired",
+    "text": "watched",
     "meanings": [
-     "tired"
+     "watched"
     ]
    },
-   "96": {
+   "14": {
     "kind": "place",
-    "text": "ridge",
+    "text": "market",
     "meanings": [
-     "ridge"
+     "market"
     ]
    },
-   "97": {
-    "kind": "service",
-    "text": "out",
+   "15": {
+    "kind": "state",
+    "text": "unharmed",
     "meanings": [
-     "out"
+     "unharmed"
     ]
    },
-   "98": {
+   "16": {
+    "kind": "letter",
+    "text": "B",
+    "meanings": [
+     "B"
+    ]
+   },
+   "17": {
     "kind": "action",
-    "text": "descending",
+    "text": "met the contact",
     "meanings": [
-     "descending"
+     "met the contact"
     ]
    },
-   "99": {
-    "kind": "state",
-    "text": "lost",
-    "meanings": [
-     "lost"
-    ]
-   },
-   "00": {
-    "kind": "state",
-    "text": "windy",
-    "meanings": [
-     "windy"
-    ]
-   },
-   "01": {
+   "18": {
     "kind": "who",
-    "text": "medic",
+    "text": "double agent",
     "meanings": [
-     "medic"
+     "double agent"
     ]
    },
-   "02": {
-    "kind": "state",
-    "text": "cold",
+   "19": {
+    "kind": "who",
+    "text": "driver",
     "meanings": [
-     "cold"
+     "driver"
     ]
    },
-   "03": {
-    "kind": "thing",
-    "text": "map",
+   "20": {
+    "kind": "marker",
+    "text": "number",
     "meanings": [
-     "map"
+     "number"
     ]
    },
-   "04": {
-    "kind": "state",
-    "text": "safe",
+   "21": {
+    "kind": "who",
+    "text": "patrol",
     "meanings": [
-     "safe"
+     "patrol"
     ]
    },
-   "05": {
+   "22": {
+    "kind": "result",
+    "text": "operation continues",
+    "meanings": [
+     "operation continues"
+    ]
+   },
+   "23": {
+    "kind": "action",
+    "text": "lost the tail",
+    "meanings": [
+     "lost the tail"
+    ]
+   },
+   "24": {
+    "kind": "place",
+    "text": "park",
+    "meanings": [
+     "park"
+    ]
+   },
+   "25": {
     "kind": "letter",
-    "text": "E",
+    "text": "Y",
     "meanings": [
-     "E"
+     "Y"
     ]
    },
-   "06": {
+   "26": {
+    "kind": "action",
+    "text": "saw the patrol",
+    "meanings": [
+     "saw the patrol"
+    ]
+   },
+   "27": {
     "kind": "letter",
     "text": "I",
     "meanings": [
      "I"
     ]
    },
-   "07": {
+   "28": {
+    "kind": "state",
+    "text": "burned / clean",
+    "meanings": [
+     "burned",
+     "clean"
+    ]
+   },
+   "29": {
+    "kind": "letter",
+    "text": "N",
+    "meanings": [
+     "N"
+    ]
+   },
+   "30": {
+    "kind": "who",
+    "text": "stranger",
+    "meanings": [
+     "stranger"
+    ]
+   },
+   "31": {
+    "kind": "letter",
+    "text": "W",
+    "meanings": [
+     "W"
+    ]
+   },
+   "32": {
     "kind": "place",
-    "text": "base",
+    "text": "cafe",
     "meanings": [
-     "base"
+     "cafe"
     ]
    },
-   "08": {
-    "kind": "thing",
-    "text": "stove",
+   "33": {
+    "kind": "result",
+    "text": "awaiting orders",
     "meanings": [
-     "stove"
+     "awaiting orders"
     ]
    },
-   "09": {
+   "34": {
+    "kind": "action",
+    "text": "burned the papers",
+    "meanings": [
+     "burned the papers"
+    ]
+   },
+   "35": {
+    "kind": "letter",
+    "text": "P",
+    "meanings": [
+     "P"
+    ]
+   },
+   "36": {
+    "kind": "result",
+    "text": "next contact in two days",
+    "meanings": [
+     "next contact in two days"
+    ]
+   },
+   "37": {
+    "kind": "marker",
+    "text": "spell",
+    "meanings": [
+     "spell"
+    ]
+   },
+   "38": {
+    "kind": "letter",
+    "text": "H",
+    "meanings": [
+     "H"
+    ]
+   },
+   "39": {
+    "kind": "letter",
+    "text": "A",
+    "meanings": [
+     "A"
+    ]
+   },
+   "40": {
+    "kind": "who",
+    "text": "informer",
+    "meanings": [
+     "informer"
+    ]
+   },
+   "41": {
+    "kind": "action",
+    "text": "waited in vain",
+    "meanings": [
+     "waited in vain"
+    ]
+   },
+   "42": {
+    "kind": "place",
+    "text": "hotel",
+    "meanings": [
+     "hotel"
+    ]
+   },
+   "43": {
+    "kind": "result",
+    "text": "meeting cancelled",
+    "meanings": [
+     "meeting cancelled"
+    ]
+   },
+   "44": {
+    "kind": "state",
+    "text": "quiet",
+    "meanings": [
+     "quiet"
+    ]
+   },
+   "45": {
+    "kind": "letter",
+    "text": "K",
+    "meanings": [
+     "K"
+    ]
+   },
+   "46": {
+    "kind": "letter",
+    "text": "R",
+    "meanings": [
+     "R"
+    ]
+   },
+   "47": {
+    "kind": "state",
+    "text": "closed",
+    "meanings": [
+     "closed"
+    ]
+   },
+   "48": {
+    "kind": "action",
+    "text": "crossed over",
+    "meanings": [
+     "crossed over"
+    ]
+   },
+   "49": {
+    "kind": "result",
+    "text": "send no one",
+    "meanings": [
+     "send no one"
+    ]
+   },
+   "50": {
+    "kind": "state",
+    "text": "lost",
+    "meanings": [
+     "lost"
+    ]
+   },
+   "51": {
+    "kind": "result",
+    "text": "switching to backup",
+    "meanings": [
+     "switching to backup"
+    ]
+   },
+   "52": {
+    "kind": "who",
+    "text": "source",
+    "meanings": [
+     "source"
+    ]
+   },
+   "53": {
+    "kind": "action",
+    "text": "picked up the package",
+    "meanings": [
+     "picked up the package"
+    ]
+   },
+   "54": {
+    "kind": "state",
+    "text": "exposed",
+    "meanings": [
+     "exposed"
+    ]
+   },
+   "55": {
+    "kind": "state",
+    "text": "arrested / free",
+    "meanings": [
+     "arrested",
+     "free"
+    ]
+   },
+   "56": {
+    "kind": "place",
+    "text": "bridge",
+    "meanings": [
+     "bridge"
+    ]
+   },
+   "57": {
+    "kind": "service",
+    "text": "over",
+    "meanings": [
+     "over"
+    ]
+   },
+   "58": {
+    "kind": "service",
+    "text": "end of message",
+    "meanings": [
+     "end of message"
+    ]
+   },
+   "59": {
+    "kind": "place",
+    "text": "embassy",
+    "meanings": [
+     "embassy"
+    ]
+   },
+   "60": {
+    "kind": "action",
+    "text": "sent the film",
+    "meanings": [
+     "sent the film"
+    ]
+   },
+   "61": {
+    "kind": "action",
+    "text": "changed the route",
+    "meanings": [
+     "changed the route"
+    ]
+   },
+   "62": {
+    "kind": "who",
+    "text": "radio operator",
+    "meanings": [
+     "radio operator"
+    ]
+   },
+   "63": {
+    "kind": "letter",
+    "text": "C",
+    "meanings": [
+     "C"
+    ]
+   },
+   "64": {
+    "kind": "action",
+    "text": "was followed",
+    "meanings": [
+     "was followed"
+    ]
+   },
+   "65": {
+    "kind": "place",
+    "text": "airfield",
+    "meanings": [
+     "airfield"
+    ]
+   },
+   "66": {
+    "kind": "result",
+    "text": "going silent",
+    "meanings": [
+     "going silent"
+    ]
+   },
+   "67": {
+    "kind": "action",
+    "text": "missed the meeting",
+    "meanings": [
+     "missed the meeting"
+    ]
+   },
+   "68": {
+    "kind": "letter",
+    "text": "S",
+    "meanings": [
+     "S"
+    ]
+   },
+   "69": {
+    "kind": "place",
+    "text": "harbour",
+    "meanings": [
+     "harbour"
+    ]
+   },
+   "70": {
+    "kind": "who",
+    "text": "resident",
+    "meanings": [
+     "resident"
+    ]
+   },
+   "71": {
+    "kind": "letter",
+    "text": "G",
+    "meanings": [
+     "G"
+    ]
+   },
+   "72": {
+    "kind": "letter",
+    "text": "X",
+    "meanings": [
+     "X"
+    ]
+   },
+   "73": {
+    "kind": "place",
+    "text": "station",
+    "meanings": [
+     "station"
+    ]
+   },
+   "74": {
+    "kind": "letter",
+    "text": "O",
+    "meanings": [
+     "O"
+    ]
+   },
+   "75": {
+    "kind": "place",
+    "text": "church",
+    "meanings": [
+     "church"
+    ]
+   },
+   "76": {
+    "kind": "who",
+    "text": "watcher",
+    "meanings": [
+     "watcher"
+    ]
+   },
+   "77": {
+    "kind": "state",
+    "text": "intact",
+    "meanings": [
+     "intact"
+    ]
+   },
+   "78": {
+    "kind": "who",
+    "text": "contact",
+    "meanings": [
+     "contact"
+    ]
+   },
+   "79": {
+    "kind": "service",
+    "text": "understood",
+    "meanings": [
+     "understood"
+    ]
+   },
+   "80": {
+    "kind": "action",
+    "text": "was stopped",
+    "meanings": [
+     "was stopped"
+    ]
+   },
+   "81": {
+    "kind": "who",
+    "text": "courier",
+    "meanings": [
+     "courier"
+    ]
+   },
+   "82": {
+    "kind": "letter",
+    "text": "U",
+    "meanings": [
+     "U"
+    ]
+   },
+   "83": {
+    "kind": "result",
+    "text": "needs new papers",
+    "meanings": [
+     "needs new papers"
+    ]
+   },
+   "84": {
+    "kind": "letter",
+    "text": "Q",
+    "meanings": [
+     "Q"
+    ]
+   },
+   "85": {
+    "kind": "letter",
+    "text": "V",
+    "meanings": [
+     "V"
+    ]
+   },
+   "86": {
+    "kind": "action",
+    "text": "left the package",
+    "meanings": [
+     "left the package"
+    ]
+   },
+   "87": {
     "kind": "service",
     "text": "say again",
     "meanings": [
      "say again"
     ]
+   },
+   "88": {
+    "kind": "letter",
+    "text": "E",
+    "meanings": [
+     "E"
+    ]
+   },
+   "89": {
+    "kind": "place",
+    "text": "warehouse",
+    "meanings": [
+     "warehouse"
+    ]
+   },
+   "90": {
+    "kind": "state",
+    "text": "guarded / empty",
+    "meanings": [
+     "guarded",
+     "empty"
+    ]
+   },
+   "91": {
+    "kind": "letter",
+    "text": "F",
+    "meanings": [
+     "F"
+    ]
+   },
+   "92": {
+    "kind": "result",
+    "text": "needs money",
+    "meanings": [
+     "needs money"
+    ]
+   },
+   "93": {
+    "kind": "place",
+    "text": "post office",
+    "meanings": [
+     "post office"
+    ]
+   },
+   "94": {
+    "kind": "state",
+    "text": "secure",
+    "meanings": [
+     "secure"
+    ]
+   },
+   "95": {
+    "kind": "place",
+    "text": "border",
+    "meanings": [
+     "border"
+    ]
+   },
+   "96": {
+    "kind": "service",
+    "text": "radio check",
+    "meanings": [
+     "radio check"
+    ]
+   },
+   "97": {
+    "kind": "letter",
+    "text": "J",
+    "meanings": [
+     "J"
+    ]
+   },
+   "98": {
+    "kind": "state",
+    "text": "wounded",
+    "meanings": [
+     "wounded"
+    ]
+   },
+   "99": {
+    "kind": "result",
+    "text": "will try again",
+    "meanings": [
+     "will try again"
+    ]
+   },
+   "00": {
+    "kind": "letter",
+    "text": "Z",
+    "meanings": [
+     "Z"
+    ]
+   },
+   "01": {
+    "kind": "result",
+    "text": "requests extraction",
+    "meanings": [
+     "requests extraction"
+    ]
+   },
+   "02": {
+    "kind": "who",
+    "text": "cipher clerk",
+    "meanings": [
+     "cipher clerk"
+    ]
+   },
+   "03": {
+    "kind": "letter",
+    "text": "T",
+    "meanings": [
+     "T"
+    ]
+   },
+   "04": {
+    "kind": "service",
+    "text": "out",
+    "meanings": [
+     "out"
+    ]
+   },
+   "05": {
+    "kind": "action",
+    "text": "was searched",
+    "meanings": [
+     "was searched"
+    ]
+   },
+   "06": {
+    "kind": "service",
+    "text": "stand by",
+    "meanings": [
+     "stand by"
+    ]
+   },
+   "07": {
+    "kind": "service",
+    "text": "no reply",
+    "meanings": [
+     "no reply"
+    ]
+   },
+   "08": {
+    "kind": "result",
+    "text": "awaiting pickup",
+    "meanings": [
+     "awaiting pickup"
+    ]
+   },
+   "09": {
+    "kind": "place",
+    "text": "safe house",
+    "meanings": [
+     "safe house"
+    ]
    }
   }
  },
- "transmissions": [
+ "shifts": [
   {
-   "id": "T01-bridge",
-   "time": "14:32",
-   "slots": [
-    "who",
-    "place",
-    "action",
-    "thing",
-    "state"
-   ],
-   "cipher": [
-    "18",
-    "29",
-    "75",
-    "58",
-    "26"
-   ],
-   "clauses": [
+   "title": "First night",
+   "briefing": [],
+   "transmissions": [
     {
-     "pattern": "The {0} {2} {1}."
-    },
-    {
-     "pattern": "The {3} is {4}."
-    }
-   ],
-   "truth": {
-    "4": "broken"
-   },
-   "hint": "No one on the team can repair the bridge now: the only repair tech (04) is injured and stayed at CP3. So the bridge can only be broken.",
-   "outcomes": {
-    "continue": {
-     "severity": "harm",
-     "text": "The bridge collapsed. One member injured.",
-     "crew": [
-      {
-       "id": "06",
-       "status": "injured",
-       "note": "injured in the bridge collapse"
-      }
+     "id": "S1-M1",
+     "time": "06:40",
+     "slots": [
+      "who",
+      "place",
+      "action",
+      "state",
+      "result"
      ],
-     "nearMiss": "We stopped at the bridge. Something felt wrong. No one crossed."
-    },
-    "wait": {
-     "severity": "safe",
-     "text": "All safe. Looking for another route.",
-     "crew": []
-    },
-    "back": {
-     "severity": "delay",
-     "text": "Back at CP3. We lost half a day, but everyone is safe.",
-     "crew": []
-    },
-    "hurry": {
-     "severity": "harm",
-     "text": "We rushed the crossing. The bridge gave way. Two members injured.",
-     "crew": [
+     "cipher": [
+      "40",
+      "14",
+      "64",
+      "15",
+      "99"
+     ],
+     "clauses": [
       {
-       "id": "06",
-       "status": "injured",
-       "note": "injured in the bridge collapse"
+       "pattern": "The {0} at the {1} {2}."
       },
       {
-       "id": "08",
-       "status": "injured",
-       "note": "injured in the bridge collapse"
+       "pattern": "Status: {3}."
+      },
+      {
+       "pattern": "Next: {4}."
       }
      ],
-     "nearMiss": "We started to rush, then stopped at the edge. No one hurt."
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "HKO",
+       "ERS",
+       "DNV",
+       "QU",
+       "CGW",
+       "JL",
+       "BM",
+       "FI",
+       "AX",
+       "PTY"
+      ],
+      "cols": [
+       "GST",
+       "CO",
+       "FW",
+       "BMN",
+       "IJQ",
+       "PU",
+       "ALY",
+       "EKV",
+       "DH",
+       "RX"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "N",
+      "V",
+      "V",
+      "C",
+      "E",
+      "Y",
+      "K",
+      "S",
+      "K",
+      "G",
+      "B",
+      "W",
+      "Y",
+      "N",
+      "O",
+      "J",
+      "Q",
+      "K",
+      "Y",
+      "P",
+      "C",
+      "F",
+      "A",
+      "T",
+      "Z",
+      "C",
+      "S",
+      "W",
+      "C",
+      "U",
+      "C",
+      "F",
+      "H",
+      "G",
+      "C",
+      "K",
+      "W",
+      "F",
+      "U",
+      "A",
+      "R",
+      "W",
+      "Z",
+      "B",
+      "Q",
+      "N",
+      "N",
+      "U",
+      "X",
+      "D",
+      "J",
+      "V",
+      "Y",
+      "Y",
+      "O",
+      "B",
+      "I",
+      "E",
+      "C",
+      "I",
+      "Z",
+      "S",
+      "U",
+      "H",
+      "Q",
+      "W",
+      "U",
+      "U",
+      "U",
+      "O",
+      "Z",
+      "A",
+      "Q",
+      "I",
+      "C",
+      "C",
+      "J",
+      "D",
+      "O",
+      "Y",
+      "F",
+      "S",
+      "C",
+      "M",
+      "D",
+      "H",
+      "J",
+      "C",
+      "T",
+      "E",
+      "C",
+      "W",
+      "A",
+      "O",
+      "T",
+      "R",
+      "P",
+      "E",
+      "T",
+      "Z",
+      "R",
+      "J",
+      "H",
+      "S",
+      "J",
+      "A",
+      "A",
+      "A",
+      "L",
+      "S",
+      "C",
+      "E",
+      "B",
+      "Q",
+      "R",
+      "B",
+      "C",
+      "Z",
+      "S",
+      "W",
+      "O",
+      "O",
+      "O",
+      "O",
+      "K",
+      "H",
+      "S",
+      "G",
+      "V",
+      "M",
+      "Z",
+      "Q",
+      "U",
+      "A",
+      "T",
+      "G",
+      "P",
+      "N",
+      "K",
+      "S",
+      "J",
+      "T",
+      "D",
+      "O",
+      "G",
+      "F",
+      "J",
+      "P",
+      "Z",
+      "T",
+      "R",
+      "Q",
+      "D",
+      "J",
+      "N",
+      "V",
+      "D",
+      "P",
+      "S",
+      "Q"
+     ],
+     "real": [
+      24,
+      99,
+      42,
+      60,
+      148
+     ],
+     "strayCipher": [
+      "35",
+      "84",
+      "12"
+     ],
+     "stray": [
+      130,
+      70,
+      117
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
     },
-    "base": {
-     "severity": "delay",
-     "text": "Returning to base. The route is abandoned for now.",
-     "crew": []
-    }
-   },
-   "key": {
-    "rows": [
-     "HKO",
-     "ERS",
-     "DNV",
-     "QU",
-     "CGW",
-     "JL",
-     "BM",
-     "FI",
-     "AX",
-     "PTY"
-    ],
-    "cols": [
-     "GST",
-     "CO",
-     "FW",
-     "BMN",
-     "IJQ",
-     "PU",
-     "ALY",
-     "EKV",
-     "DH",
-     "RX"
-    ]
-   },
-   "cols": 12,
-   "dump": [
-    "S",
-    "M",
-    "T",
-    "B",
-    "J",
-    "Z",
-    "D",
-    "Q",
-    "G",
-    "Z",
-    "S",
-    "H",
-    "G",
-    "I",
-    "Z",
-    "D",
-    "R",
-    "F",
-    "O",
-    "K",
-    "Y",
-    "E",
-    "I",
-    "V",
-    "P",
-    "R",
-    "Z",
-    "U",
-    "F",
-    "Y",
-    "W",
-    "X",
-    "R",
-    "I",
-    "C",
-    "M",
-    "O",
-    "R",
-    "Z",
-    "F",
-    "U",
-    "S",
-    "E",
-    "A",
-    "X",
-    "Z",
-    "L",
-    "H",
-    "L",
-    "R",
-    "I",
-    "L",
-    "J",
-    "C",
-    "F",
-    "A",
-    "K",
-    "Z",
-    "N",
-    "L",
-    "J",
-    "R",
-    "M",
-    "X",
-    "X",
-    "L",
-    "P",
-    "Q",
-    "O",
-    "L",
-    "A",
-    "B",
-    "P",
-    "Q",
-    "E",
-    "A",
-    "R",
-    "Q",
-    "P",
-    "H",
-    "A",
-    "S",
-    "H",
-    "Q"
-   ],
-   "real": [
-    9,
-    14,
-    38,
-    45,
-    57
-   ],
-   "damaged": {}
-  },
-  {
-   "id": "T02-member",
-   "time": "15:41",
-   "slots": [
-    "who",
-    "marker",
-    "number",
-    "state",
-    "place"
-   ],
-   "cipher": [
-    "83",
-    "50",
-    "06",
-    "69",
-    "29"
-   ],
-   "clauses": [
     {
-     "pattern": "The {0} {2} is {3} at {4}."
+     "id": "S1-M2",
+     "time": "08:05",
+     "slots": [
+      "who",
+      "place",
+      "action",
+      "state",
+      "result"
+     ],
+     "cipher": [
+      "76",
+      "95",
+      "26",
+      "44",
+      "22"
+     ],
+     "clauses": [
+      {
+       "pattern": "The {0} at the {1} {2}."
+      },
+      {
+       "pattern": "Status: {3}."
+      },
+      {
+       "pattern": "Next: {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "BHM",
+       "LOR",
+       "ADT",
+       "JUY",
+       "EQ",
+       "FK",
+       "NX",
+       "IV",
+       "GS",
+       "CPW"
+      ],
+      "cols": [
+       "FIW",
+       "GMR",
+       "KUV",
+       "PS",
+       "BO",
+       "CT",
+       "EHQ",
+       "DN",
+       "XY",
+       "AJL"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "F",
+      "P",
+      "U",
+      "V",
+      "X",
+      "C",
+      "P",
+      "W",
+      "Z",
+      "O",
+      "K",
+      "G",
+      "F",
+      "E",
+      "J",
+      "Y",
+      "D",
+      "V",
+      "S",
+      "E",
+      "Q",
+      "Y",
+      "L",
+      "Z",
+      "I",
+      "Q",
+      "T",
+      "S",
+      "U",
+      "Z",
+      "A",
+      "U",
+      "C",
+      "K",
+      "L",
+      "R",
+      "Z",
+      "K",
+      "N",
+      "Y",
+      "Z",
+      "Q",
+      "B",
+      "W",
+      "E",
+      "F",
+      "P",
+      "P",
+      "F",
+      "K",
+      "Z",
+      "C",
+      "C",
+      "A",
+      "E",
+      "A",
+      "N",
+      "A",
+      "J",
+      "V",
+      "T",
+      "Y",
+      "N",
+      "E",
+      "Y",
+      "K",
+      "P",
+      "F",
+      "W",
+      "K",
+      "D",
+      "L",
+      "P",
+      "A",
+      "Y",
+      "M",
+      "Y",
+      "Y",
+      "Y",
+      "I",
+      "A",
+      "Y",
+      "O",
+      "N",
+      "E",
+      "S",
+      "S",
+      "Z",
+      "D",
+      "N",
+      "S",
+      "C",
+      "C",
+      "R",
+      "O",
+      "N",
+      "V",
+      "F",
+      "D",
+      "H",
+      "P",
+      "F",
+      "M",
+      "H",
+      "E",
+      "C",
+      "A",
+      "Y",
+      "P",
+      "N",
+      "Y",
+      "V",
+      "C",
+      "P",
+      "K",
+      "B",
+      "P",
+      "A",
+      "Q",
+      "A",
+      "V",
+      "X",
+      "U",
+      "G",
+      "E",
+      "M",
+      "U",
+      "N",
+      "B",
+      "G",
+      "K",
+      "Z",
+      "A",
+      "E",
+      "S",
+      "E",
+      "R",
+      "K",
+      "M",
+      "F",
+      "C",
+      "P",
+      "O",
+      "V",
+      "N",
+      "F",
+      "V",
+      "I",
+      "O",
+      "D",
+      "G",
+      "O",
+      "F",
+      "L",
+      "W",
+      "I",
+      "L",
+      "I",
+      "W",
+      "W"
+     ],
+     "real": [
+      23,
+      50,
+      131,
+      40,
+      29
+     ],
+     "strayCipher": [
+      "12",
+      "27",
+      "57"
+     ],
+     "stray": [
+      8,
+      87,
+      36
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S1-M3",
+     "time": "11:15",
+     "slots": [
+      "place",
+      "who",
+      "action",
+      "result",
+      "state"
+     ],
+     "cipher": [
+      "42",
+      "19",
+      "23",
+      "33",
+      "94"
+     ],
+     "clauses": [
+      {
+       "pattern": "At the {0} the {1} {2}."
+      },
+      {
+       "pattern": "Next: {3}."
+      },
+      {
+       "pattern": "Status: {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "BG",
+       "AD",
+       "HOQ",
+       "KRU",
+       "ISV",
+       "ET",
+       "CXY",
+       "MN",
+       "FW",
+       "JLP"
+      ],
+      "cols": [
+       "JL",
+       "EO",
+       "FS",
+       "CX",
+       "HMT",
+       "KRV",
+       "ADY",
+       "GNP",
+       "IQ",
+       "BUW"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "P",
+      "E",
+      "Q",
+      "C",
+      "Y",
+      "O",
+      "I",
+      "Z",
+      "Q",
+      "X",
+      "M",
+      "U",
+      "W",
+      "F",
+      "P",
+      "Y",
+      "S",
+      "H",
+      "B",
+      "Z",
+      "A",
+      "B",
+      "B",
+      "Z",
+      "B",
+      "M",
+      "E",
+      "G",
+      "J",
+      "W",
+      "Y",
+      "S",
+      "T",
+      "A",
+      "O",
+      "O",
+      "O",
+      "G",
+      "C",
+      "F",
+      "A",
+      "H",
+      "T",
+      "Y",
+      "K",
+      "Y",
+      "X",
+      "R",
+      "U",
+      "X",
+      "Z",
+      "K",
+      "C",
+      "X",
+      "R",
+      "M",
+      "Q",
+      "J",
+      "X",
+      "Z",
+      "R",
+      "B",
+      "L",
+      "O",
+      "J",
+      "G",
+      "H",
+      "U",
+      "F",
+      "I",
+      "Q",
+      "X",
+      "E",
+      "Y",
+      "D",
+      "U",
+      "N",
+      "F",
+      "E",
+      "D",
+      "P",
+      "C",
+      "W",
+      "E",
+      "Z",
+      "?",
+      "F",
+      "S",
+      "T",
+      "P",
+      "U",
+      "B",
+      "Y",
+      "M",
+      "U",
+      "X",
+      "H",
+      "Q",
+      "Z",
+      "L",
+      "T",
+      "G",
+      "J",
+      "F",
+      "H",
+      "R",
+      "B",
+      "Q",
+      "P",
+      "J",
+      "D",
+      "W",
+      "U",
+      "Z",
+      "T",
+      "P",
+      "X",
+      "E",
+      "E",
+      "J",
+      "Y",
+      "G",
+      "C",
+      "W",
+      "D",
+      "Y",
+      "S",
+      "V",
+      "O",
+      "W",
+      "S",
+      "B",
+      "I",
+      "W",
+      "R",
+      "F",
+      "Y",
+      "T",
+      "G",
+      "J",
+      "A",
+      "D",
+      "H",
+      "R",
+      "K",
+      "A",
+      "C",
+      "X",
+      "A",
+      "O",
+      "D",
+      "M",
+      "K",
+      "A",
+      "W",
+      "C",
+      "M",
+      "Q",
+      "G",
+      "B"
+     ],
+     "real": [
+      84,
+      19,
+      7,
+      50,
+      98
+     ],
+     "strayCipher": [
+      "04",
+      "39",
+      "57"
+     ],
+     "stray": [
+      23,
+      59,
+      113
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S1-M4",
+     "time": "15:30",
+     "slots": [
+      "state",
+      "who",
+      "action",
+      "place",
+      "result"
+     ],
+     "cipher": [
+      "54",
+      "70",
+      "34",
+      "59",
+      "66"
+     ],
+     "clauses": [
+      {
+       "pattern": "Status: {0}."
+      },
+      {
+       "pattern": "The {1} {2} at the {3}."
+      },
+      {
+       "pattern": "Next: {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "VY",
+       "BI",
+       "CW",
+       "DJM",
+       "AES",
+       "GX",
+       "HLO",
+       "FP",
+       "RTU",
+       "KNQ"
+      ],
+      "cols": [
+       "KT",
+       "BEU",
+       "LP",
+       "DJ",
+       "COR",
+       "FV",
+       "NSW",
+       "GHY",
+       "AQX",
+       "IM"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "N",
+      "T",
+      "R",
+      "K",
+      "U",
+      "Y",
+      "B",
+      "D",
+      "M",
+      "B",
+      "E",
+      "P",
+      "E",
+      "R",
+      "W",
+      "N",
+      "U",
+      "S",
+      "H",
+      "Q",
+      "I",
+      "I",
+      "I",
+      "F",
+      "B",
+      "X",
+      "H",
+      "R",
+      "P",
+      "W",
+      "N",
+      "W",
+      "W",
+      "M",
+      "M",
+      "X",
+      "C",
+      "Z",
+      "C",
+      "M",
+      "D",
+      "D",
+      "X",
+      "Y",
+      "K",
+      "D",
+      "C",
+      "T",
+      "Z",
+      "?",
+      "I",
+      "Y",
+      "O",
+      "Y",
+      "B",
+      "L",
+      "I",
+      "U",
+      "E",
+      "S",
+      "Q",
+      "C",
+      "T",
+      "S",
+      "T",
+      "W",
+      "C",
+      "V",
+      "Z",
+      "G",
+      "R",
+      "J",
+      "O",
+      "T",
+      "L",
+      "P",
+      "P",
+      "I",
+      "N",
+      "E",
+      "N",
+      "A",
+      "O",
+      "I",
+      "Z",
+      "D",
+      "O",
+      "Q",
+      "G",
+      "B",
+      "S",
+      "Z",
+      "F",
+      "O",
+      "W",
+      "X",
+      "O",
+      "K",
+      "S",
+      "Q",
+      "B",
+      "E",
+      "P",
+      "G",
+      "W",
+      "W",
+      "E",
+      "S",
+      "A",
+      "D",
+      "O",
+      "M",
+      "Y",
+      "T",
+      "J",
+      "F",
+      "S",
+      "E",
+      "Z",
+      "H",
+      "N",
+      "G",
+      "W",
+      "A",
+      "U",
+      "A",
+      "Q",
+      "J",
+      "U",
+      "U",
+      "O",
+      "F",
+      "N",
+      "B",
+      "G",
+      "A",
+      "P",
+      "Z",
+      "P",
+      "T",
+      "D",
+      "Y",
+      "T",
+      "F",
+      "L",
+      "Q",
+      "W",
+      "Z",
+      "K",
+      "N",
+      "T",
+      "D",
+      "H",
+      "M",
+      "C",
+      "N",
+      "O",
+      "F",
+      "L",
+      "R"
+     ],
+     "real": [
+      68,
+      137,
+      84,
+      48,
+      118
+     ],
+     "strayCipher": [
+      "96",
+      "74",
+      "29"
+     ],
+     "stray": [
+      147,
+      91,
+      37
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S1-M5",
+     "time": "19:50",
+     "slots": [
+      "place",
+      "who",
+      "action",
+      "result",
+      "state"
+     ],
+     "cipher": [
+      "69",
+      "81",
+      "86",
+      "08",
+      "28"
+     ],
+     "clauses": [
+      {
+       "pattern": "At the {0} the {1} {2}."
+      },
+      {
+       "pattern": "Next: {3}."
+      },
+      {
+       "pattern": "Status: {4}."
+      }
+     ],
+     "truth": {
+      "4": "burned"
+     },
+     "hint": "CROW (04) was arrested last night and knew the harbour dead drop. A site an arrested agent knows cannot be clean: it is burned.",
+     "key": {
+      "rows": [
+       "FMY",
+       "CQ",
+       "PR",
+       "GI",
+       "BJO",
+       "DH",
+       "EU",
+       "KNX",
+       "LSV",
+       "ATW"
+      ],
+      "cols": [
+       "BL",
+       "HKX",
+       "DGQ",
+       "CIU",
+       "PV",
+       "AET",
+       "WY",
+       "JM",
+       "OR",
+       "FNS"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "N",
+      "E",
+      "M",
+      "W",
+      "U",
+      "Z",
+      "Y",
+      "O",
+      "P",
+      "C",
+      "M",
+      "F",
+      "D",
+      "K",
+      "N",
+      "J",
+      "V",
+      "S",
+      "H",
+      "A",
+      "M",
+      "N",
+      "V",
+      "X",
+      "P",
+      "K",
+      "K",
+      "J",
+      "Z",
+      "R",
+      "O",
+      "S",
+      "M",
+      "L",
+      "F",
+      "C",
+      "A",
+      "K",
+      "L",
+      "L",
+      "A",
+      "L",
+      "W",
+      "P",
+      "Z",
+      "Y",
+      "U",
+      "S",
+      "V",
+      "E",
+      "N",
+      "T",
+      "J",
+      "R",
+      "M",
+      "B",
+      "Z",
+      "I",
+      "O",
+      "E",
+      "U",
+      "H",
+      "F",
+      "Y",
+      "L",
+      "V",
+      "N",
+      "P",
+      "X",
+      "U",
+      "F",
+      "L",
+      "B",
+      "H",
+      "Z",
+      "D",
+      "R",
+      "U",
+      "V",
+      "R",
+      "Y",
+      "G",
+      "M",
+      "E",
+      "W",
+      "J",
+      "F",
+      "S",
+      "J",
+      "Y",
+      "Z",
+      "?",
+      "N",
+      "W",
+      "W",
+      "P",
+      "J",
+      "F",
+      "F",
+      "Y",
+      "C",
+      "P",
+      "Q",
+      "S",
+      "F",
+      "C",
+      "D",
+      "C",
+      "P",
+      "J",
+      "K",
+      "S",
+      "P",
+      "I",
+      "V",
+      "M",
+      "Z",
+      "L",
+      "Y",
+      "Q",
+      "H",
+      "R",
+      "D",
+      "W",
+      "E",
+      "G",
+      "B",
+      "D",
+      "G",
+      "F",
+      "G",
+      "T",
+      "S",
+      "D",
+      "R",
+      "M",
+      "D",
+      "J",
+      "L",
+      "S",
+      "K",
+      "E",
+      "D",
+      "K",
+      "K",
+      "U",
+      "G",
+      "S",
+      "G",
+      "L",
+      "R",
+      "V",
+      "C",
+      "I",
+      "Q",
+      "P",
+      "Z",
+      "V",
+      "H",
+      "N"
+     ],
+     "real": [
+      90,
+      156,
+      116,
+      5,
+      28
+     ],
+     "strayCipher": [
+      "38",
+      "03",
+      "58"
+     ],
+     "stray": [
+      56,
+      44,
+      74
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Command kept everyone away from the harbour. Two men in a parked car waited there all night.",
+       "crew": []
+      },
+      "hedged": {
+       "severity": "delay",
+       "text": "Command got both readings and chose to wait. A day lost, nobody caught.",
+       "crew": []
+      },
+      "wrong": {
+       "severity": "harm",
+       "text": "Command read the site as clean and sent the pickup man. He was arrested at the harbour.",
+       "crew": [
+        {
+         "id": "06",
+         "status": "arrested",
+         "note": "arrested at the harbour"
+        }
+       ]
+      }
+     }
     }
    ],
-   "truth": {},
-   "hint": "The number marker says the next pair is a number: 06 is a crew ID (a climber). The decoys are other phrases that would also fit, so use the Likeness count.",
-   "outcomes": {
-    "continue": {
-     "severity": "harm",
-     "text": "We pushed on. 06 is getting worse. We have to stop.",
-     "crew": [
-      {
-       "id": "06",
-       "status": "injured",
-       "note": "injured, worsening"
-      }
-     ],
-     "nearMiss": "We started to move, then stopped. 06 is being treated."
-    },
-    "wait": {
-     "severity": "safe",
-     "text": "Medic is with 06. Stable. We rest here.",
-     "crew": [
-      {
-       "id": "06",
-       "status": "injured",
-       "note": "injured, stable at CP4"
-      }
-     ]
-    },
-    "back": {
-     "severity": "delay",
-     "text": "Carrying 06 back to CP3. It is slow.",
-     "crew": [
-      {
-       "id": "06",
-       "status": "injured",
-       "note": "being carried back"
-      }
-     ]
-    },
-    "hurry": {
-     "severity": "harm",
-     "text": "Hurrying with an injured man. 06 fell. It is bad.",
-     "crew": [
-      {
-       "id": "06",
-       "status": "injured",
-       "note": "injured, serious"
-      }
-     ],
-     "nearMiss": "We almost hurried. We slowed down for 06."
-    },
-    "base": {
-     "severity": "delay",
-     "text": "Evacuating 06 to base. The team is following.",
-     "crew": [
-      {
-       "id": "06",
-       "status": "injured",
-       "note": "evacuating to base"
-      }
-     ]
-    }
-   },
-   "key": {
-    "rows": [
-     "BHM",
-     "LOR",
-     "ADT",
-     "JUY",
-     "EQ",
-     "FK",
-     "NX",
-     "IV",
-     "GS",
-     "CPW"
+   "reply": {
+    "time": "23:59",
+    "slots": [
+     "who",
+     "place",
+     "action",
+     "state",
+     "result"
     ],
-    "cols": [
-     "FIW",
-     "GMR",
-     "KUV",
-     "PS",
-     "BO",
-     "CT",
-     "EHQ",
-     "DN",
-     "XY",
-     "AJL"
-    ]
-   },
-   "cols": 12,
-   "dump": [
-    "X",
-    "T",
-    "F",
-    "P",
-    "A",
-    "Z",
-    "G",
-    "?",
-    "O",
-    "L",
-    "I",
-    "U",
-    "V",
-    "Q",
-    "H",
-    "A",
-    "Z",
-    "W",
-    "G",
-    "B",
-    "Z",
-    "F",
-    "W",
-    "Y",
-    "Q",
-    "Z",
-    "B",
-    "Q",
-    "S",
-    "N",
-    "T",
-    "D",
-    "U",
-    "F",
-    "X",
-    "S",
-    "Z",
-    "R",
-    "A",
-    "R",
-    "Z",
-    "N",
-    "J",
-    "J",
-    "K",
-    "Q",
-    "Q",
-    "B",
-    "Z",
-    "D",
-    "L",
-    "Y",
-    "K",
-    "F",
-    "I",
-    "G",
-    "G",
-    "H",
-    "M",
-    "N",
-    "Z",
-    "H",
-    "K",
-    "Q",
-    "V",
-    "L",
-    "O",
-    "S",
-    "N",
-    "K",
-    "W",
-    "G",
-    "S",
-    "U",
-    "F",
-    "H",
-    "C",
-    "S",
-    "G",
-    "H",
-    "N",
-    "G",
-    "G",
-    "V"
-   ],
-   "real": [
-    5,
-    20,
-    25,
-    40,
-    48
-   ],
-   "damaged": {
-    "7": "S"
+    "cipher": [
+     "78",
+     "09",
+     "61",
+     "94",
+     "36"
+    ],
+    "key": {
+     "rows": [
+      "BV",
+      "FHX",
+      "CL",
+      "TW",
+      "EQ",
+      "IJN",
+      "KPS",
+      "GU",
+      "DMY",
+      "AOR"
+     ],
+     "cols": [
+      "LQY",
+      "IX",
+      "FH",
+      "EU",
+      "BGO",
+      "DV",
+      "JRS",
+      "AM",
+      "CKW",
+      "NPT"
+     ]
+    }
    }
   },
   {
-   "id": "T03-hut",
-   "time": "17:05",
-   "slots": [
-    "who",
-    "action",
-    "marker",
-    "letter",
-    "letter",
-    "letter"
-   ],
-   "cipher": [
-    "18",
-    "16",
-    "23",
-    "56",
-    "76",
-    "42"
-   ],
-   "clauses": [
+   "title": "The border",
+   "briefing": [
     {
-     "pattern": "The {0} {1}: {3}{4}{5}."
+     "id": "08",
+     "note": "phoned in from the hotel after the checkpoint"
     }
    ],
-   "truth": {},
-   "hint": "After the spell marker the letters follow one by one. The other spelling follows a number marker, so it is not a spelled word.",
-   "outcomes": {
-    "continue": {
-     "severity": "harm",
-     "text": "We went past the hut. The weather turned. One frostbitten.",
-     "crew": [
-      {
-       "id": "07",
-       "status": "injured",
-       "note": "frostbite"
-      }
+   "transmissions": [
+    {
+     "id": "S2-M1",
+     "time": "05:20",
+     "slots": [
+      "state",
+      "who",
+      "action",
+      "place",
+      "result"
      ],
-     "nearMiss": "We almost went past the hut. We turned back and sheltered."
-    },
-    "wait": {
-     "severity": "safe",
-     "text": "We are in the hut. Warm. Waiting out the weather.",
-     "crew": []
-    },
-    "back": {
-     "severity": "delay",
-     "text": "Back toward CP3. We will lose the hut.",
-     "crew": []
-    },
-    "hurry": {
-     "severity": "harm",
-     "text": "We hurried past the hut into the storm. Two frostbitten.",
-     "crew": [
+     "cipher": [
+      "98",
+      "78",
+      "48",
+      "95",
+      "01"
+     ],
+     "clauses": [
       {
-       "id": "07",
-       "status": "injured",
-       "note": "frostbite"
+       "pattern": "Status: {0}."
       },
       {
-       "id": "09",
-       "status": "injured",
-       "note": "frostbite"
+       "pattern": "The {1} {2} at the {3}."
+      },
+      {
+       "pattern": "Next: {4}."
       }
      ],
-     "nearMiss": "We almost hurried on. We stopped at the hut instead."
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "LMS",
+       "KTU",
+       "AOP",
+       "DE",
+       "GQR",
+       "CHV",
+       "IW",
+       "JX",
+       "BN",
+       "FY"
+      ],
+      "cols": [
+       "ACW",
+       "LST",
+       "EK",
+       "DGI",
+       "JO",
+       "BHR",
+       "NU",
+       "MP",
+       "FVX",
+       "QY"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "K",
+      "U",
+      "D",
+      "H",
+      "J",
+      "Q",
+      "D",
+      "G",
+      "L",
+      "Y",
+      "B",
+      "H",
+      "K",
+      "B",
+      "G",
+      "B",
+      "Q",
+      "G",
+      "Z",
+      "X",
+      "V",
+      "I",
+      "F",
+      "U",
+      "L",
+      "D",
+      "Z",
+      "F",
+      "M",
+      "Y",
+      "E",
+      "O",
+      "X",
+      "Z",
+      "P",
+      "M",
+      "L",
+      "J",
+      "H",
+      "K",
+      "K",
+      "P",
+      "M",
+      "M",
+      "T",
+      "Z",
+      "D",
+      "Y",
+      "C",
+      "A",
+      "G",
+      "V",
+      "S",
+      "S",
+      "H",
+      "D",
+      "W",
+      "A",
+      "T",
+      "R",
+      "Q",
+      "T",
+      "D",
+      "C",
+      "R",
+      "I",
+      "E",
+      "A",
+      "E",
+      "N",
+      "T",
+      "J",
+      "M",
+      "F",
+      "U",
+      "J",
+      "Q",
+      "Z",
+      "M",
+      "S",
+      "J",
+      "V",
+      "A",
+      "A",
+      "Y",
+      "I",
+      "G",
+      "Z",
+      "Y",
+      "X",
+      "J",
+      "R",
+      "M",
+      "N",
+      "E",
+      "U",
+      "S",
+      "N",
+      "H",
+      "X",
+      "U",
+      "W",
+      "H",
+      "M",
+      "V",
+      "S",
+      "A",
+      "B",
+      "M",
+      "A",
+      "I",
+      "F",
+      "F",
+      "Z",
+      "?",
+      "H",
+      "K",
+      "V",
+      "P",
+      "T",
+      "L",
+      "H",
+      "T",
+      "V",
+      "R",
+      "F",
+      "J",
+      "C",
+      "B",
+      "V",
+      "I",
+      "O",
+      "X",
+      "G",
+      "R",
+      "V",
+      "J",
+      "A",
+      "O",
+      "J",
+      "Z",
+      "Q",
+      "X",
+      "K",
+      "V",
+      "F",
+      "V",
+      "U",
+      "I",
+      "V",
+      "N",
+      "M",
+      "W",
+      "S",
+      "V",
+      "H",
+      "Z",
+      "U",
+      "E",
+      "L"
+     ],
+     "real": [
+      87,
+      18,
+      140,
+      113,
+      77
+     ],
+     "strayCipher": [
+      "39",
+      "27",
+      "97",
+      "12"
+     ],
+     "stray": [
+      45,
+      33,
+      26,
+      156
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
     },
-    "base": {
-     "severity": "delay",
-     "text": "Returning to base. We leave the hut behind.",
-     "crew": []
+    {
+     "id": "S2-M2",
+     "time": "09:45",
+     "slots": [
+      "who",
+      "action",
+      "place",
+      "result",
+      "state"
+     ],
+     "cipher": [
+      "40",
+      "26",
+      "14",
+      "43",
+      "13"
+     ],
+     "clauses": [
+      {
+       "pattern": "The {0} {1}."
+      },
+      {
+       "pattern": "Place: the {2}."
+      },
+      {
+       "pattern": "Next: {3}."
+      },
+      {
+       "pattern": "Status: {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "BC",
+       "HV",
+       "MNU",
+       "QW",
+       "FIP",
+       "XY",
+       "GOT",
+       "AK",
+       "DJL",
+       "ERS"
+      ],
+      "cols": [
+       "HM",
+       "JK",
+       "IY",
+       "BEP",
+       "AC",
+       "QW",
+       "DFG",
+       "LSX",
+       "NOV",
+       "RTU"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "O",
+      "W",
+      "X",
+      "Y",
+      "Q",
+      "M",
+      "C",
+      "P",
+      "L",
+      "J",
+      "N",
+      "L",
+      "Z",
+      "P",
+      "H",
+      "C",
+      "S",
+      "U",
+      "N",
+      "H",
+      "P",
+      "A",
+      "E",
+      "B",
+      "X",
+      "A",
+      "M",
+      "Z",
+      "P",
+      "B",
+      "V",
+      "R",
+      "J",
+      "H",
+      "T",
+      "G",
+      "R",
+      "D",
+      "D",
+      "G",
+      "Q",
+      "F",
+      "R",
+      "A",
+      "G",
+      "Z",
+      "L",
+      "N",
+      "L",
+      "E",
+      "B",
+      "N",
+      "F",
+      "E",
+      "O",
+      "Z",
+      "?",
+      "A",
+      "A",
+      "J",
+      "K",
+      "A",
+      "A",
+      "F",
+      "V",
+      "G",
+      "N",
+      "K",
+      "T",
+      "W",
+      "V",
+      "Z",
+      "H",
+      "G",
+      "B",
+      "Q",
+      "P",
+      "Q",
+      "C",
+      "J",
+      "A",
+      "H",
+      "Z",
+      "P",
+      "D",
+      "I",
+      "U",
+      "O",
+      "M",
+      "F",
+      "I",
+      "G",
+      "O",
+      "A",
+      "B",
+      "L",
+      "Q",
+      "E",
+      "O",
+      "X",
+      "B",
+      "K",
+      "K",
+      "E",
+      "U",
+      "N",
+      "Z",
+      "H",
+      "P",
+      "I",
+      "N",
+      "E",
+      "W",
+      "F",
+      "W",
+      "W",
+      "S",
+      "X",
+      "Y",
+      "K",
+      "J",
+      "Z",
+      "N",
+      "F",
+      "V",
+      "E",
+      "O",
+      "X",
+      "C",
+      "I",
+      "I",
+      "F",
+      "A",
+      "P",
+      "I",
+      "S",
+      "E",
+      "N",
+      "A",
+      "X",
+      "V",
+      "W",
+      "M",
+      "E",
+      "S",
+      "O",
+      "S",
+      "K",
+      "C",
+      "J",
+      "C",
+      "V",
+      "P",
+      "B",
+      "Z",
+      "W",
+      "Q",
+      "B",
+      "U",
+      "S"
+     ],
+     "real": [
+      12,
+      121,
+      55,
+      27,
+      106
+     ],
+     "strayCipher": [
+      "16",
+      "46",
+      "88",
+      "35"
+     ],
+     "stray": [
+      71,
+      82,
+      45,
+      154
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S2-M3",
+     "time": "12:10",
+     "slots": [
+      "result",
+      "state",
+      "who",
+      "action",
+      "place"
+     ],
+     "cipher": [
+      "36",
+      "77",
+      "62",
+      "60",
+      "09"
+     ],
+     "clauses": [
+      {
+       "pattern": "Next: {0}."
+      },
+      {
+       "pattern": "Status: {1}."
+      },
+      {
+       "pattern": "The {2} {3} at the {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "HP",
+       "IO",
+       "JKQ",
+       "NX",
+       "ET",
+       "ACS",
+       "LMR",
+       "BY",
+       "DVW",
+       "FGU"
+      ],
+      "cols": [
+       "CI",
+       "LMN",
+       "BGT",
+       "RVY",
+       "ESX",
+       "AQ",
+       "OW",
+       "FJ",
+       "DP",
+       "HKU"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "E",
+      "O",
+      "U",
+      "M",
+      "U",
+      "T",
+      "T",
+      "S",
+      "X",
+      "P",
+      "P",
+      "Z",
+      "W",
+      "S",
+      "J",
+      "S",
+      "C",
+      "C",
+      "C",
+      "B",
+      "M",
+      "Z",
+      "H",
+      "Y",
+      "B",
+      "M",
+      "O",
+      "Z",
+      "R",
+      "T",
+      "J",
+      "P",
+      "Z",
+      "E",
+      "Q",
+      "R",
+      "H",
+      "L",
+      "W",
+      "O",
+      "H",
+      "P",
+      "B",
+      "T",
+      "P",
+      "C",
+      "O",
+      "K",
+      "Z",
+      "N",
+      "W",
+      "S",
+      "I",
+      "M",
+      "F",
+      "I",
+      "Y",
+      "Y",
+      "U",
+      "Q",
+      "P",
+      "Y",
+      "S",
+      "C",
+      "N",
+      "X",
+      "U",
+      "M",
+      "P",
+      "O",
+      "V",
+      "C",
+      "W",
+      "N",
+      "B",
+      "A",
+      "E",
+      "D",
+      "A",
+      "U",
+      "V",
+      "I",
+      "M",
+      "M",
+      "D",
+      "B",
+      "G",
+      "U",
+      "A",
+      "I",
+      "Y",
+      "G",
+      "J",
+      "Y",
+      "B",
+      "S",
+      "R",
+      "K",
+      "X",
+      "K",
+      "W",
+      "T",
+      "I",
+      "Q",
+      "F",
+      "E",
+      "P",
+      "B",
+      "R",
+      "Q",
+      "B",
+      "P",
+      "N",
+      "G",
+      "Z",
+      "?",
+      "H",
+      "W",
+      "L",
+      "Q",
+      "X",
+      "E",
+      "H",
+      "T",
+      "B",
+      "H",
+      "S",
+      "X",
+      "Z",
+      "Y",
+      "J",
+      "Q",
+      "Z",
+      "W",
+      "B",
+      "I",
+      "I",
+      "Z",
+      "R",
+      "C",
+      "I",
+      "U",
+      "D",
+      "P",
+      "R",
+      "W",
+      "J",
+      "P",
+      "G",
+      "C",
+      "T",
+      "R",
+      "K",
+      "N",
+      "A",
+      "G",
+      "M",
+      "K",
+      "Y",
+      "S"
+     ],
+     "real": [
+      48,
+      128,
+      27,
+      137,
+      114
+     ],
+     "strayCipher": [
+      "03",
+      "82",
+      "45",
+      "84"
+     ],
+     "stray": [
+      21,
+      132,
+      32,
+      11
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S2-M4",
+     "time": "16:00",
+     "slots": [
+      "who",
+      "place",
+      "action",
+      "state",
+      "result"
+     ],
+     "cipher": [
+      "02",
+      "59",
+      "05",
+      "15",
+      "83"
+     ],
+     "clauses": [
+      {
+       "pattern": "The {0} at the {1} {2}."
+      },
+      {
+       "pattern": "Status: {3}."
+      },
+      {
+       "pattern": "Next: {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "AIJ",
+       "GLV",
+       "KOS",
+       "BP",
+       "MR",
+       "EFW",
+       "CN",
+       "HX",
+       "DU",
+       "QTY"
+      ],
+      "cols": [
+       "BW",
+       "AMY",
+       "OPT",
+       "EJN",
+       "FG",
+       "LU",
+       "KRX",
+       "CV",
+       "HIS",
+       "DQ"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "P",
+      "W",
+      "I",
+      "H",
+      "Z",
+      "A",
+      "L",
+      "H",
+      "A",
+      "Y",
+      "Z",
+      "V",
+      "L",
+      "I",
+      "E",
+      "A",
+      "O",
+      "U",
+      "U",
+      "U",
+      "R",
+      "D",
+      "D",
+      "L",
+      "X",
+      "M",
+      "N",
+      "Z",
+      "?",
+      "T",
+      "R",
+      "N",
+      "U",
+      "S",
+      "S",
+      "R",
+      "Y",
+      "D",
+      "K",
+      "G",
+      "F",
+      "Q",
+      "S",
+      "W",
+      "C",
+      "J",
+      "T",
+      "X",
+      "U",
+      "V",
+      "K",
+      "O",
+      "J",
+      "O",
+      "U",
+      "N",
+      "G",
+      "H",
+      "U",
+      "Z",
+      "J",
+      "N",
+      "Y",
+      "C",
+      "V",
+      "W",
+      "H",
+      "A",
+      "P",
+      "W",
+      "R",
+      "U",
+      "F",
+      "D",
+      "S",
+      "H",
+      "F",
+      "Z",
+      "P",
+      "Q",
+      "D",
+      "X",
+      "X",
+      "P",
+      "E",
+      "L",
+      "L",
+      "M",
+      "E",
+      "U",
+      "C",
+      "T",
+      "Z",
+      "D",
+      "E",
+      "N",
+      "Q",
+      "T",
+      "K",
+      "L",
+      "J",
+      "G",
+      "N",
+      "Z",
+      "S",
+      "U",
+      "N",
+      "Q",
+      "O",
+      "S",
+      "W",
+      "V",
+      "U",
+      "H",
+      "V",
+      "N",
+      "O",
+      "M",
+      "E",
+      "F",
+      "J",
+      "I",
+      "J",
+      "V",
+      "X",
+      "A",
+      "P",
+      "M",
+      "X",
+      "A",
+      "D",
+      "I",
+      "J",
+      "D",
+      "F",
+      "K",
+      "Z",
+      "N",
+      "S",
+      "K",
+      "F",
+      "D",
+      "E",
+      "Y",
+      "B",
+      "I",
+      "L",
+      "L",
+      "F",
+      "G",
+      "Q",
+      "W",
+      "Z",
+      "?",
+      "Q",
+      "W",
+      "W",
+      "O",
+      "H",
+      "J"
+     ],
+     "real": [
+      27,
+      152,
+      4,
+      10,
+      92
+     ],
+     "strayCipher": [
+      "25",
+      "68",
+      "39",
+      "03"
+     ],
+     "stray": [
+      103,
+      136,
+      77,
+      59
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S2-M5",
+     "time": "21:30",
+     "slots": [
+      "who",
+      "action",
+      "place",
+      "result",
+      "state"
+     ],
+     "cipher": [
+      "19",
+      "80",
+      "42",
+      "99",
+      "55"
+     ],
+     "clauses": [
+      {
+       "pattern": "The {0} {1}."
+      },
+      {
+       "pattern": "Place: the {2}."
+      },
+      {
+       "pattern": "Next: {3}."
+      },
+      {
+       "pattern": "Status: {4}."
+      }
+     ],
+     "truth": {
+      "4": "free"
+     },
+     "hint": "An arrested driver cannot try again, and KITE (08) phoned in from the hotel after the checkpoint: the driver is free.",
+     "key": {
+      "rows": [
+       "KQ",
+       "BNS",
+       "GJX",
+       "VW",
+       "EI",
+       "OT",
+       "MRU",
+       "HL",
+       "DPY",
+       "ACF"
+      ],
+      "cols": [
+       "FKQ",
+       "BI",
+       "HO",
+       "RV",
+       "JNT",
+       "CUX",
+       "DL",
+       "EGM",
+       "PWY",
+       "AS"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "B",
+      "T",
+      "R",
+      "R",
+      "Q",
+      "C",
+      "I",
+      "A",
+      "W",
+      "L",
+      "U",
+      "C",
+      "N",
+      "T",
+      "M",
+      "I",
+      "Q",
+      "W",
+      "L",
+      "I",
+      "V",
+      "T",
+      "A",
+      "G",
+      "N",
+      "N",
+      "K",
+      "O",
+      "I",
+      "I",
+      "O",
+      "R",
+      "A",
+      "F",
+      "A",
+      "I",
+      "G",
+      "W",
+      "V",
+      "S",
+      "Z",
+      "?",
+      "O",
+      "E",
+      "Z",
+      "F",
+      "S",
+      "I",
+      "Z",
+      "O",
+      "U",
+      "A",
+      "E",
+      "I",
+      "D",
+      "R",
+      "E",
+      "K",
+      "Y",
+      "Z",
+      "R",
+      "R",
+      "J",
+      "W",
+      "A",
+      "M",
+      "T",
+      "I",
+      "V",
+      "C",
+      "B",
+      "S",
+      "Z",
+      "S",
+      "?",
+      "W",
+      "P",
+      "O",
+      "O",
+      "E",
+      "Z",
+      "M",
+      "Y",
+      "R",
+      "N",
+      "M",
+      "U",
+      "E",
+      "H",
+      "U",
+      "K",
+      "T",
+      "D",
+      "G",
+      "D",
+      "O",
+      "X",
+      "I",
+      "L",
+      "W",
+      "U",
+      "A",
+      "B",
+      "L",
+      "N",
+      "N",
+      "B",
+      "Z",
+      "I",
+      "C",
+      "P",
+      "X",
+      "X",
+      "G",
+      "K",
+      "F",
+      "A",
+      "W",
+      "A",
+      "M",
+      "U",
+      "N",
+      "C",
+      "M",
+      "S",
+      "S",
+      "J",
+      "K",
+      "O",
+      "E",
+      "Z",
+      "Y",
+      "F",
+      "W",
+      "J",
+      "O",
+      "L",
+      "F",
+      "H",
+      "Y",
+      "W",
+      "V",
+      "P",
+      "N",
+      "S",
+      "D",
+      "U",
+      "U",
+      "Z",
+      "V",
+      "G",
+      "T",
+      "L",
+      "D",
+      "C",
+      "F",
+      "V",
+      "K",
+      "P",
+      "C"
+     ],
+     "real": [
+      72,
+      130,
+      40,
+      44,
+      48
+     ],
+     "strayCipher": [
+      "37",
+      "45",
+      "68",
+      "63"
+     ],
+     "stray": [
+      148,
+      107,
+      80,
+      59
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Command left the driver alone. KITE made the run the next night.",
+       "crew": []
+      },
+      "hedged": {
+       "severity": "delay",
+       "text": "Command got both readings and froze the route for a day. KITE waited at the hotel.",
+       "crew": []
+      },
+      "wrong": {
+       "severity": "harm",
+       "text": "Command read the driver as arrested and burned the route. KITE was left without orders or papers.",
+       "crew": [
+        {
+         "id": "08",
+         "status": "cut off",
+         "note": "route burned by mistake"
+        }
+       ]
+      }
+     }
     }
-   },
-   "key": {
-    "rows": [
-     "BG",
-     "AD",
-     "HOQ",
-     "KRU",
-     "ISV",
-     "ET",
-     "CXY",
-     "MN",
-     "FW",
-     "JLP"
+   ],
+   "reply": {
+    "time": "23:59",
+    "slots": [
+     "who",
+     "place",
+     "action",
+     "state",
+     "result"
     ],
-    "cols": [
-     "JL",
-     "EO",
-     "FS",
-     "CX",
-     "HMT",
-     "KRV",
-     "ADY",
-     "GNP",
-     "IQ",
-     "BUW"
-    ]
-   },
-   "cols": 12,
-   "dump": [
-    "A",
-    "K",
-    "G",
-    "P",
-    "O",
-    "Q",
-    "X",
-    "E",
-    "Z",
-    "G",
-    "R",
-    "M",
-    "H",
-    "Z",
-    "D",
-    "G",
-    "Z",
-    "W",
-    "R",
-    "Z",
-    "D",
-    "Q",
-    "P",
-    "O",
-    "Z",
-    "Y",
-    "T",
-    "P",
-    "Q",
-    "Z",
-    "?",
-    "D",
-    "G",
-    "H",
-    "H",
-    "T",
-    "Z",
-    "O",
-    "C",
-    "S",
-    "R",
-    "Z",
-    "T",
-    "Y",
-    "F",
-    "S",
-    "B",
-    "F",
-    "Z",
-    "N",
-    "D",
-    "B",
-    "X",
-    "S",
-    "I",
-    "T",
-    "M",
-    "Z",
-    "V",
-    "F",
-    "K",
-    "G",
-    "T",
-    "H",
-    "V",
-    "U",
-    "K",
-    "U",
-    "F",
-    "X",
-    "R",
-    "V",
-    "N",
-    "J",
-    "E",
-    "G",
-    "S",
-    "C",
-    "W",
-    "L",
-    "T",
-    "A",
-    "L",
-    "U"
+    "cipher": [
+     "81",
+     "73",
+     "53",
+     "77",
+     "22"
+    ],
+    "key": {
+     "rows": [
+      "FKL",
+      "PQ",
+      "JM",
+      "ACI",
+      "DUV",
+      "GRT",
+      "BX",
+      "OW",
+      "EHN",
+      "SY"
+     ],
+     "cols": [
+      "EQV",
+      "OPY",
+      "BCM",
+      "IKN",
+      "HR",
+      "AJ",
+      "DW",
+      "FX",
+      "SU",
+      "GLT"
+     ]
+    }
+   }
+  },
+  {
+   "title": "The warehouse",
+   "briefing": [
+    {
+     "id": "10",
+     "location": "Warehouse",
+     "note": "moved to watch the warehouse; says it has had no guards since Monday"
+    }
    ],
-   "real": [
-    19,
-    29,
-    36,
-    41,
-    48,
-    57
+   "transmissions": [
+    {
+     "id": "S3-M1",
+     "time": "04:55",
+     "slots": [
+      "result",
+      "state",
+      "who",
+      "action",
+      "place"
+     ],
+     "cipher": [
+      "36",
+      "44",
+      "52",
+      "17",
+      "75"
+     ],
+     "clauses": [
+      {
+       "pattern": "Next: {0}."
+      },
+      {
+       "pattern": "Status: {1}."
+      },
+      {
+       "pattern": "The {2} {3} at the {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "JL",
+       "CKQ",
+       "HT",
+       "MVW",
+       "AR",
+       "BN",
+       "FU",
+       "GXY",
+       "DOP",
+       "EIS"
+      ],
+      "cols": [
+       "EFN",
+       "BLR",
+       "AKM",
+       "OQ",
+       "PS",
+       "DJ",
+       "HU",
+       "GT",
+       "CIY",
+       "VWX"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "C",
+      "Y",
+      "P",
+      "B",
+      "A",
+      "D",
+      "S",
+      "G",
+      "Q",
+      "P",
+      "Z",
+      "?",
+      "J",
+      "I",
+      "C",
+      "K",
+      "Y",
+      "D",
+      "N",
+      "K",
+      "Z",
+      "U",
+      "O",
+      "B",
+      "N",
+      "J",
+      "R",
+      "K",
+      "U",
+      "I",
+      "I",
+      "D",
+      "U",
+      "P",
+      "C",
+      "S",
+      "F",
+      "G",
+      "Y",
+      "D",
+      "I",
+      "M",
+      "W",
+      "X",
+      "E",
+      "D",
+      "Y",
+      "I",
+      "E",
+      "P",
+      "B",
+      "Q",
+      "D",
+      "W",
+      "H",
+      "C",
+      "T",
+      "N",
+      "T",
+      "A",
+      "M",
+      "D",
+      "I",
+      "X",
+      "M",
+      "S",
+      "O",
+      "M",
+      "V",
+      "S",
+      "M",
+      "T",
+      "U",
+      "L",
+      "S",
+      "Z",
+      "V",
+      "L",
+      "U",
+      "O",
+      "Z",
+      "Q",
+      "G",
+      "G",
+      "O",
+      "G",
+      "R",
+      "S",
+      "T",
+      "G",
+      "E",
+      "J",
+      "G",
+      "U",
+      "U",
+      "F",
+      "B",
+      "Z",
+      "N",
+      "K",
+      "X",
+      "N",
+      "D",
+      "A",
+      "E",
+      "X",
+      "S",
+      "Q",
+      "J",
+      "F",
+      "Q",
+      "B",
+      "I",
+      "L",
+      "W",
+      "X",
+      "R",
+      "U",
+      "D",
+      "N",
+      "Q",
+      "Q",
+      "J",
+      "M",
+      "V",
+      "Z",
+      "S",
+      "R",
+      "W",
+      "F",
+      "V",
+      "Z",
+      "T",
+      "W",
+      "L",
+      "I",
+      "J",
+      "T",
+      "H",
+      "A",
+      "H",
+      "Z",
+      "A",
+      "H",
+      "L",
+      "I",
+      "K",
+      "L",
+      "Z",
+      "V",
+      "U",
+      "M",
+      "Q",
+      "R",
+      "I",
+      "J",
+      "U",
+      "Z",
+      "R",
+      "P"
+     ],
+     "real": [
+      148,
+      157,
+      97,
+      80,
+      10
+     ],
+     "strayCipher": [
+      "31",
+      "63",
+      "91",
+      "46",
+      "29"
+     ],
+     "stray": [
+      75,
+      20,
+      125,
+      141,
+      131
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S3-M2",
+     "time": "08:30",
+     "slots": [
+      "place",
+      "who",
+      "action",
+      "result",
+      "state"
+     ],
+     "cipher": [
+      "32",
+      "30",
+      "64",
+      "51",
+      "13"
+     ],
+     "clauses": [
+      {
+       "pattern": "At the {0} the {1} {2}."
+      },
+      {
+       "pattern": "Next: {3}."
+      },
+      {
+       "pattern": "Status: {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "GP",
+       "JN",
+       "IMT",
+       "CK",
+       "AH",
+       "BO",
+       "VXY",
+       "RSW",
+       "ELU",
+       "DFQ"
+      ],
+      "cols": [
+       "GRU",
+       "JQY",
+       "CP",
+       "ENS",
+       "IK",
+       "BL",
+       "AX",
+       "DOT",
+       "FHW",
+       "MV"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "H",
+      "R",
+      "F",
+      "Q",
+      "I",
+      "L",
+      "S",
+      "D",
+      "Z",
+      "N",
+      "E",
+      "Q",
+      "R",
+      "Z",
+      "?",
+      "P",
+      "F",
+      "A",
+      "S",
+      "V",
+      "V",
+      "Z",
+      "X",
+      "K",
+      "T",
+      "C",
+      "W",
+      "V",
+      "R",
+      "U",
+      "M",
+      "C",
+      "G",
+      "G",
+      "Z",
+      "J",
+      "X",
+      "N",
+      "K",
+      "J",
+      "D",
+      "X",
+      "L",
+      "T",
+      "T",
+      "N",
+      "G",
+      "B",
+      "P",
+      "U",
+      "N",
+      "B",
+      "I",
+      "N",
+      "K",
+      "E",
+      "X",
+      "P",
+      "T",
+      "H",
+      "J",
+      "R",
+      "B",
+      "R",
+      "G",
+      "L",
+      "I",
+      "G",
+      "H",
+      "C",
+      "V",
+      "A",
+      "Q",
+      "D",
+      "E",
+      "J",
+      "X",
+      "V",
+      "P",
+      "W",
+      "P",
+      "Z",
+      "B",
+      "Y",
+      "X",
+      "F",
+      "P",
+      "P",
+      "T",
+      "P",
+      "G",
+      "Y",
+      "G",
+      "X",
+      "V",
+      "K",
+      "I",
+      "W",
+      "E",
+      "W",
+      "D",
+      "P",
+      "Y",
+      "R",
+      "I",
+      "F",
+      "C",
+      "L",
+      "D",
+      "A",
+      "P",
+      "K",
+      "Z",
+      "T",
+      "U",
+      "X",
+      "A",
+      "V",
+      "R",
+      "L",
+      "K",
+      "A",
+      "B",
+      "Z",
+      "D",
+      "O",
+      "X",
+      "E",
+      "I",
+      "L",
+      "C",
+      "B",
+      "R",
+      "Z",
+      "G",
+      "I",
+      "Y",
+      "B",
+      "S",
+      "W",
+      "Z",
+      "V",
+      "H",
+      "B",
+      "G",
+      "Z",
+      "?",
+      "G",
+      "M",
+      "C",
+      "F",
+      "S",
+      "W",
+      "S",
+      "R",
+      "E",
+      "J",
+      "M",
+      "G",
+      "Y"
+     ],
+     "real": [
+      13,
+      145,
+      21,
+      81,
+      8
+     ],
+     "strayCipher": [
+      "68",
+      "16",
+      "04",
+      "97",
+      "20"
+     ],
+     "stray": [
+      140,
+      34,
+      133,
+      123,
+      112
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S3-M3",
+     "time": "13:00",
+     "slots": [
+      "state",
+      "who",
+      "action",
+      "place",
+      "result"
+     ],
+     "cipher": [
+      "77",
+      "81",
+      "53",
+      "69",
+      "22"
+     ],
+     "clauses": [
+      {
+       "pattern": "Status: {0}."
+      },
+      {
+       "pattern": "The {1} {2} at the {3}."
+      },
+      {
+       "pattern": "Next: {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "QY",
+       "BPW",
+       "MRX",
+       "HO",
+       "JT",
+       "FKN",
+       "GV",
+       "DU",
+       "ACE",
+       "ILS"
+      ],
+      "cols": [
+       "ADV",
+       "GMQ",
+       "FY",
+       "KP",
+       "CIN",
+       "JS",
+       "LOW",
+       "RTX",
+       "EU",
+       "BH"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "P",
+      "Q",
+      "F",
+      "N",
+      "S",
+      "E",
+      "E",
+      "S",
+      "Z",
+      "R",
+      "Y",
+      "X",
+      "Y",
+      "O",
+      "N",
+      "Q",
+      "Y",
+      "Q",
+      "J",
+      "P",
+      "F",
+      "Z",
+      "U",
+      "H",
+      "V",
+      "H",
+      "L",
+      "K",
+      "R",
+      "D",
+      "J",
+      "L",
+      "H",
+      "F",
+      "W",
+      "N",
+      "C",
+      "B",
+      "N",
+      "F",
+      "Z",
+      "P",
+      "D",
+      "E",
+      "B",
+      "V",
+      "N",
+      "V",
+      "J",
+      "C",
+      "U",
+      "T",
+      "J",
+      "X",
+      "L",
+      "N",
+      "Z",
+      "?",
+      "G",
+      "X",
+      "V",
+      "Z",
+      "F",
+      "K",
+      "M",
+      "H",
+      "X",
+      "J",
+      "J",
+      "W",
+      "D",
+      "I",
+      "U",
+      "S",
+      "A",
+      "Q",
+      "B",
+      "H",
+      "Q",
+      "J",
+      "Z",
+      "U",
+      "R",
+      "S",
+      "X",
+      "Z",
+      "H",
+      "M",
+      "R",
+      "C",
+      "H",
+      "Q",
+      "N",
+      "X",
+      "G",
+      "Y",
+      "C",
+      "S",
+      "O",
+      "V",
+      "R",
+      "U",
+      "L",
+      "O",
+      "H",
+      "T",
+      "A",
+      "C",
+      "S",
+      "Z",
+      "E",
+      "E",
+      "J",
+      "E",
+      "F",
+      "H",
+      "X",
+      "Z",
+      "R",
+      "V",
+      "A",
+      "V",
+      "I",
+      "R",
+      "A",
+      "F",
+      "G",
+      "Q",
+      "D",
+      "S",
+      "O",
+      "F",
+      "Y",
+      "K",
+      "X",
+      "Y",
+      "Z",
+      "?",
+      "B",
+      "T",
+      "X",
+      "H",
+      "D",
+      "S",
+      "J",
+      "Q",
+      "M",
+      "N",
+      "E",
+      "V",
+      "N",
+      "T",
+      "X",
+      "X",
+      "I",
+      "P",
+      "V",
+      "E",
+      "T",
+      "J"
+     ],
+     "real": [
+      80,
+      56,
+      61,
+      136,
+      8
+     ],
+     "strayCipher": [
+      "79",
+      "88",
+      "31",
+      "20",
+      "10"
+     ],
+     "stray": [
+      21,
+      109,
+      85,
+      117,
+      40
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S3-M4",
+     "time": "17:20",
+     "slots": [
+      "who",
+      "action",
+      "place",
+      "result",
+      "state"
+     ],
+     "cipher": [
+      "18",
+      "67",
+      "42",
+      "49",
+      "50"
+     ],
+     "clauses": [
+      {
+       "pattern": "The {0} {1}."
+      },
+      {
+       "pattern": "Place: the {2}."
+      },
+      {
+       "pattern": "Next: {3}."
+      },
+      {
+       "pattern": "Status: {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "FLS",
+       "CKR",
+       "NTX",
+       "MV",
+       "OQ",
+       "AH",
+       "GW",
+       "IPU",
+       "EY",
+       "BDJ"
+      ],
+      "cols": [
+       "NSX",
+       "FJL",
+       "CTW",
+       "GHY",
+       "DR",
+       "IM",
+       "BP",
+       "EU",
+       "KOV",
+       "AQ"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "Y",
+      "G",
+      "J",
+      "Z",
+      "U",
+      "W",
+      "N",
+      "C",
+      "M",
+      "Z",
+      "P",
+      "Q",
+      "J",
+      "O",
+      "H",
+      "J",
+      "Z",
+      "C",
+      "P",
+      "C",
+      "I",
+      "E",
+      "G",
+      "Z",
+      "H",
+      "N",
+      "T",
+      "S",
+      "H",
+      "E",
+      "G",
+      "G",
+      "V",
+      "Z",
+      "R",
+      "J",
+      "X",
+      "B",
+      "J",
+      "T",
+      "N",
+      "A",
+      "F",
+      "G",
+      "V",
+      "C",
+      "P",
+      "R",
+      "D",
+      "D",
+      "M",
+      "L",
+      "X",
+      "D",
+      "P",
+      "M",
+      "B",
+      "J",
+      "M",
+      "E",
+      "A",
+      "H",
+      "C",
+      "C",
+      "E",
+      "F",
+      "U",
+      "W",
+      "Q",
+      "B",
+      "U",
+      "G",
+      "K",
+      "X",
+      "Y",
+      "N",
+      "K",
+      "S",
+      "B",
+      "M",
+      "G",
+      "Z",
+      "?",
+      "T",
+      "S",
+      "D",
+      "X",
+      "D",
+      "P",
+      "Q",
+      "Q",
+      "G",
+      "M",
+      "D",
+      "W",
+      "C",
+      "W",
+      "M",
+      "Z",
+      "W",
+      "U",
+      "J",
+      "M",
+      "H",
+      "X",
+      "R",
+      "G",
+      "U",
+      "X",
+      "P",
+      "D",
+      "T",
+      "J",
+      "X",
+      "U",
+      "C",
+      "L",
+      "T",
+      "O",
+      "Z",
+      "Q",
+      "M",
+      "V",
+      "B",
+      "V",
+      "I",
+      "L",
+      "S",
+      "G",
+      "N",
+      "X",
+      "S",
+      "E",
+      "I",
+      "R",
+      "V",
+      "I",
+      "O",
+      "B",
+      "Q",
+      "A",
+      "Y",
+      "S",
+      "V",
+      "A",
+      "Z",
+      "K",
+      "?",
+      "Y",
+      "Z",
+      "Q",
+      "Q",
+      "D",
+      "C",
+      "H",
+      "X",
+      "G",
+      "W",
+      "N",
+      "L"
+     ],
+     "real": [
+      145,
+      98,
+      81,
+      149,
+      23
+     ],
+     "strayCipher": [
+      "11",
+      "72",
+      "16",
+      "45",
+      "79"
+     ],
+     "stray": [
+      33,
+      3,
+      16,
+      119,
+      9
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S3-M5",
+     "time": "22:15",
+     "slots": [
+      "result",
+      "state",
+      "who",
+      "action",
+      "place"
+     ],
+     "cipher": [
+      "92",
+      "90",
+      "40",
+      "41",
+      "89"
+     ],
+     "clauses": [
+      {
+       "pattern": "Next: {0}."
+      },
+      {
+       "pattern": "Status: {1}."
+      },
+      {
+       "pattern": "The {2} {3} at the {4}."
+      }
+     ],
+     "truth": {
+      "1": "empty"
+     },
+     "hint": "OWL (10) says the warehouse has had no guards since Monday, and nobody came: the warehouse is empty.",
+     "key": {
+      "rows": [
+       "MS",
+       "GT",
+       "CX",
+       "DU",
+       "AIR",
+       "HV",
+       "BKQ",
+       "FOY",
+       "JPW",
+       "ELN"
+      ],
+      "cols": [
+       "HK",
+       "CPW",
+       "BX",
+       "IR",
+       "DLS",
+       "GY",
+       "FTU",
+       "ANO",
+       "JM",
+       "EQV"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "A",
+      "U",
+      "C",
+      "C",
+      "O",
+      "E",
+      "N",
+      "A",
+      "Z",
+      "?",
+      "H",
+      "J",
+      "P",
+      "P",
+      "Y",
+      "P",
+      "Z",
+      "E",
+      "X",
+      "P",
+      "R",
+      "C",
+      "M",
+      "K",
+      "T",
+      "P",
+      "P",
+      "F",
+      "S",
+      "H",
+      "R",
+      "M",
+      "Z",
+      "D",
+      "Q",
+      "D",
+      "M",
+      "H",
+      "Z",
+      "A",
+      "W",
+      "Y",
+      "U",
+      "H",
+      "W",
+      "H",
+      "C",
+      "A",
+      "K",
+      "O",
+      "N",
+      "T",
+      "Z",
+      "O",
+      "Q",
+      "A",
+      "J",
+      "P",
+      "M",
+      "W",
+      "N",
+      "R",
+      "E",
+      "B",
+      "V",
+      "I",
+      "G",
+      "T",
+      "A",
+      "G",
+      "Q",
+      "E",
+      "I",
+      "I",
+      "B",
+      "E",
+      "D",
+      "Z",
+      "A",
+      "U",
+      "X",
+      "G",
+      "D",
+      "K",
+      "H",
+      "O",
+      "D",
+      "K",
+      "L",
+      "F",
+      "Z",
+      "V",
+      "J",
+      "H",
+      "C",
+      "Y",
+      "U",
+      "F",
+      "I",
+      "J",
+      "B",
+      "C",
+      "L",
+      "A",
+      "W",
+      "C",
+      "S",
+      "F",
+      "Y",
+      "E",
+      "F",
+      "P",
+      "M",
+      "I",
+      "G",
+      "Q",
+      "Z",
+      "?",
+      "V",
+      "T",
+      "K",
+      "I",
+      "N",
+      "H",
+      "K",
+      "N",
+      "B",
+      "G",
+      "Q",
+      "S",
+      "R",
+      "C",
+      "R",
+      "U",
+      "U",
+      "B",
+      "R",
+      "P",
+      "P",
+      "S",
+      "D",
+      "V",
+      "R",
+      "P",
+      "Q",
+      "Q",
+      "W",
+      "G",
+      "V",
+      "I",
+      "Z",
+      "T",
+      "X",
+      "F",
+      "D",
+      "G",
+      "Z",
+      "L",
+      "H",
+      "T"
+     ],
+     "real": [
+      16,
+      156,
+      8,
+      38,
+      116
+     ],
+     "strayCipher": [
+      "79",
+      "12",
+      "46",
+      "39",
+      "58"
+     ],
+     "stray": [
+      52,
+      150,
+      77,
+      32,
+      90
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Command wrote the warehouse off. Nobody wasted another night there.",
+       "crew": []
+      },
+      "hedged": {
+       "severity": "delay",
+       "text": "Command got both readings and sent a watcher to look first. A day lost.",
+       "crew": []
+      },
+      "wrong": {
+       "severity": "harm",
+       "text": "Command read the warehouse as guarded and sent a team to break in. They found bare walls and were seen leaving.",
+       "crew": [
+        {
+         "id": "10",
+         "status": "exposed",
+         "note": "seen with the team at the warehouse"
+        }
+       ]
+      }
+     }
+    }
    ],
-   "damaged": {
-    "30": "D"
+   "reply": {
+    "time": "23:59",
+    "slots": [
+     "who",
+     "place",
+     "action",
+     "state",
+     "result"
+    ],
+    "cipher": [
+     "76",
+     "56",
+     "23",
+     "44",
+     "99"
+    ],
+    "key": {
+     "rows": [
+      "CD",
+      "QV",
+      "JS",
+      "APY",
+      "EGR",
+      "HM",
+      "ITX",
+      "BFO",
+      "KLW",
+      "NU"
+     ],
+     "cols": [
+      "FLW",
+      "BDX",
+      "PU",
+      "AS",
+      "KY",
+      "EMV",
+      "IR",
+      "GHQ",
+      "CO",
+      "JNT"
+     ]
+    }
+   }
+  },
+  {
+   "title": "The embassy",
+   "briefing": [
+    {
+     "id": "02",
+     "note": "cover blown last week; the embassy rooms were searched"
+    },
+    {
+     "id": "05",
+     "location": "Airfield",
+     "note": "moved to watch the airfield"
+    }
+   ],
+   "transmissions": [
+    {
+     "id": "S4-M1",
+     "time": "06:10",
+     "slots": [
+      "who",
+      "action",
+      "place",
+      "result",
+      "state"
+     ],
+     "cipher": [
+      "70",
+      "61",
+      "59",
+      "51",
+      "54"
+     ],
+     "clauses": [
+      {
+       "pattern": "The {0} {1}."
+      },
+      {
+       "pattern": "Place: the {2}."
+      },
+      {
+       "pattern": "Next: {3}."
+      },
+      {
+       "pattern": "Status: {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "JKP",
+       "BEY",
+       "GHO",
+       "LQV",
+       "AF",
+       "RW",
+       "IS",
+       "CX",
+       "MNU",
+       "DT"
+      ],
+      "cols": [
+       "EQV",
+       "BW",
+       "JNO",
+       "SU",
+       "KX",
+       "IRY",
+       "LMP",
+       "CFH",
+       "AG",
+       "DT"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "J",
+      "A",
+      "T",
+      "B",
+      "C",
+      "Q",
+      "B",
+      "W",
+      "N",
+      "H",
+      "Z",
+      "W",
+      "X",
+      "D",
+      "N",
+      "J",
+      "B",
+      "I",
+      "M",
+      "Q",
+      "P",
+      "Q",
+      "X",
+      "Z",
+      "P",
+      "M",
+      "W",
+      "I",
+      "S",
+      "V",
+      "D",
+      "C",
+      "U",
+      "R",
+      "K",
+      "B",
+      "K",
+      "E",
+      "V",
+      "E",
+      "R",
+      "C",
+      "N",
+      "N",
+      "L",
+      "M",
+      "Q",
+      "Q",
+      "T",
+      "U",
+      "M",
+      "W",
+      "V",
+      "I",
+      "B",
+      "C",
+      "W",
+      "B",
+      "C",
+      "N",
+      "G",
+      "P",
+      "Q",
+      "Y",
+      "Z",
+      "S",
+      "B",
+      "D",
+      "S",
+      "X",
+      "Z",
+      "Q",
+      "W",
+      "L",
+      "Z",
+      "?",
+      "T",
+      "Y",
+      "Y",
+      "D",
+      "C",
+      "D",
+      "T",
+      "K",
+      "N",
+      "Y",
+      "Z",
+      "K",
+      "V",
+      "R",
+      "V",
+      "I",
+      "F",
+      "P",
+      "V",
+      "Q",
+      "B",
+      "C",
+      "C",
+      "B",
+      "T",
+      "J",
+      "F",
+      "L",
+      "P",
+      "Y",
+      "Z",
+      "W",
+      "W",
+      "D",
+      "C",
+      "L",
+      "V",
+      "I",
+      "O",
+      "W",
+      "Q",
+      "R",
+      "C",
+      "Y",
+      "W",
+      "U",
+      "C",
+      "Z",
+      "L",
+      "Y",
+      "A",
+      "U",
+      "F",
+      "F",
+      "X",
+      "I",
+      "B",
+      "Z",
+      "X",
+      "?",
+      "R",
+      "G",
+      "O",
+      "W",
+      "Y",
+      "Q",
+      "H",
+      "F",
+      "E",
+      "H",
+      "K",
+      "T",
+      "F",
+      "A",
+      "X",
+      "C",
+      "F",
+      "K",
+      "Y",
+      "D",
+      "Z",
+      "N",
+      "O",
+      "U"
+     ],
+     "real": [
+      133,
+      64,
+      74,
+      106,
+      10
+     ],
+     "strayCipher": [
+      "00",
+      "35",
+      "06",
+      "82",
+      "31"
+     ],
+     "stray": [
+      86,
+      123,
+      23,
+      156,
+      70
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S4-M2",
+     "time": "10:40",
+     "slots": [
+      "result",
+      "state",
+      "who",
+      "action",
+      "place"
+     ],
+     "cipher": [
+      "99",
+      "44",
+      "62",
+      "41",
+      "09"
+     ],
+     "clauses": [
+      {
+       "pattern": "Next: {0}."
+      },
+      {
+       "pattern": "Status: {1}."
+      },
+      {
+       "pattern": "The {2} {3} at the {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "BFG",
+       "CQR",
+       "DV",
+       "JK",
+       "HIW",
+       "LP",
+       "ENS",
+       "MX",
+       "TY",
+       "AOU"
+      ],
+      "cols": [
+       "HR",
+       "IU",
+       "BV",
+       "DM",
+       "EFY",
+       "AT",
+       "JOQ",
+       "LNP",
+       "GKX",
+       "CSW"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "Q",
+      "M",
+      "C",
+      "N",
+      "G",
+      "G",
+      "B",
+      "U",
+      "Z",
+      "?",
+      "V",
+      "R",
+      "K",
+      "R",
+      "F",
+      "Y",
+      "O",
+      "K",
+      "N",
+      "H",
+      "U",
+      "F",
+      "Y",
+      "Q",
+      "Z",
+      "J",
+      "A",
+      "T",
+      "Z",
+      "W",
+      "U",
+      "A",
+      "T",
+      "Y",
+      "Q",
+      "Y",
+      "A",
+      "N",
+      "Y",
+      "L",
+      "Y",
+      "A",
+      "H",
+      "E",
+      "Z",
+      "?",
+      "C",
+      "S",
+      "C",
+      "O",
+      "V",
+      "K",
+      "U",
+      "D",
+      "U",
+      "P",
+      "B",
+      "V",
+      "Z",
+      "B",
+      "D",
+      "X",
+      "Y",
+      "P",
+      "L",
+      "C",
+      "F",
+      "A",
+      "I",
+      "R",
+      "D",
+      "K",
+      "R",
+      "F",
+      "U",
+      "V",
+      "A",
+      "E",
+      "S",
+      "O",
+      "O",
+      "E",
+      "U",
+      "R",
+      "T",
+      "S",
+      "Z",
+      "J",
+      "W",
+      "A",
+      "R",
+      "Z",
+      "M",
+      "B",
+      "L",
+      "X",
+      "R",
+      "W",
+      "I",
+      "A",
+      "O",
+      "J",
+      "T",
+      "O",
+      "G",
+      "Q",
+      "A",
+      "Y",
+      "Q",
+      "V",
+      "X",
+      "S",
+      "S",
+      "K",
+      "W",
+      "D",
+      "B",
+      "Z",
+      "O",
+      "C",
+      "O",
+      "H",
+      "K",
+      "F",
+      "V",
+      "Y",
+      "L",
+      "L",
+      "A",
+      "S",
+      "E",
+      "Q",
+      "C",
+      "I",
+      "Q",
+      "F",
+      "Z",
+      "H",
+      "Y",
+      "B",
+      "F",
+      "H",
+      "A",
+      "X",
+      "C",
+      "D",
+      "P",
+      "R",
+      "K",
+      "G",
+      "W",
+      "M",
+      "G",
+      "M",
+      "Z",
+      "X",
+      "C",
+      "V",
+      "F",
+      "K"
+     ],
+     "real": [
+      117,
+      136,
+      8,
+      28,
+      44
+     ],
+     "strayCipher": [
+      "35",
+      "79",
+      "03",
+      "39",
+      "72"
+     ],
+     "stray": [
+      24,
+      154,
+      58,
+      86,
+      91
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S4-M3",
+     "time": "14:25",
+     "slots": [
+      "place",
+      "who",
+      "action",
+      "result",
+      "state"
+     ],
+     "cipher": [
+      "65",
+      "76",
+      "26",
+      "49",
+      "13"
+     ],
+     "clauses": [
+      {
+       "pattern": "At the {0} the {1} {2}."
+      },
+      {
+       "pattern": "Next: {3}."
+      },
+      {
+       "pattern": "Status: {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "FN",
+       "COX",
+       "EIY",
+       "DGP",
+       "AMV",
+       "HQT",
+       "RU",
+       "LW",
+       "BJ",
+       "KS"
+      ],
+      "cols": [
+       "UX",
+       "DMW",
+       "CH",
+       "FJT",
+       "IO",
+       "APY",
+       "GNV",
+       "ERS",
+       "BQ",
+       "KL"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "Z",
+      "J",
+      "Q",
+      "X",
+      "A",
+      "I",
+      "M",
+      "B",
+      "K",
+      "Q",
+      "W",
+      "Y",
+      "J",
+      "B",
+      "M",
+      "Q",
+      "U",
+      "L",
+      "N",
+      "O",
+      "I",
+      "N",
+      "Z",
+      "H",
+      "S",
+      "I",
+      "R",
+      "E",
+      "R",
+      "Z",
+      "X",
+      "F",
+      "H",
+      "L",
+      "Z",
+      "U",
+      "B",
+      "V",
+      "Z",
+      "E",
+      "N",
+      "P",
+      "H",
+      "Z",
+      "?",
+      "Y",
+      "Y",
+      "O",
+      "W",
+      "W",
+      "F",
+      "L",
+      "Y",
+      "I",
+      "S",
+      "S",
+      "J",
+      "D",
+      "Q",
+      "H",
+      "C",
+      "D",
+      "V",
+      "Y",
+      "P",
+      "Q",
+      "J",
+      "E",
+      "Y",
+      "H",
+      "T",
+      "Z",
+      "C",
+      "U",
+      "N",
+      "M",
+      "V",
+      "Q",
+      "J",
+      "B",
+      "F",
+      "T",
+      "T",
+      "X",
+      "L",
+      "Y",
+      "R",
+      "Z",
+      "A",
+      "L",
+      "P",
+      "H",
+      "W",
+      "O",
+      "X",
+      "C",
+      "N",
+      "P",
+      "Q",
+      "N",
+      "N",
+      "Z",
+      "F",
+      "J",
+      "X",
+      "G",
+      "R",
+      "I",
+      "C",
+      "G",
+      "Y",
+      "Y",
+      "T",
+      "C",
+      "J",
+      "E",
+      "A",
+      "Q",
+      "F",
+      "M",
+      "V",
+      "M",
+      "J",
+      "U",
+      "S",
+      "B",
+      "V",
+      "H",
+      "B",
+      "A",
+      "L",
+      "Z",
+      "W",
+      "?",
+      "P",
+      "I",
+      "X",
+      "C",
+      "T",
+      "W",
+      "J",
+      "H",
+      "C",
+      "R",
+      "A",
+      "S",
+      "C",
+      "I",
+      "F",
+      "T",
+      "D",
+      "L",
+      "E",
+      "F",
+      "P",
+      "S",
+      "I",
+      "F",
+      "E",
+      "H"
+     ],
+     "real": [
+      43,
+      131,
+      38,
+      87,
+      29
+     ],
+     "strayCipher": [
+      "68",
+      "03",
+      "10",
+      "88",
+      "57"
+     ],
+     "stray": [
+      34,
+      101,
+      71,
+      0,
+      22
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S4-M4",
+     "time": "18:00",
+     "slots": [
+      "state",
+      "who",
+      "action",
+      "place",
+      "result"
+     ],
+     "cipher": [
+      "94",
+      "52",
+      "60",
+      "93",
+      "33"
+     ],
+     "clauses": [
+      {
+       "pattern": "Status: {0}."
+      },
+      {
+       "pattern": "The {1} {2} at the {3}."
+      },
+      {
+       "pattern": "Next: {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "UY",
+       "DX",
+       "MPW",
+       "IQ",
+       "KRS",
+       "GNT",
+       "AHO",
+       "EV",
+       "FJL",
+       "BC"
+      ],
+      "cols": [
+       "QX",
+       "PU",
+       "DSW",
+       "HV",
+       "IJR",
+       "EK",
+       "CFM",
+       "ABO",
+       "GY",
+       "LNT"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "F",
+      "S",
+      "Y",
+      "B",
+      "F",
+      "P",
+      "Z",
+      "F",
+      "S",
+      "W",
+      "N",
+      "Y",
+      "F",
+      "E",
+      "P",
+      "Q",
+      "P",
+      "C",
+      "Y",
+      "T",
+      "B",
+      "N",
+      "R",
+      "K",
+      "R",
+      "U",
+      "S",
+      "E",
+      "E",
+      "Z",
+      "E",
+      "U",
+      "E",
+      "Z",
+      "N",
+      "O",
+      "Q",
+      "F",
+      "S",
+      "P",
+      "Z",
+      "?",
+      "W",
+      "W",
+      "C",
+      "O",
+      "N",
+      "B",
+      "I",
+      "R",
+      "U",
+      "I",
+      "Z",
+      "C",
+      "J",
+      "F",
+      "G",
+      "M",
+      "H",
+      "V",
+      "W",
+      "J",
+      "G",
+      "W",
+      "P",
+      "Q",
+      "O",
+      "Y",
+      "V",
+      "U",
+      "I",
+      "K",
+      "Z",
+      "Q",
+      "V",
+      "C",
+      "R",
+      "P",
+      "R",
+      "Q",
+      "I",
+      "S",
+      "S",
+      "J",
+      "L",
+      "H",
+      "Y",
+      "P",
+      "J",
+      "C",
+      "O",
+      "C",
+      "K",
+      "W",
+      "L",
+      "R",
+      "C",
+      "B",
+      "N",
+      "W",
+      "U",
+      "G",
+      "F",
+      "E",
+      "H",
+      "W",
+      "A",
+      "H",
+      "E",
+      "T",
+      "E",
+      "S",
+      "N",
+      "Y",
+      "C",
+      "W",
+      "A",
+      "Z",
+      "C",
+      "?",
+      "C",
+      "X",
+      "R",
+      "C",
+      "N",
+      "Z",
+      "K",
+      "K",
+      "O",
+      "T",
+      "E",
+      "T",
+      "H",
+      "N",
+      "H",
+      "N",
+      "N",
+      "Z",
+      "P",
+      "B",
+      "N",
+      "H",
+      "N",
+      "H",
+      "J",
+      "O",
+      "N",
+      "W",
+      "Z",
+      "H",
+      "Q",
+      "S",
+      "D",
+      "L",
+      "N",
+      "R",
+      "I",
+      "A",
+      "G",
+      "L"
+     ],
+     "real": [
+      52,
+      40,
+      148,
+      117,
+      72
+     ],
+     "strayCipher": [
+      "45",
+      "71",
+      "27",
+      "82",
+      "57"
+     ],
+     "stray": [
+      125,
+      29,
+      137,
+      6,
+      33
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S4-M5",
+     "time": "23:05",
+     "slots": [
+      "who",
+      "place",
+      "action",
+      "state",
+      "result"
+     ],
+     "cipher": [
+      "02",
+      "59",
+      "86",
+      "28",
+      "08"
+     ],
+     "clauses": [
+      {
+       "pattern": "The {0} at the {1} {2}."
+      },
+      {
+       "pattern": "Status: {3}."
+      },
+      {
+       "pattern": "Next: {4}."
+      }
+     ],
+     "truth": {
+      "3": "burned"
+     },
+     "hint": "The embassy rooms were searched after the cover of HERON (02) was blown. Nothing left there is clean: the site is burned.",
+     "key": {
+      "rows": [
+       "RVW",
+       "SX",
+       "AIP",
+       "TU",
+       "JY",
+       "BNO",
+       "GM",
+       "DEF",
+       "HQ",
+       "CKL"
+      ],
+      "cols": [
+       "LPY",
+       "IVX",
+       "DHN",
+       "TW",
+       "FKS",
+       "BO",
+       "AJ",
+       "CQR",
+       "EG",
+       "MU"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "N",
+      "I",
+      "Z",
+      "Q",
+      "Q",
+      "I",
+      "Q",
+      "H",
+      "E",
+      "N",
+      "O",
+      "P",
+      "G",
+      "W",
+      "O",
+      "S",
+      "P",
+      "U",
+      "Z",
+      "?",
+      "N",
+      "G",
+      "H",
+      "V",
+      "S",
+      "M",
+      "O",
+      "M",
+      "L",
+      "H",
+      "N",
+      "T",
+      "A",
+      "Z",
+      "H",
+      "A",
+      "R",
+      "U",
+      "Y",
+      "Q",
+      "G",
+      "U",
+      "D",
+      "Z",
+      "I",
+      "B",
+      "K",
+      "O",
+      "B",
+      "G",
+      "P",
+      "T",
+      "A",
+      "Y",
+      "I",
+      "D",
+      "C",
+      "Z",
+      "P",
+      "E",
+      "Q",
+      "T",
+      "Y",
+      "M",
+      "S",
+      "R",
+      "O",
+      "D",
+      "A",
+      "A",
+      "B",
+      "R",
+      "Z",
+      "Y",
+      "B",
+      "E",
+      "O",
+      "M",
+      "S",
+      "J",
+      "C",
+      "B",
+      "Q",
+      "Q",
+      "S",
+      "Y",
+      "H",
+      "K",
+      "H",
+      "K",
+      "O",
+      "B",
+      "S",
+      "X",
+      "D",
+      "Q",
+      "U",
+      "H",
+      "G",
+      "D",
+      "D",
+      "N",
+      "X",
+      "Y",
+      "L",
+      "R",
+      "K",
+      "M",
+      "K",
+      "E",
+      "N",
+      "G",
+      "F",
+      "P",
+      "F",
+      "F",
+      "O",
+      "J",
+      "G",
+      "S",
+      "Z",
+      "T",
+      "E",
+      "K",
+      "R",
+      "E",
+      "B",
+      "I",
+      "P",
+      "T",
+      "M",
+      "O",
+      "D",
+      "B",
+      "U",
+      "S",
+      "T",
+      "B",
+      "Z",
+      "?",
+      "U",
+      "T",
+      "E",
+      "D",
+      "P",
+      "W",
+      "H",
+      "N",
+      "K",
+      "R",
+      "Q",
+      "X",
+      "Z",
+      "R",
+      "G",
+      "O",
+      "Z",
+      "W",
+      "Y",
+      "E"
+     ],
+     "real": [
+      18,
+      138,
+      33,
+      57,
+      152
+     ],
+     "strayCipher": [
+      "25",
+      "45",
+      "00",
+      "87",
+      "38"
+     ],
+     "stray": [
+      43,
+      72,
+      156,
+      2,
+      120
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Command sent nobody to the embassy. The package was written off.",
+       "crew": []
+      },
+      "hedged": {
+       "severity": "delay",
+       "text": "Command got both readings and waited. The package stayed where it was.",
+       "crew": []
+      },
+      "wrong": {
+       "severity": "harm",
+       "text": "Command read the site as clean and sent the pickup man to the embassy. He was arrested at the gate.",
+       "crew": [
+        {
+         "id": "06",
+         "status": "arrested",
+         "note": "arrested at the embassy gate"
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "reply": {
+    "time": "23:59",
+    "slots": [
+     "who",
+     "place",
+     "action",
+     "state",
+     "result"
+    ],
+    "cipher": [
+     "19",
+     "65",
+     "48",
+     "15",
+     "08"
+    ],
+    "key": {
+     "rows": [
+      "EMR",
+      "DJY",
+      "FIX",
+      "CU",
+      "OQ",
+      "BV",
+      "AGN",
+      "KT",
+      "SW",
+      "HLP"
+     ],
+     "cols": [
+      "LOY",
+      "FKW",
+      "BU",
+      "ES",
+      "IN",
+      "PRX",
+      "CT",
+      "GHJ",
+      "ADQ",
+      "MV"
+     ]
+    }
+   }
+  },
+  {
+   "title": "Going dark",
+   "briefing": [
+    {
+     "id": "05",
+     "status": "arrested",
+     "note": "arrested this morning; knew the border meeting place"
+    },
+    {
+     "id": "10",
+     "location": "Market",
+     "note": "back at the market"
+    }
+   ],
+   "transmissions": [
+    {
+     "id": "S5-M1",
+     "time": "05:05",
+     "slots": [
+      "result",
+      "state",
+      "who",
+      "action",
+      "place"
+     ],
+     "cipher": [
+      "22",
+      "15",
+      "19",
+      "23",
+      "42"
+     ],
+     "clauses": [
+      {
+       "pattern": "Next: {0}."
+      },
+      {
+       "pattern": "Status: {1}."
+      },
+      {
+       "pattern": "The {2} {3} at the {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "EQX",
+       "JK",
+       "COT",
+       "PR",
+       "SW",
+       "BV",
+       "DGI",
+       "MN",
+       "FHY",
+       "ALU"
+      ],
+      "cols": [
+       "AIL",
+       "GXY",
+       "CFT",
+       "DPU",
+       "JQW",
+       "BN",
+       "MR",
+       "OS",
+       "HK",
+       "EV"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "R",
+      "Y",
+      "Q",
+      "E",
+      "E",
+      "U",
+      "S",
+      "M",
+      "C",
+      "Z",
+      "J",
+      "B",
+      "Y",
+      "S",
+      "G",
+      "B",
+      "P",
+      "K",
+      "A",
+      "H",
+      "Z",
+      "O",
+      "E",
+      "I",
+      "A",
+      "Z",
+      "?",
+      "T",
+      "I",
+      "N",
+      "U",
+      "W",
+      "J",
+      "Q",
+      "C",
+      "S",
+      "Y",
+      "D",
+      "N",
+      "W",
+      "V",
+      "C",
+      "B",
+      "F",
+      "S",
+      "Y",
+      "C",
+      "D",
+      "S",
+      "Q",
+      "Z",
+      "N",
+      "W",
+      "U",
+      "Z",
+      "C",
+      "C",
+      "J",
+      "J",
+      "U",
+      "F",
+      "N",
+      "E",
+      "A",
+      "B",
+      "T",
+      "G",
+      "X",
+      "V",
+      "O",
+      "O",
+      "E",
+      "B",
+      "O",
+      "Z",
+      "J",
+      "A",
+      "A",
+      "O",
+      "H",
+      "S",
+      "K",
+      "A",
+      "A",
+      "A",
+      "C",
+      "K",
+      "C",
+      "N",
+      "R",
+      "N",
+      "F",
+      "C",
+      "T",
+      "S",
+      "O",
+      "G",
+      "J",
+      "Z",
+      "T",
+      "D",
+      "T",
+      "R",
+      "D",
+      "Z",
+      "K",
+      "R",
+      "B",
+      "Z",
+      "Q",
+      "O",
+      "T",
+      "X",
+      "E",
+      "R",
+      "D",
+      "D",
+      "L",
+      "Z",
+      "J",
+      "?",
+      "E",
+      "A",
+      "J",
+      "G",
+      "B",
+      "X",
+      "E",
+      "C",
+      "I",
+      "E",
+      "H",
+      "H",
+      "Z",
+      "F",
+      "N",
+      "P",
+      "K",
+      "R",
+      "P",
+      "N",
+      "L",
+      "V",
+      "F",
+      "H",
+      "T",
+      "S",
+      "V",
+      "C",
+      "V",
+      "R",
+      "X",
+      "A",
+      "V",
+      "J",
+      "C",
+      "J",
+      "F",
+      "V",
+      "H"
+     ],
+     "real": [
+      54,
+      9,
+      118,
+      98,
+      25
+     ],
+     "strayCipher": [
+      "10",
+      "07",
+      "85",
+      "16",
+      "29",
+      "74"
+     ],
+     "stray": [
+      74,
+      108,
+      133,
+      104,
+      20,
+      50
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S5-M2",
+     "time": "09:15",
+     "slots": [
+      "state",
+      "who",
+      "action",
+      "place",
+      "result"
+     ],
+     "cipher": [
+      "98",
+      "40",
+      "80",
+      "14",
+      "01"
+     ],
+     "clauses": [
+      {
+       "pattern": "Status: {0}."
+      },
+      {
+       "pattern": "The {1} {2} at the {3}."
+      },
+      {
+       "pattern": "Next: {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "ORV",
+       "MU",
+       "GS",
+       "KPX",
+       "EIT",
+       "BFH",
+       "AJ",
+       "LQY",
+       "DW",
+       "CN"
+      ],
+      "cols": [
+       "BJN",
+       "AFR",
+       "KU",
+       "OQS",
+       "CIL",
+       "EG",
+       "MW",
+       "HPX",
+       "TV",
+       "DY"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "K",
+      "A",
+      "U",
+      "Q",
+      "N",
+      "H",
+      "U",
+      "Y",
+      "G",
+      "K",
+      "B",
+      "S",
+      "L",
+      "F",
+      "S",
+      "G",
+      "Y",
+      "Z",
+      "F",
+      "H",
+      "A",
+      "Y",
+      "X",
+      "B",
+      "P",
+      "I",
+      "Z",
+      "?",
+      "J",
+      "U",
+      "C",
+      "S",
+      "Z",
+      "L",
+      "C",
+      "T",
+      "I",
+      "W",
+      "O",
+      "V",
+      "K",
+      "G",
+      "B",
+      "E",
+      "I",
+      "A",
+      "A",
+      "W",
+      "X",
+      "D",
+      "G",
+      "Z",
+      "V",
+      "N",
+      "O",
+      "N",
+      "P",
+      "X",
+      "Z",
+      "W",
+      "N",
+      "P",
+      "L",
+      "M",
+      "G",
+      "E",
+      "V",
+      "G",
+      "P",
+      "M",
+      "D",
+      "V",
+      "Z",
+      "N",
+      "T",
+      "M",
+      "U",
+      "I",
+      "U",
+      "S",
+      "L",
+      "S",
+      "A",
+      "U",
+      "V",
+      "O",
+      "D",
+      "P",
+      "L",
+      "Z",
+      "R",
+      "A",
+      "A",
+      "S",
+      "M",
+      "E",
+      "G",
+      "G",
+      "U",
+      "I",
+      "E",
+      "I",
+      "K",
+      "W",
+      "M",
+      "G",
+      "Z",
+      "A",
+      "Q",
+      "M",
+      "B",
+      "F",
+      "O",
+      "E",
+      "U",
+      "M",
+      "W",
+      "U",
+      "U",
+      "X",
+      "M",
+      "N",
+      "I",
+      "M",
+      "Z",
+      "G",
+      "B",
+      "C",
+      "N",
+      "S",
+      "T",
+      "G",
+      "D",
+      "U",
+      "I",
+      "Q",
+      "I",
+      "M",
+      "Z",
+      "?",
+      "I",
+      "V",
+      "R",
+      "H",
+      "F",
+      "Z",
+      "D",
+      "H",
+      "D",
+      "O",
+      "R",
+      "N",
+      "W",
+      "Y",
+      "J",
+      "X",
+      "B",
+      "V",
+      "M",
+      "L"
+     ],
+     "real": [
+      72,
+      26,
+      58,
+      138,
+      89
+     ],
+     "strayCipher": [
+      "00",
+      "87",
+      "20",
+      "74",
+      "63",
+      "57"
+     ],
+     "stray": [
+      51,
+      145,
+      124,
+      32,
+      106,
+      17
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S5-M3",
+     "time": "13:40",
+     "slots": [
+      "who",
+      "action",
+      "place",
+      "result",
+      "state"
+     ],
+     "cipher": [
+      "18",
+      "61",
+      "56",
+      "36",
+      "94"
+     ],
+     "clauses": [
+      {
+       "pattern": "The {0} {1}."
+      },
+      {
+       "pattern": "Place: the {2}."
+      },
+      {
+       "pattern": "Next: {3}."
+      },
+      {
+       "pattern": "Status: {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "EF",
+       "DLU",
+       "NW",
+       "IS",
+       "HQV",
+       "BO",
+       "CJM",
+       "RXY",
+       "KPT",
+       "AG"
+      ],
+      "cols": [
+       "QV",
+       "EOS",
+       "CLT",
+       "HJK",
+       "BWY",
+       "MX",
+       "GI",
+       "ADN",
+       "FP",
+       "RU"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "U",
+      "N",
+      "L",
+      "O",
+      "A",
+      "D",
+      "I",
+      "I",
+      "V",
+      "E",
+      "Q",
+      "K",
+      "O",
+      "J",
+      "M",
+      "J",
+      "B",
+      "D",
+      "G",
+      "V",
+      "R",
+      "Y",
+      "Z",
+      "B",
+      "?",
+      "H",
+      "J",
+      "B",
+      "K",
+      "Z",
+      "G",
+      "A",
+      "Y",
+      "I",
+      "I",
+      "Z",
+      "L",
+      "?",
+      "S",
+      "T",
+      "R",
+      "X",
+      "L",
+      "N",
+      "E",
+      "Z",
+      "D",
+      "V",
+      "Q",
+      "T",
+      "M",
+      "T",
+      "Z",
+      "E",
+      "G",
+      "G",
+      "J",
+      "H",
+      "N",
+      "K",
+      "Z",
+      "R",
+      "E",
+      "W",
+      "P",
+      "G",
+      "L",
+      "C",
+      "S",
+      "H",
+      "M",
+      "W",
+      "S",
+      "I",
+      "S",
+      "O",
+      "V",
+      "S",
+      "J",
+      "T",
+      "L",
+      "E",
+      "H",
+      "Y",
+      "Z",
+      "J",
+      "E",
+      "P",
+      "U",
+      "Q",
+      "X",
+      "Q",
+      "J",
+      "D",
+      "O",
+      "N",
+      "S",
+      "J",
+      "U",
+      "Z",
+      "A",
+      "Y",
+      "W",
+      "I",
+      "U",
+      "S",
+      "S",
+      "R",
+      "R",
+      "P",
+      "I",
+      "Q",
+      "U",
+      "C",
+      "O",
+      "T",
+      "Q",
+      "U",
+      "H",
+      "V",
+      "Z",
+      "W",
+      "R",
+      "T",
+      "E",
+      "V",
+      "G",
+      "D",
+      "X",
+      "Y",
+      "R",
+      "Z",
+      "S",
+      "G",
+      "J",
+      "O",
+      "Z",
+      "V",
+      "I",
+      "F",
+      "D",
+      "Y",
+      "N",
+      "X",
+      "U",
+      "J",
+      "T",
+      "R",
+      "Q",
+      "L",
+      "K",
+      "D",
+      "Y",
+      "Q",
+      "L",
+      "L",
+      "B",
+      "D",
+      "R",
+      "L"
+     ],
+     "real": [
+      35,
+      84,
+      22,
+      131,
+      99
+     ],
+     "strayCipher": [
+      "06",
+      "97",
+      "29",
+      "71",
+      "46",
+      "10"
+     ],
+     "stray": [
+      52,
+      29,
+      120,
+      60,
+      136,
+      45
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S5-M4",
+     "time": "18:30",
+     "slots": [
+      "place",
+      "who",
+      "action",
+      "result",
+      "state"
+     ],
+     "cipher": [
+      "75",
+      "52",
+      "34",
+      "66",
+      "47"
+     ],
+     "clauses": [
+      {
+       "pattern": "At the {0} the {1} {2}."
+      },
+      {
+       "pattern": "Next: {3}."
+      },
+      {
+       "pattern": "Status: {4}."
+      }
+     ],
+     "truth": {},
+     "hint": "",
+     "key": {
+      "rows": [
+       "FGO",
+       "IP",
+       "BU",
+       "NS",
+       "QWY",
+       "AJR",
+       "CE",
+       "DVX",
+       "HL",
+       "KMT"
+      ],
+      "cols": [
+       "FR",
+       "AT",
+       "KV",
+       "DO",
+       "LU",
+       "PWY",
+       "HJM",
+       "EGQ",
+       "INS",
+       "BCX"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "M",
+      "A",
+      "Z",
+      "M",
+      "E",
+      "U",
+      "D",
+      "G",
+      "Z",
+      "E",
+      "M",
+      "H",
+      "F",
+      "K",
+      "M",
+      "G",
+      "A",
+      "B",
+      "B",
+      "I",
+      "K",
+      "B",
+      "J",
+      "P",
+      "N",
+      "K",
+      "U",
+      "H",
+      "W",
+      "T",
+      "R",
+      "B",
+      "G",
+      "G",
+      "L",
+      "U",
+      "A",
+      "S",
+      "E",
+      "Z",
+      "W",
+      "Q",
+      "Y",
+      "E",
+      "W",
+      "C",
+      "O",
+      "W",
+      "B",
+      "X",
+      "V",
+      "M",
+      "B",
+      "C",
+      "F",
+      "L",
+      "K",
+      "L",
+      "C",
+      "K",
+      "W",
+      "C",
+      "U",
+      "R",
+      "R",
+      "T",
+      "I",
+      "N",
+      "R",
+      "C",
+      "S",
+      "K",
+      "U",
+      "K",
+      "N",
+      "V",
+      "X",
+      "P",
+      "P",
+      "K",
+      "Y",
+      "P",
+      "J",
+      "W",
+      "R",
+      "Z",
+      "K",
+      "J",
+      "J",
+      "K",
+      "M",
+      "O",
+      "Z",
+      "L",
+      "K",
+      "I",
+      "Z",
+      "C",
+      "N",
+      "G",
+      "U",
+      "R",
+      "P",
+      "S",
+      "Z",
+      "P",
+      "J",
+      "M",
+      "O",
+      "P",
+      "T",
+      "O",
+      "B",
+      "X",
+      "Q",
+      "D",
+      "Y",
+      "I",
+      "J",
+      "Y",
+      "X",
+      "Z",
+      "?",
+      "U",
+      "X",
+      "X",
+      "Q",
+      "E",
+      "M",
+      "R",
+      "J",
+      "Z",
+      "?",
+      "K",
+      "O",
+      "O",
+      "A",
+      "Z",
+      "L",
+      "S",
+      "S",
+      "K",
+      "D",
+      "O",
+      "C",
+      "H",
+      "H",
+      "D",
+      "Y",
+      "M",
+      "M",
+      "P",
+      "I",
+      "Z",
+      "?",
+      "W",
+      "B",
+      "V",
+      "K",
+      "K"
+     ],
+     "real": [
+      153,
+      131,
+      121,
+      8,
+      39
+     ],
+     "strayCipher": [
+      "96",
+      "88",
+      "97",
+      "68",
+      "82",
+      "16"
+     ],
+     "stray": [
+      85,
+      137,
+      2,
+      96,
+      92,
+      104
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Filed. Command has the message as the agent sent it.",
+       "crew": []
+      }
+     }
+    },
+    {
+     "id": "S5-M5",
+     "time": "23:50",
+     "slots": [
+      "state",
+      "who",
+      "action",
+      "place",
+      "result"
+     ],
+     "cipher": [
+      "55",
+      "78",
+      "67",
+      "95",
+      "49"
+     ],
+     "clauses": [
+      {
+       "pattern": "Status: {0}."
+      },
+      {
+       "pattern": "The {1} {2} at the {3}."
+      },
+      {
+       "pattern": "Next: {4}."
+      }
+     ],
+     "truth": {
+      "0": "arrested"
+     },
+     "hint": "ROOK (05) was arrested this morning and knew the border meeting place. The contact missed the meeting and the message says to send no one: arrested.",
+     "key": {
+      "rows": [
+       "BLN",
+       "PRX",
+       "CKY",
+       "EJ",
+       "OQ",
+       "GT",
+       "HI",
+       "ADV",
+       "FUW",
+       "MS"
+      ],
+      "cols": [
+       "CGK",
+       "IN",
+       "HSX",
+       "FO",
+       "BR",
+       "DY",
+       "MQT",
+       "ALU",
+       "EVW",
+       "JP"
+      ]
+     },
+     "cols": 16,
+     "dump": [
+      "Y",
+      "C",
+      "W",
+      "J",
+      "H",
+      "Z",
+      "U",
+      "R",
+      "R",
+      "O",
+      "E",
+      "U",
+      "E",
+      "A",
+      "O",
+      "R",
+      "G",
+      "J",
+      "P",
+      "P",
+      "A",
+      "U",
+      "G",
+      "W",
+      "Y",
+      "U",
+      "P",
+      "J",
+      "F",
+      "S",
+      "D",
+      "D",
+      "M",
+      "A",
+      "N",
+      "O",
+      "D",
+      "Z",
+      "V",
+      "?",
+      "M",
+      "Q",
+      "O",
+      "L",
+      "P",
+      "N",
+      "T",
+      "L",
+      "X",
+      "U",
+      "W",
+      "H",
+      "U",
+      "E",
+      "K",
+      "G",
+      "C",
+      "T",
+      "O",
+      "J",
+      "E",
+      "Z",
+      "Y",
+      "G",
+      "M",
+      "P",
+      "N",
+      "N",
+      "X",
+      "X",
+      "Z",
+      "D",
+      "J",
+      "K",
+      "H",
+      "F",
+      "W",
+      "H",
+      "C",
+      "R",
+      "K",
+      "M",
+      "Q",
+      "O",
+      "S",
+      "L",
+      "E",
+      "F",
+      "Q",
+      "L",
+      "T",
+      "D",
+      "V",
+      "O",
+      "X",
+      "J",
+      "Z",
+      "Q",
+      "P",
+      "E",
+      "J",
+      "O",
+      "L",
+      "B",
+      "Z",
+      "H",
+      "?",
+      "G",
+      "R",
+      "G",
+      "P",
+      "M",
+      "S",
+      "N",
+      "F",
+      "G",
+      "B",
+      "Z",
+      "T",
+      "D",
+      "W",
+      "Z",
+      "R",
+      "M",
+      "F",
+      "S",
+      "Y",
+      "X",
+      "W",
+      "E",
+      "X",
+      "U",
+      "G",
+      "L",
+      "Z",
+      "J",
+      "Y",
+      "W",
+      "Y",
+      "M",
+      "J",
+      "T",
+      "W",
+      "X",
+      "T",
+      "T",
+      "G",
+      "T",
+      "C",
+      "Z",
+      "?",
+      "Y",
+      "N",
+      "V",
+      "G",
+      "N",
+      "I",
+      "Z",
+      "L",
+      "R"
+     ],
+     "real": [
+      117,
+      37,
+      104,
+      149,
+      96
+     ],
+     "strayCipher": [
+      "84",
+      "20",
+      "35",
+      "79",
+      "04",
+      "16"
+     ],
+     "stray": [
+      5,
+      61,
+      134,
+      70,
+      157,
+      121
+     ],
+     "outcomes": {
+      "correct": {
+       "severity": "safe",
+       "text": "Command sent no one to the border and closed the line. Nobody else was lost.",
+       "crew": []
+      },
+      "hedged": {
+       "severity": "delay",
+       "text": "Command got both readings and held everyone back for a day.",
+       "crew": []
+      },
+      "wrong": {
+       "severity": "harm",
+       "text": "Command read the contact as free and sent the driver to the border. He drove into the same trap.",
+       "crew": [
+        {
+         "id": "08",
+         "status": "arrested",
+         "note": "arrested at the border"
+        }
+       ]
+      }
+     }
+    }
+   ],
+   "reply": {
+    "time": "23:59",
+    "slots": [
+     "who",
+     "place",
+     "action",
+     "state",
+     "result"
+    ],
+    "cipher": [
+     "70",
+     "75",
+     "34",
+     "47",
+     "66"
+    ],
+    "key": {
+     "rows": [
+      "HM",
+      "DLO",
+      "KY",
+      "PQ",
+      "CSV",
+      "INW",
+      "FGU",
+      "JR",
+      "BEX",
+      "AT"
+     ],
+     "cols": [
+      "HTU",
+      "GW",
+      "QY",
+      "ER",
+      "FL",
+      "IPS",
+      "AKM",
+      "BJX",
+      "OV",
+      "CDN"
+     ]
+    }
    }
   }
  ]

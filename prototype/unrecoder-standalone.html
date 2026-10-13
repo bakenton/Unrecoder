@@ -3,297 +3,344 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Unrecoder — duty radio table prototype</title>
+  <title>Unrecoder — intercept desk prototype</title>
   <style>
 :root {
-  --bg: #1a1814;
-  --paper: #e9e1c9;
-  --ink: #2b261c;
-  --amber: #ffb84d;
-  --amber-dim: #8a6226;
-  --screen: #0e0d0a;
-  --line: #3a352a;
-  --ok: #7fbf6a;
-  --warn: #e0a64a;
-  --bad: #d9624a;
-  font-family: ui-monospace, "Cascadia Mono", Consolas, monospace;
+  --paper: #ece2c4; --paper-2: #e2d6b1; --paper-dark: #cbbd92; --card: #f4ecd2; --folder: #d9c58f; --folder-dark: #c9b47c;
+  --ink: #2b261c; --ink-soft: #6a5f48; --red: #a4382a; --amber: #e0a13a; --green: #3c7a2a;
+  --wood: #3a2a1c; --wood-2: #4a3523; --cork: #b08a5a;
+  --k-who: #cfe3f6; --k-place: #d3ecd0; --k-action: #f7dfc2; --k-state: #f4d0cc; --k-result: #e3d3f1;
+  --k-marker: #ddd7bf; --k-letter: #f3efe0; --k-service: #efe9d4;
+  font-family: "Courier Prime", "Courier New", ui-monospace, monospace;
 }
 * { box-sizing: border-box; }
-body { margin: 0; background: var(--bg); color: var(--paper); }
-.desk {
-  max-width: 1800px; margin: 0 auto; padding: 12px;
-  display: grid; gap: 10px; align-items: start;
-  grid-template-columns: minmax(380px, 1.05fr) minmax(420px, 1.1fr) minmax(250px, .7fr);
-  grid-template-areas:
-    "radio key crew"
-    "board table map"
-    "orders table map"
-    "result result result";
-}
-.radio { grid-area: radio; } .board { grid-area: board; } .crew { grid-area: crew; }
-.table-sheet { grid-area: table; } .keysheet { grid-area: key; } .map { grid-area: map; } .orders { grid-area: orders; } .result { grid-area: result; }
-
-.panel { background: var(--paper); color: var(--ink); border: 2px solid var(--line); border-radius: 4px; padding: 10px 12px; }
-.panel > header { display: flex; justify-content: space-between; align-items: center; font-size: 11px; letter-spacing: .12em; border-bottom: 1px solid #b9ae8e; padding-bottom: 6px; margin-bottom: 8px; }
-.radio { background: var(--screen); color: var(--amber); border-color: #4b4128; }
-.radio > header { border-color: var(--amber-dim); }
-.dump { padding: 10px 0 4px; font-size: 19px; }
-.dline { display: flex; gap: 2px; align-items: center; margin-bottom: 2px; }
-.addr { width: 4.2em; font-size: 11px; color: var(--amber-dim); }
-.cell { font: inherit; width: 1.5em; height: 1.55em; padding: 0; background: none; border: 0; color: var(--amber); cursor: pointer; border-radius: 2px; }
-.cell:hover:not(:disabled) { background: #3a2f12; }
-.cell:disabled { cursor: default; opacity: .45; }
-.cell.preview { background: #5a4515; }
-.cell.anchor { background: var(--amber); color: #1a1405; }
-.cell.picked { background: #ffcf7a; color: #1a1405; opacity: 1; }
-.status { min-height: 2.6em; color: #ffd9a0; font-size: 14px; padding: 6px 0 2px; }
-.status.hedge { color: var(--warn); }
-
-.picks { display: flex; gap: 8px; flex-wrap: wrap; }
-.pick { width: 96px; min-height: 64px; border: 1px dashed #8a7a4a; border-radius: 4px; padding: 4px 6px; text-align: center; }
-.pick.filled { border-style: solid; background: #2b261c; color: var(--paper); }
-.pick .type { font-size: 10px; letter-spacing: .1em; text-transform: uppercase; opacity: .7; }
-.pick .k { font-size: 20px; color: var(--amber); }
-.pick .m { font-size: 12px; }
-.pick.extra { align-self: center; border-color: var(--bad); color: var(--bad); width: auto; min-height: 0; }
-.controls, .readrow { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; align-items: center; }
-.controls button, .readrow button { font: inherit; padding: 7px 12px; border: 1px solid #8a7a4a; background: none; border-radius: 4px; cursor: pointer; color: var(--ink); }
-.controls button.primary { background: var(--amber); border: 0; font-weight: bold; }
-.controls button:disabled, .readrow button:disabled { opacity: .4; cursor: default; }
-.readbox { margin-top: 10px; }
-.readrow .word.on, .readrow .hedge.on { background: var(--ink); color: var(--amber); }
-.legend { font-size: 11px; opacity: .75; margin: 8px 0 0; }
-.intuition { font-size: 15px; letter-spacing: .15em; color: #a5671a; }
-
-.crew ul, .table-sheet ul { list-style: none; margin: 0; padding: 0; }
-.crew li { display: flex; gap: 8px; padding: 3px 0; font-size: 13px; border-bottom: 1px dotted #b9ae8e; }
-.crew li .id { font-weight: bold; width: 1.8em; }
-.crew li .where { margin-left: auto; opacity: .8; }
-.crew li.injured { color: var(--bad); }
-.crew li .note { font-size: 11px; opacity: .8; }
-.crew button, .result button, #hintBtn { font: inherit; font-size: 11px; cursor: pointer; }
-.hint { font-size: 12px; background: #f6efd6; border-left: 3px solid var(--warn); padding: 6px 8px; margin: 8px 0 0; }
-.table-sheet li { display: grid; grid-template-columns: 3.2em 1fr auto; font-size: 14px; padding: 2px 0; border-bottom: 1px dotted #b9ae8e; }
-.table-sheet li b { font-size: 16px; }
-.table-sheet li .multi { color: #a5671a; }
-.map svg { width: 100%; height: auto; background: #d8cfb1; border-radius: 3px; }
-
-.order-row { display: flex; flex-wrap: wrap; gap: 8px; }
-.order-row button { font: inherit; padding: 8px 14px; background: #2b261c; color: var(--paper); border: 2px solid transparent; border-radius: 4px; cursor: pointer; }
-.order-row button[aria-pressed="true"] { border-color: var(--amber); color: var(--amber); }
-.order-row button:disabled { opacity: .4; cursor: default; }
-.send { margin-top: 10px; padding: 10px 18px; font: inherit; font-weight: bold; background: var(--amber); border: 0; border-radius: 4px; cursor: pointer; }
-.send:disabled { background: #b9ae8e; cursor: default; }
-
-.result .message { font-size: 18px; margin: 4px 0 8px; }
-.result .message.safe { color: #3c7a2a; } .result .message.delay { color: #8a6a1a; } .result .message.harm { color: #a4382a; }
-.debrief { font-size: 13px; line-height: 1.5; background: #f6efd6; padding: 8px 10px; border-radius: 3px; margin-bottom: 10px; }
-.debrief p { margin: 3px 0; }
-.tag { display: inline-block; padding: 0 6px; border-radius: 3px; font-size: 11px; color: #fff; }
-.tag.correct { background: #3c7a2a; } .tag.hedged { background: #8a6a1a; } .tag.wrong { background: #a4382a; }
-
-@media (max-width: 820px) {
-  .desk { grid-template-columns: 1fr; grid-template-areas: "radio" "board" "key" "table" "orders" "crew" "map" "result"; }
-  .dump { font-size: 16px; }
-}
-.table-sheet li i { font-size: 10px; opacity: .6; text-transform: uppercase; align-self: center; }
 [hidden] { display: none !important; }
+html, body { height: 100%; }
+body { margin: 0; background: #17140f; color: var(--ink); }
+button { font: inherit; color: inherit; }
+.fatal { background: #5a1f17; color: #ffd9cf; padding: 12px 14px; margin: 0; }
 
-.grid { width: 100%; border-collapse: collapse; font-size: 13px; }
-.grid th, .grid td { border: 1px solid #b9ae8e; padding: 4px 6px; text-align: center; }
-.grid th { background: #d8cfb1; font-size: 15px; }
-.grid th.rowtype { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; opacity: .75; }
-.grid td.multi { color: #a5671a; font-weight: bold; }
-.cell.picked, .cell.picked:hover:not(:disabled) { background: #ffcf7a; color: #1a1405; opacity: 1; }
-.fatal { background: #5a1f17; color: #ffd9cf; padding: 12px 14px; border-radius: 4px; grid-column: 1 / -1; }
-
-.cell { width: 2.1em !important; font-size: 15px; letter-spacing: 0; }
-.dump { font-size: 15px; }
-.keysheet .help { font-size: 11px; cursor: pointer; }
-.ring { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; margin: 4px 0; font-size: 12px; }
-.ring b { width: 5.6em; font-size: 10px; letter-spacing: .08em; text-transform: uppercase; opacity: .75; }
-.ring .lbl { border: 1px solid #b9ae8e; border-radius: 3px; padding: 1px 5px; background: #f1ead2; }
-.ring .lbl.start { background: var(--ink); color: var(--amber); border-color: var(--ink); }
-.ring.digits .lbl i { font-style: normal; opacity: .6; margin-right: 3px; }
-.indicator { margin: 2px 0 6px; font-size: 14px; }
-.rule { font-size: 11px; opacity: .75; margin: 4px 0; }
-.matrix { table-layout: fixed; font-size: 11px; }
-.matrix th small { display: block; font-size: 9px; font-weight: normal; opacity: .75; }
-.matrix td { padding: 3px 2px; line-height: 1.15; word-break: break-word; }
-.matrix td.k-letter { background: #efe8cf; font-weight: bold; font-size: 14px; }
-.matrix td.k-marker { background: #e3d9b0; font-weight: bold; }
-.matrix td.k-service { color: #6a604a; font-style: italic; }
-.matrix td.multi { color: #a5671a; font-weight: bold; }
-.readnote { font-size: 12px; margin-top: 8px; background: #f6efd6; padding: 4px 8px; border-left: 3px solid #8a7a4a; }
-.result-actions { display: flex; gap: 8px; flex-wrap: wrap; }
-.result-actions button { font: inherit; padding: 8px 14px; cursor: pointer; }
-.result-actions .send { margin-top: 0; }
-
-/* ---- v4: guidance, colour-coded kinds ---- */
-:root {
-  --k-who: #cfe3f6; --k-place: #d3ecd0; --k-action: #f7dfc2; --k-thing: #e3d3f1; --k-state: #f4d0cc;
-  --k-marker: #ddd7bf; --k-letter: #f3efe0; --k-service: #efe9d4;
-}
-.guide { grid-area: key; }
-.steps { margin: 0; padding-left: 1.3em; font-size: 12.5px; line-height: 1.45; }
-.steps li { margin-bottom: 4px; }
-.kinds { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-.kindchip { font-size: 11px; padding: 2px 8px; border-radius: 3px; border: 1px solid #b9ae8e; color: var(--ink); }
 .kind-who { background: var(--k-who); } .kind-place { background: var(--k-place); } .kind-action { background: var(--k-action); }
-.kind-thing { background: var(--k-thing); } .kind-state { background: var(--k-state); } .kind-marker { background: var(--k-marker); }
+.kind-state { background: var(--k-state); } .kind-result { background: var(--k-result); } .kind-marker { background: var(--k-marker); }
 .kind-letter { background: var(--k-letter); } .kind-service { background: var(--k-service); }
-.frame { margin: 8px 0 2px; padding: 8px 10px; background: #1a1710; border-radius: 4px; font-size: 16px; color: #ffd9a0; line-height: 2; }
-.blank { display: inline-block; padding: 0 8px; border-radius: 3px; border: 1px dashed #555; color: #1a1710; font-size: 13px; text-transform: uppercase; letter-spacing: .05em; }
-.blank.filled { border-style: solid; text-transform: none; font-size: 15px; letter-spacing: 0; font-weight: bold; }
-.pick.kind-who { background: var(--k-who); } .pick.kind-place { background: var(--k-place); } .pick.kind-action { background: var(--k-action); }
-.pick.kind-thing { background: var(--k-thing); } .pick.kind-state { background: var(--k-state); } .pick.kind-marker { background: var(--k-marker); }
-.pick.kind-letter { background: var(--k-letter); }
-.pick, .pick.filled { color: var(--ink); }
-.pick .k { color: var(--ink); }
-.pick:not(.filled) { border-style: dashed; }
-.pick:not(.filled) .k { opacity: .35; }
-.matrix td.kind-letter { font-weight: bold; font-size: 14px; }
-.matrix td.kind-marker { font-weight: bold; }
-.matrix td.kind-service { color: #6a604a; font-style: italic; }
-.matrix td.multi { font-weight: bold; box-shadow: inset 0 0 0 2px #a5671a; }
-.matrix td.kind-who { background: var(--k-who); } .matrix td.kind-place { background: var(--k-place); } .matrix td.kind-action { background: var(--k-action); }
-.matrix td.kind-thing { background: var(--k-thing); } .matrix td.kind-state { background: var(--k-state); } .matrix td.kind-marker { background: var(--k-marker); }
-.matrix td.kind-letter { background: var(--k-letter); } .matrix td.kind-service { background: var(--k-service); }
-.cell { width: 1.6em !important; font-size: 18px; }
-.blank { margin: 0 2px; }
 
-/* ---- v5: Z + two letters, daily key ---- */
-.pick { cursor: pointer; }
-.pick.sel { outline: 3px solid var(--amber); }
-.keycard { display: grid; gap: 8px; margin-bottom: 8px; }
-.kt { font-size: 10px; letter-spacing: .1em; opacity: .75; margin-bottom: 3px; }
+/* ---- the room: the cipher station at night. The wall with the district map above, your desk below ---- */
+.room { position: relative; min-height: 100vh; min-width: 1080px; overflow: hidden;
+  background: linear-gradient(#27323a 0 330px, #141a1e 330px 336px, #2a2118 336px); }
+.wall { position: relative; height: 330px; }
+.window { position: absolute; left: 3%; top: 40px; width: 15%; max-width: 170px; height: 240px; border: 8px solid #1c1812;
+  background: repeating-linear-gradient(100deg, #3c5266 0 3px, #2b3b4a 3px 11px); }
+.window::after { content: ""; position: absolute; left: 50%; top: 0; width: 6px; height: 100%; margin-left: -3px; background: #1c1812; }
+.lamp { position: absolute; top: 0; width: 80px; height: 26px; margin-left: -40px; background: #23402f; border-radius: 0 0 40px 40px; pointer-events: none; }
+.lamp::after { content: ""; position: absolute; left: -110px; top: 0; width: 0; height: 0; border-left: 150px solid transparent; border-right: 150px solid transparent;
+  border-bottom: 460px solid rgba(255,214,140,.12); }
+.rack { position: absolute; right: 2%; top: 80px; width: 200px; background: #20262a; border: 4px solid #0f1214; box-shadow: 0 8px 18px rgba(0,0,0,.6); padding: 12px;
+  display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+.rack i { border-radius: 50%; aspect-ratio: 1; background: radial-gradient(circle, #ffd98a 0 18%, #5a4a22 20% 60%, #14181a 62%); box-shadow: 0 0 14px rgba(255,200,110,.5); }
+.rack b { grid-column: span 3; height: 28px; background: linear-gradient(90deg, #7fbf6a 0 55%, #e0a13a 55% 80%, #a4382a 80%); border: 3px solid #0f1214; }
+.teletype { position: absolute; right: 6%; top: 372px; width: 170px; height: 90px; background: #2f3a33; border-radius: 8px 8px 2px 2px; box-shadow: 0 8px 14px rgba(0,0,0,.6); }
+.teletype::before { content: ""; position: absolute; left: 30px; top: -70px; width: 60px; height: 90px; background: #f1e9cf; transform: rotate(-4deg); box-shadow: 0 2px 5px rgba(0,0,0,.4); }
+.teletype::after { content: ""; position: absolute; left: 14px; bottom: 12px; width: 142px; height: 22px; background: repeating-linear-gradient(90deg, #cbbd92 0 10px, #2f3a33 10px 14px); }
+
+/* the map: a pin for every place, the agents who are there, a string from each to the station */
+.map { position: absolute; left: calc(50% - 300px); top: 20px; width: 560px; height: 296px; background-color: #cdbf95; border: 8px solid #3a2e20; box-shadow: 0 8px 18px rgba(0,0,0,.6);
+  background-image: linear-gradient(rgba(60,50,30,.18) 1px, transparent 1px), linear-gradient(90deg, rgba(60,50,30,.18) 1px, transparent 1px); background-size: 40px 40px; }
+.map svg { display: block; width: 100%; height: 100%; }
+.map .sea { fill: #9fb3b0; opacity: .7; }
+.map .road { fill: none; stroke: var(--ink-soft); stroke-width: 3; stroke-dasharray: 8 6; }
+.map .string { stroke: var(--red); stroke-width: 1.6; }
+.map .pin { fill: var(--red); }
+.map .pin.empty { fill: var(--ink-soft); }
+.map .hq { fill: var(--ink); }
+.map text { font-size: 10.5px; fill: var(--ink); text-anchor: middle; }
+.map text.place { font-weight: bold; letter-spacing: .06em; }
+.map text.out { fill: var(--red); text-anchor: start; text-decoration: line-through; }
+
+body.folder-open .desktop { visibility: hidden; }
+
+/* ---- the folder: opens over the room, the room stays visible around it ---- */
+.folder { display: none; position: absolute; inset: 14px 4% 14px 4%; }
+body.folder-open .folder { display: block; }
+.tabs { display: flex; gap: 8px; height: 34px; padding-left: 20px; }
+.tab { padding: 8px 16px; background: var(--folder-dark); border: 0; border-radius: 8px 8px 0 0; font-size: 12px; letter-spacing: .1em; font-weight: bold; color: var(--ink-soft); }
+.tab.on { background: var(--folder); color: var(--ink); }
+button.tab { margin-left: auto; margin-right: 20px; cursor: pointer; background: var(--ink); color: var(--amber); }
+.intuition { letter-spacing: .15em; color: #a5671a; }
+.pages { background: var(--folder); border-radius: 4px; box-shadow: 0 10px 24px rgba(0,0,0,.6); padding: 16px; height: calc(100% - 34px); overflow: auto;
+  display: grid; grid-template-columns: minmax(360px, 440px) minmax(440px, 1fr) 170px; gap: 14px; align-items: start; }
+.col { display: grid; gap: 14px; }
+.sheet { background: var(--paper); box-shadow: 0 2px 5px rgba(0,0,0,.3); padding: 12px 14px; }
+.sheet.book { background: var(--paper-2); }
+.sheet > header { display: flex; justify-content: space-between; font-size: 11px; letter-spacing: .14em; font-weight: bold; border-bottom: 1px solid var(--paper-dark); padding-bottom: 5px; margin-bottom: 8px; }
+
+/* the signal */
+.dump { font-size: 16px; }
+.dline { display: flex; }
+.cell { flex: 1; height: 1.6em; padding: 0; background: none; border: 0; cursor: pointer; }
+.cell:disabled { cursor: default; color: inherit; }
+.cell.hov { background: var(--paper-dark); }
+.cell.anchor, .cell.anchor.hov { background: var(--amber); font-weight: bold; }
+.cell.lost { color: var(--red); font-weight: bold; }
+.cell.done { font-weight: bold; }
+.cell.done.stray { background: none; color: #a89b76; font-weight: normal; text-decoration: line-through; }
+@keyframes shift { 0% { opacity: .1; transform: translateX(-6px); } 40% { transform: translateX(5px); } 100% { opacity: 1; transform: none; } }
+.dump.shuffled { animation: shift .45s ease-out; }
+
+/* the decoding sheet */
+.frame { font-size: 15px; line-height: 2.1; }
+.blank { display: inline-block; padding: 0 8px; margin: 0 2px; border: 1px dashed #777; font-size: 12px; text-transform: uppercase; line-height: 1.7; }
+.blank.filled { border-style: solid; text-transform: none; font-size: 14.5px; font-weight: bold; }
+@keyframes pop { 0% { box-shadow: 0 0 0 0 #7fbf6a; transform: scale(1.18); } 100% { box-shadow: 0 0 0 14px transparent; transform: scale(1); } }
+.flash { animation: pop .7s ease-out; }
+.status { min-height: 5.4em; font-size: 13px; line-height: 1.4; margin-top: 6px; }
+.status .fb { font-weight: bold; padding: 4px 8px; margin-bottom: 5px; color: #fff; }
+.status .fb.ok { background: var(--green); } .status .fb.bad { background: var(--red); } .status .fb.stray { background: var(--ink-soft); }
+.status.hedge .todo { color: #8a6a1a; }
+.controls, .readrow, .result-actions { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; margin-top: 8px; }
+.controls button, .readrow button, .result-actions button, #hintBtn { padding: 6px 10px; border: 1px solid var(--ink-soft); background: none; cursor: pointer; font-size: 12px; }
+button:disabled { opacity: .4; cursor: default; }
+.readrow .word.on, .readrow .hedge.on { background: var(--ink); color: var(--amber); }
+.readnote { font-size: 12px; margin-top: 8px; background: var(--card); padding: 5px 8px; border-left: 3px solid var(--ink-soft); }
+.send, .result-actions .send { margin-top: 10px; padding: 8px 14px; background: var(--ink); color: var(--amber); border: 0; font-weight: bold; letter-spacing: .08em; cursor: pointer; font-size: 13px; }
+.result-actions .send { margin-top: 0; }
+.result { margin-top: 10px; border-top: 1px solid var(--paper-dark); padding-top: 8px; }
+.message { font-size: 15px; margin: 0 0 8px; font-weight: bold; }
+.message.safe { color: var(--green); } .message.delay { color: #8a6a1a; } .message.harm { color: var(--red); }
+.debrief { font-size: 12px; line-height: 1.5; background: var(--card); padding: 6px 10px; }
+.debrief p { margin: 3px 0; }
+.tag { display: inline-block; padding: 0 6px; font-size: 11px; color: #fff; }
+.tag.correct { background: var(--green); } .tag.hedged { background: #8a6a1a; } .tag.wrong { background: var(--red); }
+
+/* the reply */
+.orderpaper { display: grid; gap: 6px; }
+.orow { display: grid; grid-template-columns: 70px 1fr 64px; gap: 8px; align-items: center; text-align: left; padding: 6px 8px; background: var(--card); border: 1px solid var(--paper-dark); cursor: pointer; font-size: 14px; }
+.orow.sel { outline: 3px solid var(--amber); }
+.orow.done .oword { opacity: .55; }
+.okind { font-size: 10px; text-transform: uppercase; letter-spacing: .08em; text-align: center; padding: 2px 0; }
+.ogroup { font-weight: bold; letter-spacing: .12em; }
+.frame.tape { font-size: 19px; font-weight: bold; letter-spacing: .14em; background: var(--card); padding: 2px 10px; }
+
+/* the code table and the key */
+.keycard { display: grid; gap: 6px; margin-bottom: 8px; }
+.keyhalf { padding: 3px; }
+.keyhalf.live { outline: 2px dashed var(--amber); }
+.kt { font-size: 10px; letter-spacing: .1em; color: var(--ink-soft); margin-bottom: 3px; }
 .kr { display: flex; flex-wrap: wrap; gap: 4px; }
-.kd { display: inline-flex; align-items: center; gap: 4px; border: 1px solid #b9ae8e; border-radius: 3px; padding: 1px 6px; background: #f1ead2; font-size: 14px; }
-.kd b { background: var(--ink); color: var(--amber); border-radius: 2px; padding: 0 5px; }
-.kl { padding: 0 1px; }
-.kl.hit { background: var(--amber); font-weight: bold; box-shadow: 0 0 0 2px var(--amber); }
+.kd { display: inline-flex; align-items: center; gap: 3px; border: 1px solid var(--paper-dark); padding: 1px 5px; background: var(--card); font-size: 14px; }
+.kd b { background: var(--ink); color: var(--amber); padding: 0 5px; }
+.kl { padding: 0 2px; }
+.kl.hit { background: var(--amber); font-weight: bold; }
+.kl.pickable { cursor: pointer; padding: 0 5px; border: 1px solid var(--paper-dark); background: #fff; }
+.kl.pickable:hover { background: var(--amber); }
+.kl.used, .kl.used:hover { background: none; color: #a89b76; text-decoration: line-through; cursor: default; }
+.matrix { width: 100%; border-collapse: collapse; table-layout: fixed; font-size: 11px; }
+.matrix th, .matrix td { border: 1px solid var(--paper-dark); padding: 3px 2px; text-align: center; line-height: 1.15; overflow-wrap: break-word; height: 40px; }
+.matrix th { background: var(--paper-dark); font-size: 14px; height: auto; }
+.matrix th:first-child { width: 24px; }
+.matrix th.hit { background: var(--green); color: #fff; }
 .matrix td { cursor: pointer; }
-.matrix td:hover { outline: 2px solid var(--amber); }
-.matrix td.found { box-shadow: inset 0 0 0 2px #3c7a2a; }
+.matrix td:hover { outline: 2px solid var(--amber); outline-offset: -2px; }
+.matrix td.kind-letter, .matrix td.kind-marker { font-weight: bold; font-size: 13px; }
+.matrix td.kind-service { color: var(--ink-soft); font-style: italic; }
+.matrix td.multi { font-weight: bold; box-shadow: inset 0 0 0 2px #a5671a; }
+.matrix td.tried { background: #cfc8b4; color: var(--red); text-decoration: line-through; }
+.matrix td.gone { background: repeating-linear-gradient(45deg, #ddd5bc, #ddd5bc 4px, #d2c9ad 4px, #d2c9ad 8px); }
+.matrix td.gone, .matrix td.locked { cursor: default; }
+.matrix td.gone:hover, .matrix td.locked:hover { outline: none; }
+.kinds { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 8px; }
+.kindchip { font-size: 10px; padding: 1px 7px; border: 1px solid var(--paper-dark); }
+.howto { margin-top: 8px; font-size: 12px; }
+.howto summary { cursor: pointer; font-weight: bold; letter-spacing: .08em; }
+.steps { margin: 6px 0 0; padding-left: 1.3em; line-height: 1.45; }
+.steps li { margin-bottom: 4px; }
 
-.cell.zed { }
-.cell.lost { color: var(--bad); font-weight: bold; }
-.cell.picked, .cell.anchor { opacity: 1; }
-.cell.picked.zed, .cell.anchor.zed { color: #1a1405; }
-.cell.anchor { background: var(--amber); color: #1a1405; outline: 2px solid #fff3d6; }
-.cell.picked { background: #b98a2f; color: #1a1405; }
-.pick.bad { outline: 3px solid var(--bad); }
-.pick.kind-extra { background: #e4d6d2; }
-.pick { width: 104px; }
-.dline { gap: 0; }
-.dump { padding: 6px 0; }
-.keycard { grid-template-columns: 1fr; }
-.steps { font-size: 12px; }
-@media (max-width: 1250px) {
-  .desk { grid-template-columns: 1fr 1fr; grid-template-areas: "radio key" "board table" "orders table" "crew map" "result result"; }
-}
-@media (max-width: 820px) {
-  .desk { grid-template-columns: 1fr; grid-template-areas: "radio" "key" "board" "table" "orders" "crew" "map" "result"; }
-}
+/* the agent cards */
+.cards ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.cards li { display: flex; gap: 8px; background: var(--card); box-shadow: 0 2px 4px rgba(0,0,0,.3); padding: 6px; font-size: 10.5px; line-height: 1.3; }
+.cards li b { font-size: 12px; letter-spacing: .05em; }
+.cards li.out { color: var(--red); }
+.cards .note { font-size: 9.5px; }
+.photo { flex: none; width: 30px; height: 38px; background: linear-gradient(#8f8672, #5e5747); position: relative; overflow: hidden; }
+.photo::after { content: ""; position: absolute; left: 9px; top: 7px; width: 12px; height: 12px; border-radius: 50%; background: var(--ink); box-shadow: 0 18px 0 7px var(--ink); }
+.hint { font-size: 11px; background: var(--card); border-left: 3px solid var(--amber); padding: 6px 8px; margin: 0; }
+.stamp { justify-self: center; border: 3px solid var(--red); color: var(--red); font-weight: bold; letter-spacing: .14em; padding: 3px 10px; opacity: .7; transform: rotate(-9deg); margin-top: 10px; }
+
+/* ---- the desk: one folder per shift ---- */
+.desktop { padding: 26px 4% 0; }
+.desklabel { color: #b9a77a; font-size: 12px; letter-spacing: .16em; margin-bottom: 18px; }
+.shelf { display: flex; flex-wrap: wrap; gap: 26px; }
+.shift-folder { position: relative; width: 200px; height: 140px; background: var(--folder); border: 0; border-radius: 4px 14px 4px 4px; box-shadow: 0 8px 16px rgba(0,0,0,.55);
+  cursor: pointer; text-align: left; padding: 16px 14px; transform: rotate(-2deg); }
+.shift-folder:nth-child(even) { transform: rotate(1.5deg); }
+.shift-folder:hover:not(:disabled) { transform: translateY(-4px); }
+.shift-folder b { display: block; font-size: 15px; letter-spacing: .1em; border: 2px solid var(--ink); padding: 4px 8px; background: var(--card); }
+.shift-folder .stitle { display: block; margin-top: 8px; font-size: 13px; }
+.shift-folder .sstatus { display: block; margin-top: 4px; font-size: 11px; color: var(--ink-soft); }
+.shift-folder.open { outline: 3px solid var(--amber); }
+.shift-folder.locked, .shift-folder.locked:disabled { opacity: .45; cursor: default; filter: grayscale(.4); }
+.shift-folder .filed { position: absolute; right: 10px; bottom: 12px; font-style: normal; font-weight: bold; font-size: 12px; letter-spacing: .14em; color: var(--red); border: 2px solid var(--red); padding: 1px 6px; transform: rotate(-10deg); opacity: .8; }
+
+/* ---- the signal gives nothing away on hover: one letter at a time ---- */
+.cell:hover:not(:disabled) { background: var(--paper-dark); }
+.cell.anchor:hover:not(:disabled) { background: var(--amber); }
+
+/* ---- folder tabs ---- */
+button.tab { margin: 0; cursor: pointer; }
+button.tab.ask { margin-left: auto; background: var(--card); color: var(--ink); }
+button.tab.close { margin-right: 20px; background: var(--ink); color: var(--amber); }
+
+/* ---- Mr. Pike ---- */
+.advisor { position: fixed; right: 18px; bottom: 18px; z-index: 5; width: 430px; display: flex; gap: 12px; background: var(--card); border: 2px solid var(--ink);
+  box-shadow: 0 10px 24px rgba(0,0,0,.6); padding: 10px 12px; }
+.advisor .avatar { flex: none; width: 76px; height: 90px; border: 2px solid var(--ink); }
+.advisor .who { font-size: 12px; font-weight: bold; letter-spacing: .12em; }
+.advisor .who span { font-weight: normal; letter-spacing: 0; color: var(--ink-soft); margin-left: 6px; }
+.advisor p { margin: 6px 0 8px; font-size: 13px; line-height: 1.45; }
+.advisor-actions { display: flex; gap: 10px; align-items: center; }
+.advisor-actions .send { margin: 0; padding: 5px 12px; }
+.advisor-actions button:not(.send) { background: none; border: 0; text-decoration: underline; cursor: pointer; font-size: 12px; color: var(--ink-soft); }
+.shelf { max-width: calc(100% - 250px); }
+
+/* ---- the game log ---- */
+.logbar { float: right; margin-right: 250px; letter-spacing: .08em; }
+.logbar button { margin-left: 8px; padding: 3px 9px; background: none; border: 1px solid #b9a77a; color: #b9a77a; cursor: pointer; font-size: 11px; }
+.logbar button:hover:not(:disabled) { background: #b9a77a; color: var(--ink); }
 
 </style>
 </head>
 <body>
-  <main class="desk">
-    <section class="panel radio" aria-label="Radio">
-      <header>
-        <span>EXPEDITION RADIO LOG <b id="txId"></b></span>
-        <span id="txTime"></span>
-      </header>
-      <div class="dump" id="dump" aria-label="Received signal"></div>
-      <div class="frame" id="frame" aria-label="Sentence to fill"></div>
-      <div class="status" id="status" aria-live="polite"></div>
-    </section>
+  <main class="room">
+    <div class="wall">
+      <div class="window" aria-hidden="true"></div>
+      <section class="map" id="board" aria-label="Map of the district: where the agents are"></section>
+      <div class="rack" aria-hidden="true"><i></i><i></i><i></i><b></b><i></i><i></i><i></i></div>
+    </div>
+    <div class="lamp" style="left: 30%" aria-hidden="true"></div>
+    <div class="lamp" style="left: 64%" aria-hidden="true"></div>
+    <div class="teletype" aria-hidden="true"></div>
 
-    <section class="panel board" aria-label="Decoding sheet">
-      <header>
-        <span id="boardTitle">DECODING SHEET</span>
-        <span class="intuition" id="intuition" title="Intuition Points"></span>
-      </header>
-      <div id="picks" class="picks"></div>
-      <div id="controls" class="controls"></div>
-      <div id="readBox" class="readbox" hidden></div>
-      <p class="legend" id="legend"></p>
-    </section>
+    <div class="desktop">
+      <div class="desklabel">YOUR DESK — SHIFTS
+        <span class="logbar">GAME LOG: <span id="logCount"></span>
+          <button id="logSave" type="button">Save as JSON</button>
+          <button id="logClear" type="button">Clear</button></span>
+      </div>
+      <div class="shelf" id="shelf" aria-label="Shift folders"></div>
+    </div>
 
-    <section class="panel crew" aria-label="Crew list">
-      <header><span>CREW LIST</span><button id="hintBtn" type="button">Hint</button></header>
-      <ul id="crewList"></ul>
-      <p class="hint" id="hint" hidden></p>
-    </section>
+    <section class="folder" id="folder" aria-label="Case folder">
+      <div class="tabs">
+        <span class="tab on" id="tabLabel"></span>
+        <span class="tab info">INTUITION <span class="intuition" id="intuition" title="Intuition Points"></span></span>
+        <button id="askPike" class="tab ask" type="button">ASK PIKE</button>
+        <button id="closeFolder" class="tab close" type="button">BACK TO THE DESK ✕</button>
+      </div>
+      <div class="pages">
+        <div class="col">
+          <section class="sheet" aria-label="Incoming message">
+            <header><span id="sheetTitle"></span><span id="txTime"></span></header>
+            <div class="dump" id="dump" aria-label="Received signal"></div>
+            <div class="orderpaper" id="orderPaper" hidden></div>
+          </section>
+          <section class="sheet" aria-label="Decoding sheet">
+            <header><span id="boardTitle"></span></header>
+            <div class="frame" id="frame" aria-label="Sentence to fill"></div>
+            <div class="status" id="status" aria-live="polite"></div>
+            <div id="controls" class="controls"></div>
+            <div id="readBox" class="readbox" hidden></div>
+            <button id="sendBtn" type="button" class="send" hidden></button>
+            <div class="result" id="result" hidden>
+              <p class="message" id="message"></p>
+              <div class="debrief" id="debrief"></div>
+              <div class="result-actions">
+                <button id="nextBtn" type="button" class="send"></button>
+                <button id="restartBtn" type="button">Replay this one</button>
+              </div>
+            </div>
+          </section>
+        </div>
 
-    <section class="panel guide" aria-label="How to read">
-      <header><span>TODAY'S KEY</span></header>
-      <div class="keycard" id="keyCard"></div>
-      <ol class="steps">
-        <li><b>Find the groups.</b> A group is the letter <b>Z</b> and the two letters after it. Click a Z to mark it, click a marked group to unmark it. Careful: some Z groups are decoys. The real ones read as a sentence, in order.</li>
-        <li>Ignore the Z. The <b>second</b> letter gives the row (vertical key above), the <b>third</b> gives the column (horizontal key).</li>
-        <li>Click that cell in the table. The word fills its blank; each blank has a colour. A word that does not fit its blank means a decoy: unmark it.</li>
-        <li>A <b>?</b> is a lost letter: the other letter still gives a row or a column. Pick the cell of the right colour in it.</li>
-      </ol>
-      <div class="kinds" id="kinds"></div>
-    </section>
+        <section class="sheet book" aria-label="Code table">
+          <header><span>CODE TABLE</span><span id="keyTitle"></span></header>
+          <div class="keycard" id="keyCard"></div>
+          <div id="codeTable"></div>
+          <div class="kinds" id="kinds"></div>
+          <details class="howto">
+            <summary>How to read</summary>
+            <ol class="steps" id="steps"></ol>
+          </details>
+        </section>
 
-    <section class="panel map" aria-label="Route map">
-      <header><span>ROUTE MAP — GLACIER</span></header>
-      <svg id="map" viewBox="0 0 440 290" role="img" aria-label="Route map"></svg>
-    </section>
-
-    <section class="panel table-sheet" aria-label="Duty radio table">
-      <header><span>DUTY RADIO TABLE — click the cell of the selected group</span></header>
-      <div id="codeTable"></div>
-    </section>
-
-    <section class="panel orders" aria-label="Orders">
-      <header><span>ORDERS (CHOOSE 1 OF 5)</span></header>
-      <div class="order-row" id="orders"></div>
-      <button id="sendBtn" type="button" class="send" disabled>TRANSMIT ORDER</button>
-    </section>
-
-    <section class="panel result" id="result" aria-label="Next transmission" hidden>
-      <header><span>NEXT TRANSMISSION</span><span id="resultTime"></span></header>
-      <p class="message" id="message"></p>
-      <div class="debrief" id="debrief"></div>
-      <div class="result-actions">
-        <button id="nextBtn" type="button" class="send">NEXT TRANSMISSION ▸</button>
-        <button id="restartBtn" type="button">Replay this transmission</button>
-        <button id="restartAllBtn" type="button">Restart from the first</button>
+        <div class="col cards" aria-label="Agents">
+          <ul id="crewList"></ul>
+          <div class="stamp" aria-hidden="true">SECRET</div>
+        </div>
       </div>
     </section>
+
+    <aside class="advisor" id="advisor" aria-live="polite" hidden>
+      <svg class="avatar" viewBox="0 0 64 76" role="img" aria-label="Mr. Pike">
+        <rect width="64" height="76" fill="#cbbd92"/>
+        <path d="M6 76c0-16 10-24 26-24s26 8 26 24z" fill="#2b261c"/>
+        <path d="M27 50h10l-5 12z" fill="#ece2c4"/>
+        <ellipse cx="32" cy="32" rx="14" ry="17" fill="#d9b991"/>
+        <path d="M17 26c2-11 9-15 15-15s13 4 15 15c-9-4-21-4-30 0z" fill="#6a5f48"/>
+        <path d="M13 27c12-6 26-6 38 0l2 4c-13-5-29-5-42 0z" fill="#2f5a3f"/>
+        <circle cx="25" cy="35" r="5" fill="none" stroke="#2b261c" stroke-width="1.6"/>
+        <circle cx="39" cy="35" r="5" fill="none" stroke="#2b261c" stroke-width="1.6"/>
+        <path d="M30 35h4" stroke="#2b261c" stroke-width="1.6"/>
+        <path d="M24 43c4-3 12-3 16 0-4 2-12 2-16 0z" fill="#4a3523"/>
+      </svg>
+      <div class="says">
+        <div class="who">MR. PIKE <span>head of the cipher room</span></div>
+        <p id="advice"></p>
+        <div class="advisor-actions">
+          <button id="adviceOk" type="button" class="send">GOT IT</button>
+          <button id="adviceSkip" type="button">Skip his advice</button>
+        </div>
+      </div>
+    </aside>
   </main>
   <script type="module">
-window.__ACT__ = {"crew":[{"id":"01","role":"Leader","location":"CP4","status":"ok","note":""},{"id":"02","role":"Navigator","location":"CP4","status":"ok","note":""},{"id":"03","role":"Medic","location":"CP4","status":"ok","note":""},{"id":"04","role":"Repair tech","location":"CP3","status":"injured","note":"injured last message, stayed at CP3"},{"id":"05","role":"Geologist","location":"CP4","status":"ok","note":""},{"id":"06","role":"Climber","location":"CP4","status":"ok","note":""},{"id":"07","role":"Climber","location":"CP4","status":"ok","note":""},{"id":"08","role":"Porter","location":"CP4","status":"ok","note":""},{"id":"09","role":"Porter","location":"CP4","status":"ok","note":""},{"id":"10","role":"Cook","location":"CP4","status":"ok","note":""}],"map":{"points":[{"id":"BASE","x":60,"y":250},{"id":"CP1","x":130,"y":190},{"id":"CP2","x":210,"y":215},{"id":"CP3","x":290,"y":150},{"id":"CP4","x":380,"y":100}]},"matrix":{"rows":"0123456789","cols":"0123456789","cells":{"10":{"kind":"action","text":"climbed","meanings":["climbed"]},"11":{"kind":"service","text":"understood","meanings":["understood"]},"12":{"kind":"thing","text":"tent","meanings":["tent"]},"13":{"kind":"thing","text":"sample","meanings":["sample"]},"14":{"kind":"letter","text":"G","meanings":["G"]},"15":{"kind":"thing","text":"boots","meanings":["boots"]},"16":{"kind":"action","text":"found","meanings":["found"]},"17":{"kind":"thing","text":"food","meanings":["food"]},"18":{"kind":"who","text":"team","meanings":["team"]},"19":{"kind":"letter","text":"O","meanings":["O"]},"20":{"kind":"state","text":"snowing","meanings":["snowing"]},"21":{"kind":"action","text":"resting","meanings":["resting"]},"22":{"kind":"state","text":"ready","meanings":["ready"]},"23":{"kind":"marker","text":"spell","meanings":["spell"]},"24":{"kind":"place","text":"cave","meanings":["cave"]},"25":{"kind":"place","text":"summit","meanings":["summit"]},"26":{"kind":"state","text":"broken / repaired","meanings":["broken","repaired"]},"27":{"kind":"thing","text":"fuel","meanings":["fuel"]},"28":{"kind":"action","text":"moving","meanings":["moving"]},"29":{"kind":"place","text":"CP4","meanings":["CP4"]},"30":{"kind":"letter","text":"J","meanings":["J"]},"31":{"kind":"thing","text":"gloves","meanings":["gloves"]},"32":{"kind":"state","text":"hungry","meanings":["hungry"]},"33":{"kind":"action","text":"left","meanings":["left"]},"34":{"kind":"who","text":"guide","meanings":["guide"]},"35":{"kind":"letter","text":"Z","meanings":["Z"]},"36":{"kind":"state","text":"wet","meanings":["wet"]},"37":{"kind":"action","text":"searching","meanings":["searching"]},"38":{"kind":"action","text":"waiting","meanings":["waiting"]},"39":{"kind":"letter","text":"S","meanings":["S"]},"40":{"kind":"action","text":"returning","meanings":["returning"]},"41":{"kind":"place","text":"CP2","meanings":["CP2"]},"42":{"kind":"letter","text":"T","meanings":["T"]},"43":{"kind":"letter","text":"W","meanings":["W"]},"44":{"kind":"letter","text":"N","meanings":["N"]},"45":{"kind":"letter","text":"Y","meanings":["Y"]},"46":{"kind":"service","text":"stand by","meanings":["stand by"]},"47":{"kind":"thing","text":"rope","meanings":["rope"]},"48":{"kind":"letter","text":"M","meanings":["M"]},"49":{"kind":"thing","text":"blanket","meanings":["blanket"]},"50":{"kind":"marker","text":"number","meanings":["number"]},"51":{"kind":"letter","text":"V","meanings":["V"]},"52":{"kind":"who","text":"leader","meanings":["leader"]},"53":{"kind":"thing","text":"sled","meanings":["sled"]},"54":{"kind":"action","text":"camped","meanings":["camped"]},"55":{"kind":"letter","text":"K","meanings":["K"]},"56":{"kind":"letter","text":"H","meanings":["H"]},"57":{"kind":"who","text":"porter","meanings":["porter"]},"58":{"kind":"thing","text":"bridge","meanings":["bridge"]},"59":{"kind":"letter","text":"B","meanings":["B"]},"60":{"kind":"letter","text":"X","meanings":["X"]},"61":{"kind":"thing","text":"radio","meanings":["radio"]},"62":{"kind":"service","text":"radio check","meanings":["radio check"]},"63":{"kind":"letter","text":"D","meanings":["D"]},"64":{"kind":"place","text":"CP3","meanings":["CP3"]},"65":{"kind":"letter","text":"F","meanings":["F"]},"66":{"kind":"thing","text":"tarp","meanings":["tarp"]},"67":{"kind":"letter","text":"Q","meanings":["Q"]},"68":{"kind":"state","text":"low battery","meanings":["low battery"]},"69":{"kind":"state","text":"injured","meanings":["injured"]},"70":{"kind":"place","text":"valley","meanings":["valley"]},"71":{"kind":"letter","text":"R","meanings":["R"]},"72":{"kind":"thing","text":"compass","meanings":["compass"]},"73":{"kind":"service","text":"no reply","meanings":["no reply"]},"74":{"kind":"place","text":"CP1","meanings":["CP1"]},"75":{"kind":"action","text":"reached","meanings":["reached"]},"76":{"kind":"letter","text":"U","meanings":["U"]},"77":{"kind":"thing","text":"flare","meanings":["flare"]},"78":{"kind":"place","text":"glacier","meanings":["glacier"]},"79":{"kind":"action","text":"crossed","meanings":["crossed"]},"80":{"kind":"place","text":"pass","meanings":["pass"]},"81":{"kind":"thing","text":"camp","meanings":["camp"]},"82":{"kind":"letter","text":"A","meanings":["A"]},"83":{"kind":"who","text":"member","meanings":["member"]},"84":{"kind":"letter","text":"C","meanings":["C"]},"85":{"kind":"place","text":"river","meanings":["river"]},"86":{"kind":"place","text":"south ridge","meanings":["south ridge"]},"87":{"kind":"thing","text":"ice axe","meanings":["ice axe"]},"88":{"kind":"letter","text":"L","meanings":["L"]},"89":{"kind":"place","text":"hut","meanings":["hut"]},"90":{"kind":"action","text":"stopped","meanings":["stopped"]},"91":{"kind":"service","text":"over","meanings":["over"]},"92":{"kind":"place","text":"slope","meanings":["slope"]},"93":{"kind":"letter","text":"P","meanings":["P"]},"94":{"kind":"place","text":"camp site","meanings":["camp site"]},"95":{"kind":"state","text":"tired","meanings":["tired"]},"96":{"kind":"place","text":"ridge","meanings":["ridge"]},"97":{"kind":"service","text":"out","meanings":["out"]},"98":{"kind":"action","text":"descending","meanings":["descending"]},"99":{"kind":"state","text":"lost","meanings":["lost"]},"00":{"kind":"state","text":"windy","meanings":["windy"]},"01":{"kind":"who","text":"medic","meanings":["medic"]},"02":{"kind":"state","text":"cold","meanings":["cold"]},"03":{"kind":"thing","text":"map","meanings":["map"]},"04":{"kind":"state","text":"safe","meanings":["safe"]},"05":{"kind":"letter","text":"E","meanings":["E"]},"06":{"kind":"letter","text":"I","meanings":["I"]},"07":{"kind":"place","text":"base","meanings":["base"]},"08":{"kind":"thing","text":"stove","meanings":["stove"]},"09":{"kind":"service","text":"say again","meanings":["say again"]}}},"transmissions":[{"id":"T01-bridge","time":"14:32","slots":["who","place","action","thing","state"],"cipher":["18","29","75","58","26"],"clauses":[{"pattern":"The {0} {2} {1}."},{"pattern":"The {3} is {4}."}],"truth":{"4":"broken"},"hint":"No one on the team can repair the bridge now: the only repair tech (04) is injured and stayed at CP3. So the bridge can only be broken.","outcomes":{"continue":{"severity":"harm","text":"The bridge collapsed. One member injured.","crew":[{"id":"06","status":"injured","note":"injured in the bridge collapse"}],"nearMiss":"We stopped at the bridge. Something felt wrong. No one crossed."},"wait":{"severity":"safe","text":"All safe. Looking for another route.","crew":[]},"back":{"severity":"delay","text":"Back at CP3. We lost half a day, but everyone is safe.","crew":[]},"hurry":{"severity":"harm","text":"We rushed the crossing. The bridge gave way. Two members injured.","crew":[{"id":"06","status":"injured","note":"injured in the bridge collapse"},{"id":"08","status":"injured","note":"injured in the bridge collapse"}],"nearMiss":"We started to rush, then stopped at the edge. No one hurt."},"base":{"severity":"delay","text":"Returning to base. The route is abandoned for now.","crew":[]}},"key":{"rows":["HKO","ERS","DNV","QU","CGW","JL","BM","FI","AX","PTY"],"cols":["GST","CO","FW","BMN","IJQ","PU","ALY","EKV","DH","RX"]},"cols":12,"dump":["S","M","T","B","J","Z","D","Q","G","Z","S","H","G","I","Z","D","R","F","O","K","Y","E","I","V","P","R","Z","U","F","Y","W","X","R","I","C","M","O","R","Z","F","U","S","E","A","X","Z","L","H","L","R","I","L","J","C","F","A","K","Z","N","L","J","R","M","X","X","L","P","Q","O","L","A","B","P","Q","E","A","R","Q","P","H","A","S","H","Q"],"real":[9,14,38,45,57],"damaged":{}},{"id":"T02-member","time":"15:41","slots":["who","marker","number","state","place"],"cipher":["83","50","06","69","29"],"clauses":[{"pattern":"The {0} {2} is {3} at {4}."}],"truth":{},"hint":"The number marker says the next pair is a number: 06 is a crew ID (a climber). The decoys are other phrases that would also fit, so use the Likeness count.","outcomes":{"continue":{"severity":"harm","text":"We pushed on. 06 is getting worse. We have to stop.","crew":[{"id":"06","status":"injured","note":"injured, worsening"}],"nearMiss":"We started to move, then stopped. 06 is being treated."},"wait":{"severity":"safe","text":"Medic is with 06. Stable. We rest here.","crew":[{"id":"06","status":"injured","note":"injured, stable at CP4"}]},"back":{"severity":"delay","text":"Carrying 06 back to CP3. It is slow.","crew":[{"id":"06","status":"injured","note":"being carried back"}]},"hurry":{"severity":"harm","text":"Hurrying with an injured man. 06 fell. It is bad.","crew":[{"id":"06","status":"injured","note":"injured, serious"}],"nearMiss":"We almost hurried. We slowed down for 06."},"base":{"severity":"delay","text":"Evacuating 06 to base. The team is following.","crew":[{"id":"06","status":"injured","note":"evacuating to base"}]}},"key":{"rows":["BHM","LOR","ADT","JUY","EQ","FK","NX","IV","GS","CPW"],"cols":["FIW","GMR","KUV","PS","BO","CT","EHQ","DN","XY","AJL"]},"cols":12,"dump":["X","T","F","P","A","Z","G","?","O","L","I","U","V","Q","H","A","Z","W","G","B","Z","F","W","Y","Q","Z","B","Q","S","N","T","D","U","F","X","S","Z","R","A","R","Z","N","J","J","K","Q","Q","B","Z","D","L","Y","K","F","I","G","G","H","M","N","Z","H","K","Q","V","L","O","S","N","K","W","G","S","U","F","H","C","S","G","H","N","G","G","V"],"real":[5,20,25,40,48],"damaged":{"7":"S"}},{"id":"T03-hut","time":"17:05","slots":["who","action","marker","letter","letter","letter"],"cipher":["18","16","23","56","76","42"],"clauses":[{"pattern":"The {0} {1}: {3}{4}{5}."}],"truth":{},"hint":"After the spell marker the letters follow one by one. The other spelling follows a number marker, so it is not a spelled word.","outcomes":{"continue":{"severity":"harm","text":"We went past the hut. The weather turned. One frostbitten.","crew":[{"id":"07","status":"injured","note":"frostbite"}],"nearMiss":"We almost went past the hut. We turned back and sheltered."},"wait":{"severity":"safe","text":"We are in the hut. Warm. Waiting out the weather.","crew":[]},"back":{"severity":"delay","text":"Back toward CP3. We will lose the hut.","crew":[]},"hurry":{"severity":"harm","text":"We hurried past the hut into the storm. Two frostbitten.","crew":[{"id":"07","status":"injured","note":"frostbite"},{"id":"09","status":"injured","note":"frostbite"}],"nearMiss":"We almost hurried on. We stopped at the hut instead."},"base":{"severity":"delay","text":"Returning to base. We leave the hut behind.","crew":[]}},"key":{"rows":["BG","AD","HOQ","KRU","ISV","ET","CXY","MN","FW","JLP"],"cols":["JL","EO","FS","CX","HMT","KRV","ADY","GNP","IQ","BUW"]},"cols":12,"dump":["A","K","G","P","O","Q","X","E","Z","G","R","M","H","Z","D","G","Z","W","R","Z","D","Q","P","O","Z","Y","T","P","Q","Z","?","D","G","H","H","T","Z","O","C","S","R","Z","T","Y","F","S","B","F","Z","N","D","B","X","S","I","T","M","Z","V","F","K","G","T","H","V","U","K","U","F","X","R","V","N","J","E","G","S","C","W","L","T","A","L","U"],"real":[19,29,36,41,48,57],"damaged":{"30":"D"}}]};
+window.__ACT__ = {"crew":[{"id":"01","name":"FINCH","role":"Courier","location":"Harbour","status":"ok","note":""},{"id":"02","name":"HERON","role":"Resident","location":"Embassy","status":"ok","note":""},{"id":"03","name":"WREN","role":"Radio operator","location":"Safe house","status":"ok","note":""},{"id":"04","name":"CROW","role":"Watcher","location":"Unknown","status":"arrested","note":"arrested last night; knew the harbour dead drop"},{"id":"05","name":"ROOK","role":"Watcher","location":"Border","status":"ok","note":""},{"id":"06","name":"SWIFT","role":"Pickup man","location":"Station","status":"ok","note":""},{"id":"07","name":"DOVE","role":"Contact","location":"Border","status":"ok","note":""},{"id":"08","name":"KITE","role":"Driver","location":"Hotel","status":"ok","note":""},{"id":"09","name":"LARK","role":"Cipher clerk","location":"Embassy","status":"ok","note":""},{"id":"10","name":"OWL","role":"Informer","location":"Market","status":"ok","note":""}],"matrix":{"rows":"0123456789","cols":"0123456789","cells":{"10":{"kind":"letter","text":"L","meanings":["L"]},"11":{"kind":"letter","text":"D","meanings":["D"]},"12":{"kind":"letter","text":"M","meanings":["M"]},"13":{"kind":"state","text":"watched","meanings":["watched"]},"14":{"kind":"place","text":"market","meanings":["market"]},"15":{"kind":"state","text":"unharmed","meanings":["unharmed"]},"16":{"kind":"letter","text":"B","meanings":["B"]},"17":{"kind":"action","text":"met the contact","meanings":["met the contact"]},"18":{"kind":"who","text":"double agent","meanings":["double agent"]},"19":{"kind":"who","text":"driver","meanings":["driver"]},"20":{"kind":"marker","text":"number","meanings":["number"]},"21":{"kind":"who","text":"patrol","meanings":["patrol"]},"22":{"kind":"result","text":"operation continues","meanings":["operation continues"]},"23":{"kind":"action","text":"lost the tail","meanings":["lost the tail"]},"24":{"kind":"place","text":"park","meanings":["park"]},"25":{"kind":"letter","text":"Y","meanings":["Y"]},"26":{"kind":"action","text":"saw the patrol","meanings":["saw the patrol"]},"27":{"kind":"letter","text":"I","meanings":["I"]},"28":{"kind":"state","text":"burned / clean","meanings":["burned","clean"]},"29":{"kind":"letter","text":"N","meanings":["N"]},"30":{"kind":"who","text":"stranger","meanings":["stranger"]},"31":{"kind":"letter","text":"W","meanings":["W"]},"32":{"kind":"place","text":"cafe","meanings":["cafe"]},"33":{"kind":"result","text":"awaiting orders","meanings":["awaiting orders"]},"34":{"kind":"action","text":"burned the papers","meanings":["burned the papers"]},"35":{"kind":"letter","text":"P","meanings":["P"]},"36":{"kind":"result","text":"next contact in two days","meanings":["next contact in two days"]},"37":{"kind":"marker","text":"spell","meanings":["spell"]},"38":{"kind":"letter","text":"H","meanings":["H"]},"39":{"kind":"letter","text":"A","meanings":["A"]},"40":{"kind":"who","text":"informer","meanings":["informer"]},"41":{"kind":"action","text":"waited in vain","meanings":["waited in vain"]},"42":{"kind":"place","text":"hotel","meanings":["hotel"]},"43":{"kind":"result","text":"meeting cancelled","meanings":["meeting cancelled"]},"44":{"kind":"state","text":"quiet","meanings":["quiet"]},"45":{"kind":"letter","text":"K","meanings":["K"]},"46":{"kind":"letter","text":"R","meanings":["R"]},"47":{"kind":"state","text":"closed","meanings":["closed"]},"48":{"kind":"action","text":"crossed over","meanings":["crossed over"]},"49":{"kind":"result","text":"send no one","meanings":["send no one"]},"50":{"kind":"state","text":"lost","meanings":["lost"]},"51":{"kind":"result","text":"switching to backup","meanings":["switching to backup"]},"52":{"kind":"who","text":"source","meanings":["source"]},"53":{"kind":"action","text":"picked up the package","meanings":["picked up the package"]},"54":{"kind":"state","text":"exposed","meanings":["exposed"]},"55":{"kind":"state","text":"arrested / free","meanings":["arrested","free"]},"56":{"kind":"place","text":"bridge","meanings":["bridge"]},"57":{"kind":"service","text":"over","meanings":["over"]},"58":{"kind":"service","text":"end of message","meanings":["end of message"]},"59":{"kind":"place","text":"embassy","meanings":["embassy"]},"60":{"kind":"action","text":"sent the film","meanings":["sent the film"]},"61":{"kind":"action","text":"changed the route","meanings":["changed the route"]},"62":{"kind":"who","text":"radio operator","meanings":["radio operator"]},"63":{"kind":"letter","text":"C","meanings":["C"]},"64":{"kind":"action","text":"was followed","meanings":["was followed"]},"65":{"kind":"place","text":"airfield","meanings":["airfield"]},"66":{"kind":"result","text":"going silent","meanings":["going silent"]},"67":{"kind":"action","text":"missed the meeting","meanings":["missed the meeting"]},"68":{"kind":"letter","text":"S","meanings":["S"]},"69":{"kind":"place","text":"harbour","meanings":["harbour"]},"70":{"kind":"who","text":"resident","meanings":["resident"]},"71":{"kind":"letter","text":"G","meanings":["G"]},"72":{"kind":"letter","text":"X","meanings":["X"]},"73":{"kind":"place","text":"station","meanings":["station"]},"74":{"kind":"letter","text":"O","meanings":["O"]},"75":{"kind":"place","text":"church","meanings":["church"]},"76":{"kind":"who","text":"watcher","meanings":["watcher"]},"77":{"kind":"state","text":"intact","meanings":["intact"]},"78":{"kind":"who","text":"contact","meanings":["contact"]},"79":{"kind":"service","text":"understood","meanings":["understood"]},"80":{"kind":"action","text":"was stopped","meanings":["was stopped"]},"81":{"kind":"who","text":"courier","meanings":["courier"]},"82":{"kind":"letter","text":"U","meanings":["U"]},"83":{"kind":"result","text":"needs new papers","meanings":["needs new papers"]},"84":{"kind":"letter","text":"Q","meanings":["Q"]},"85":{"kind":"letter","text":"V","meanings":["V"]},"86":{"kind":"action","text":"left the package","meanings":["left the package"]},"87":{"kind":"service","text":"say again","meanings":["say again"]},"88":{"kind":"letter","text":"E","meanings":["E"]},"89":{"kind":"place","text":"warehouse","meanings":["warehouse"]},"90":{"kind":"state","text":"guarded / empty","meanings":["guarded","empty"]},"91":{"kind":"letter","text":"F","meanings":["F"]},"92":{"kind":"result","text":"needs money","meanings":["needs money"]},"93":{"kind":"place","text":"post office","meanings":["post office"]},"94":{"kind":"state","text":"secure","meanings":["secure"]},"95":{"kind":"place","text":"border","meanings":["border"]},"96":{"kind":"service","text":"radio check","meanings":["radio check"]},"97":{"kind":"letter","text":"J","meanings":["J"]},"98":{"kind":"state","text":"wounded","meanings":["wounded"]},"99":{"kind":"result","text":"will try again","meanings":["will try again"]},"00":{"kind":"letter","text":"Z","meanings":["Z"]},"01":{"kind":"result","text":"requests extraction","meanings":["requests extraction"]},"02":{"kind":"who","text":"cipher clerk","meanings":["cipher clerk"]},"03":{"kind":"letter","text":"T","meanings":["T"]},"04":{"kind":"service","text":"out","meanings":["out"]},"05":{"kind":"action","text":"was searched","meanings":["was searched"]},"06":{"kind":"service","text":"stand by","meanings":["stand by"]},"07":{"kind":"service","text":"no reply","meanings":["no reply"]},"08":{"kind":"result","text":"awaiting pickup","meanings":["awaiting pickup"]},"09":{"kind":"place","text":"safe house","meanings":["safe house"]}}},"shifts":[{"title":"First night","briefing":[],"transmissions":[{"id":"S1-M1","time":"06:40","slots":["who","place","action","state","result"],"cipher":["40","14","64","15","99"],"clauses":[{"pattern":"The {0} at the {1} {2}."},{"pattern":"Status: {3}."},{"pattern":"Next: {4}."}],"truth":{},"hint":"","key":{"rows":["HKO","ERS","DNV","QU","CGW","JL","BM","FI","AX","PTY"],"cols":["GST","CO","FW","BMN","IJQ","PU","ALY","EKV","DH","RX"]},"cols":16,"dump":["N","V","V","C","E","Y","K","S","K","G","B","W","Y","N","O","J","Q","K","Y","P","C","F","A","T","Z","C","S","W","C","U","C","F","H","G","C","K","W","F","U","A","R","W","Z","B","Q","N","N","U","X","D","J","V","Y","Y","O","B","I","E","C","I","Z","S","U","H","Q","W","U","U","U","O","Z","A","Q","I","C","C","J","D","O","Y","F","S","C","M","D","H","J","C","T","E","C","W","A","O","T","R","P","E","T","Z","R","J","H","S","J","A","A","A","L","S","C","E","B","Q","R","B","C","Z","S","W","O","O","O","O","K","H","S","G","V","M","Z","Q","U","A","T","G","P","N","K","S","J","T","D","O","G","F","J","P","Z","T","R","Q","D","J","N","V","D","P","S","Q"],"real":[24,99,42,60,148],"strayCipher":["35","84","12"],"stray":[130,70,117],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S1-M2","time":"08:05","slots":["who","place","action","state","result"],"cipher":["76","95","26","44","22"],"clauses":[{"pattern":"The {0} at the {1} {2}."},{"pattern":"Status: {3}."},{"pattern":"Next: {4}."}],"truth":{},"hint":"","key":{"rows":["BHM","LOR","ADT","JUY","EQ","FK","NX","IV","GS","CPW"],"cols":["FIW","GMR","KUV","PS","BO","CT","EHQ","DN","XY","AJL"]},"cols":16,"dump":["F","P","U","V","X","C","P","W","Z","O","K","G","F","E","J","Y","D","V","S","E","Q","Y","L","Z","I","Q","T","S","U","Z","A","U","C","K","L","R","Z","K","N","Y","Z","Q","B","W","E","F","P","P","F","K","Z","C","C","A","E","A","N","A","J","V","T","Y","N","E","Y","K","P","F","W","K","D","L","P","A","Y","M","Y","Y","Y","I","A","Y","O","N","E","S","S","Z","D","N","S","C","C","R","O","N","V","F","D","H","P","F","M","H","E","C","A","Y","P","N","Y","V","C","P","K","B","P","A","Q","A","V","X","U","G","E","M","U","N","B","G","K","Z","A","E","S","E","R","K","M","F","C","P","O","V","N","F","V","I","O","D","G","O","F","L","W","I","L","I","W","W"],"real":[23,50,131,40,29],"strayCipher":["12","27","57"],"stray":[8,87,36],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S1-M3","time":"11:15","slots":["place","who","action","result","state"],"cipher":["42","19","23","33","94"],"clauses":[{"pattern":"At the {0} the {1} {2}."},{"pattern":"Next: {3}."},{"pattern":"Status: {4}."}],"truth":{},"hint":"","key":{"rows":["BG","AD","HOQ","KRU","ISV","ET","CXY","MN","FW","JLP"],"cols":["JL","EO","FS","CX","HMT","KRV","ADY","GNP","IQ","BUW"]},"cols":16,"dump":["P","E","Q","C","Y","O","I","Z","Q","X","M","U","W","F","P","Y","S","H","B","Z","A","B","B","Z","B","M","E","G","J","W","Y","S","T","A","O","O","O","G","C","F","A","H","T","Y","K","Y","X","R","U","X","Z","K","C","X","R","M","Q","J","X","Z","R","B","L","O","J","G","H","U","F","I","Q","X","E","Y","D","U","N","F","E","D","P","C","W","E","Z","?","F","S","T","P","U","B","Y","M","U","X","H","Q","Z","L","T","G","J","F","H","R","B","Q","P","J","D","W","U","Z","T","P","X","E","E","J","Y","G","C","W","D","Y","S","V","O","W","S","B","I","W","R","F","Y","T","G","J","A","D","H","R","K","A","C","X","A","O","D","M","K","A","W","C","M","Q","G","B"],"real":[84,19,7,50,98],"strayCipher":["04","39","57"],"stray":[23,59,113],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S1-M4","time":"15:30","slots":["state","who","action","place","result"],"cipher":["54","70","34","59","66"],"clauses":[{"pattern":"Status: {0}."},{"pattern":"The {1} {2} at the {3}."},{"pattern":"Next: {4}."}],"truth":{},"hint":"","key":{"rows":["VY","BI","CW","DJM","AES","GX","HLO","FP","RTU","KNQ"],"cols":["KT","BEU","LP","DJ","COR","FV","NSW","GHY","AQX","IM"]},"cols":16,"dump":["N","T","R","K","U","Y","B","D","M","B","E","P","E","R","W","N","U","S","H","Q","I","I","I","F","B","X","H","R","P","W","N","W","W","M","M","X","C","Z","C","M","D","D","X","Y","K","D","C","T","Z","?","I","Y","O","Y","B","L","I","U","E","S","Q","C","T","S","T","W","C","V","Z","G","R","J","O","T","L","P","P","I","N","E","N","A","O","I","Z","D","O","Q","G","B","S","Z","F","O","W","X","O","K","S","Q","B","E","P","G","W","W","E","S","A","D","O","M","Y","T","J","F","S","E","Z","H","N","G","W","A","U","A","Q","J","U","U","O","F","N","B","G","A","P","Z","P","T","D","Y","T","F","L","Q","W","Z","K","N","T","D","H","M","C","N","O","F","L","R"],"real":[68,137,84,48,118],"strayCipher":["96","74","29"],"stray":[147,91,37],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S1-M5","time":"19:50","slots":["place","who","action","result","state"],"cipher":["69","81","86","08","28"],"clauses":[{"pattern":"At the {0} the {1} {2}."},{"pattern":"Next: {3}."},{"pattern":"Status: {4}."}],"truth":{"4":"burned"},"hint":"CROW (04) was arrested last night and knew the harbour dead drop. A site an arrested agent knows cannot be clean: it is burned.","key":{"rows":["FMY","CQ","PR","GI","BJO","DH","EU","KNX","LSV","ATW"],"cols":["BL","HKX","DGQ","CIU","PV","AET","WY","JM","OR","FNS"]},"cols":16,"dump":["N","E","M","W","U","Z","Y","O","P","C","M","F","D","K","N","J","V","S","H","A","M","N","V","X","P","K","K","J","Z","R","O","S","M","L","F","C","A","K","L","L","A","L","W","P","Z","Y","U","S","V","E","N","T","J","R","M","B","Z","I","O","E","U","H","F","Y","L","V","N","P","X","U","F","L","B","H","Z","D","R","U","V","R","Y","G","M","E","W","J","F","S","J","Y","Z","?","N","W","W","P","J","F","F","Y","C","P","Q","S","F","C","D","C","P","J","K","S","P","I","V","M","Z","L","Y","Q","H","R","D","W","E","G","B","D","G","F","G","T","S","D","R","M","D","J","L","S","K","E","D","K","K","U","G","S","G","L","R","V","C","I","Q","P","Z","V","H","N"],"real":[90,156,116,5,28],"strayCipher":["38","03","58"],"stray":[56,44,74],"outcomes":{"correct":{"severity":"safe","text":"Command kept everyone away from the harbour. Two men in a parked car waited there all night.","crew":[]},"hedged":{"severity":"delay","text":"Command got both readings and chose to wait. A day lost, nobody caught.","crew":[]},"wrong":{"severity":"harm","text":"Command read the site as clean and sent the pickup man. He was arrested at the harbour.","crew":[{"id":"06","status":"arrested","note":"arrested at the harbour"}]}}}],"reply":{"time":"23:59","slots":["who","place","action","state","result"],"cipher":["78","09","61","94","36"],"key":{"rows":["BV","FHX","CL","TW","EQ","IJN","KPS","GU","DMY","AOR"],"cols":["LQY","IX","FH","EU","BGO","DV","JRS","AM","CKW","NPT"]}}},{"title":"The border","briefing":[{"id":"08","note":"phoned in from the hotel after the checkpoint"}],"transmissions":[{"id":"S2-M1","time":"05:20","slots":["state","who","action","place","result"],"cipher":["98","78","48","95","01"],"clauses":[{"pattern":"Status: {0}."},{"pattern":"The {1} {2} at the {3}."},{"pattern":"Next: {4}."}],"truth":{},"hint":"","key":{"rows":["LMS","KTU","AOP","DE","GQR","CHV","IW","JX","BN","FY"],"cols":["ACW","LST","EK","DGI","JO","BHR","NU","MP","FVX","QY"]},"cols":16,"dump":["K","U","D","H","J","Q","D","G","L","Y","B","H","K","B","G","B","Q","G","Z","X","V","I","F","U","L","D","Z","F","M","Y","E","O","X","Z","P","M","L","J","H","K","K","P","M","M","T","Z","D","Y","C","A","G","V","S","S","H","D","W","A","T","R","Q","T","D","C","R","I","E","A","E","N","T","J","M","F","U","J","Q","Z","M","S","J","V","A","A","Y","I","G","Z","Y","X","J","R","M","N","E","U","S","N","H","X","U","W","H","M","V","S","A","B","M","A","I","F","F","Z","?","H","K","V","P","T","L","H","T","V","R","F","J","C","B","V","I","O","X","G","R","V","J","A","O","J","Z","Q","X","K","V","F","V","U","I","V","N","M","W","S","V","H","Z","U","E","L"],"real":[87,18,140,113,77],"strayCipher":["39","27","97","12"],"stray":[45,33,26,156],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S2-M2","time":"09:45","slots":["who","action","place","result","state"],"cipher":["40","26","14","43","13"],"clauses":[{"pattern":"The {0} {1}."},{"pattern":"Place: the {2}."},{"pattern":"Next: {3}."},{"pattern":"Status: {4}."}],"truth":{},"hint":"","key":{"rows":["BC","HV","MNU","QW","FIP","XY","GOT","AK","DJL","ERS"],"cols":["HM","JK","IY","BEP","AC","QW","DFG","LSX","NOV","RTU"]},"cols":16,"dump":["O","W","X","Y","Q","M","C","P","L","J","N","L","Z","P","H","C","S","U","N","H","P","A","E","B","X","A","M","Z","P","B","V","R","J","H","T","G","R","D","D","G","Q","F","R","A","G","Z","L","N","L","E","B","N","F","E","O","Z","?","A","A","J","K","A","A","F","V","G","N","K","T","W","V","Z","H","G","B","Q","P","Q","C","J","A","H","Z","P","D","I","U","O","M","F","I","G","O","A","B","L","Q","E","O","X","B","K","K","E","U","N","Z","H","P","I","N","E","W","F","W","W","S","X","Y","K","J","Z","N","F","V","E","O","X","C","I","I","F","A","P","I","S","E","N","A","X","V","W","M","E","S","O","S","K","C","J","C","V","P","B","Z","W","Q","B","U","S"],"real":[12,121,55,27,106],"strayCipher":["16","46","88","35"],"stray":[71,82,45,154],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S2-M3","time":"12:10","slots":["result","state","who","action","place"],"cipher":["36","77","62","60","09"],"clauses":[{"pattern":"Next: {0}."},{"pattern":"Status: {1}."},{"pattern":"The {2} {3} at the {4}."}],"truth":{},"hint":"","key":{"rows":["HP","IO","JKQ","NX","ET","ACS","LMR","BY","DVW","FGU"],"cols":["CI","LMN","BGT","RVY","ESX","AQ","OW","FJ","DP","HKU"]},"cols":16,"dump":["E","O","U","M","U","T","T","S","X","P","P","Z","W","S","J","S","C","C","C","B","M","Z","H","Y","B","M","O","Z","R","T","J","P","Z","E","Q","R","H","L","W","O","H","P","B","T","P","C","O","K","Z","N","W","S","I","M","F","I","Y","Y","U","Q","P","Y","S","C","N","X","U","M","P","O","V","C","W","N","B","A","E","D","A","U","V","I","M","M","D","B","G","U","A","I","Y","G","J","Y","B","S","R","K","X","K","W","T","I","Q","F","E","P","B","R","Q","B","P","N","G","Z","?","H","W","L","Q","X","E","H","T","B","H","S","X","Z","Y","J","Q","Z","W","B","I","I","Z","R","C","I","U","D","P","R","W","J","P","G","C","T","R","K","N","A","G","M","K","Y","S"],"real":[48,128,27,137,114],"strayCipher":["03","82","45","84"],"stray":[21,132,32,11],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S2-M4","time":"16:00","slots":["who","place","action","state","result"],"cipher":["02","59","05","15","83"],"clauses":[{"pattern":"The {0} at the {1} {2}."},{"pattern":"Status: {3}."},{"pattern":"Next: {4}."}],"truth":{},"hint":"","key":{"rows":["AIJ","GLV","KOS","BP","MR","EFW","CN","HX","DU","QTY"],"cols":["BW","AMY","OPT","EJN","FG","LU","KRX","CV","HIS","DQ"]},"cols":16,"dump":["P","W","I","H","Z","A","L","H","A","Y","Z","V","L","I","E","A","O","U","U","U","R","D","D","L","X","M","N","Z","?","T","R","N","U","S","S","R","Y","D","K","G","F","Q","S","W","C","J","T","X","U","V","K","O","J","O","U","N","G","H","U","Z","J","N","Y","C","V","W","H","A","P","W","R","U","F","D","S","H","F","Z","P","Q","D","X","X","P","E","L","L","M","E","U","C","T","Z","D","E","N","Q","T","K","L","J","G","N","Z","S","U","N","Q","O","S","W","V","U","H","V","N","O","M","E","F","J","I","J","V","X","A","P","M","X","A","D","I","J","D","F","K","Z","N","S","K","F","D","E","Y","B","I","L","L","F","G","Q","W","Z","?","Q","W","W","O","H","J"],"real":[27,152,4,10,92],"strayCipher":["25","68","39","03"],"stray":[103,136,77,59],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S2-M5","time":"21:30","slots":["who","action","place","result","state"],"cipher":["19","80","42","99","55"],"clauses":[{"pattern":"The {0} {1}."},{"pattern":"Place: the {2}."},{"pattern":"Next: {3}."},{"pattern":"Status: {4}."}],"truth":{"4":"free"},"hint":"An arrested driver cannot try again, and KITE (08) phoned in from the hotel after the checkpoint: the driver is free.","key":{"rows":["KQ","BNS","GJX","VW","EI","OT","MRU","HL","DPY","ACF"],"cols":["FKQ","BI","HO","RV","JNT","CUX","DL","EGM","PWY","AS"]},"cols":16,"dump":["B","T","R","R","Q","C","I","A","W","L","U","C","N","T","M","I","Q","W","L","I","V","T","A","G","N","N","K","O","I","I","O","R","A","F","A","I","G","W","V","S","Z","?","O","E","Z","F","S","I","Z","O","U","A","E","I","D","R","E","K","Y","Z","R","R","J","W","A","M","T","I","V","C","B","S","Z","S","?","W","P","O","O","E","Z","M","Y","R","N","M","U","E","H","U","K","T","D","G","D","O","X","I","L","W","U","A","B","L","N","N","B","Z","I","C","P","X","X","G","K","F","A","W","A","M","U","N","C","M","S","S","J","K","O","E","Z","Y","F","W","J","O","L","F","H","Y","W","V","P","N","S","D","U","U","Z","V","G","T","L","D","C","F","V","K","P","C"],"real":[72,130,40,44,48],"strayCipher":["37","45","68","63"],"stray":[148,107,80,59],"outcomes":{"correct":{"severity":"safe","text":"Command left the driver alone. KITE made the run the next night.","crew":[]},"hedged":{"severity":"delay","text":"Command got both readings and froze the route for a day. KITE waited at the hotel.","crew":[]},"wrong":{"severity":"harm","text":"Command read the driver as arrested and burned the route. KITE was left without orders or papers.","crew":[{"id":"08","status":"cut off","note":"route burned by mistake"}]}}}],"reply":{"time":"23:59","slots":["who","place","action","state","result"],"cipher":["81","73","53","77","22"],"key":{"rows":["FKL","PQ","JM","ACI","DUV","GRT","BX","OW","EHN","SY"],"cols":["EQV","OPY","BCM","IKN","HR","AJ","DW","FX","SU","GLT"]}}},{"title":"The warehouse","briefing":[{"id":"10","location":"Warehouse","note":"moved to watch the warehouse; says it has had no guards since Monday"}],"transmissions":[{"id":"S3-M1","time":"04:55","slots":["result","state","who","action","place"],"cipher":["36","44","52","17","75"],"clauses":[{"pattern":"Next: {0}."},{"pattern":"Status: {1}."},{"pattern":"The {2} {3} at the {4}."}],"truth":{},"hint":"","key":{"rows":["JL","CKQ","HT","MVW","AR","BN","FU","GXY","DOP","EIS"],"cols":["EFN","BLR","AKM","OQ","PS","DJ","HU","GT","CIY","VWX"]},"cols":16,"dump":["C","Y","P","B","A","D","S","G","Q","P","Z","?","J","I","C","K","Y","D","N","K","Z","U","O","B","N","J","R","K","U","I","I","D","U","P","C","S","F","G","Y","D","I","M","W","X","E","D","Y","I","E","P","B","Q","D","W","H","C","T","N","T","A","M","D","I","X","M","S","O","M","V","S","M","T","U","L","S","Z","V","L","U","O","Z","Q","G","G","O","G","R","S","T","G","E","J","G","U","U","F","B","Z","N","K","X","N","D","A","E","X","S","Q","J","F","Q","B","I","L","W","X","R","U","D","N","Q","Q","J","M","V","Z","S","R","W","F","V","Z","T","W","L","I","J","T","H","A","H","Z","A","H","L","I","K","L","Z","V","U","M","Q","R","I","J","U","Z","R","P"],"real":[148,157,97,80,10],"strayCipher":["31","63","91","46","29"],"stray":[75,20,125,141,131],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S3-M2","time":"08:30","slots":["place","who","action","result","state"],"cipher":["32","30","64","51","13"],"clauses":[{"pattern":"At the {0} the {1} {2}."},{"pattern":"Next: {3}."},{"pattern":"Status: {4}."}],"truth":{},"hint":"","key":{"rows":["GP","JN","IMT","CK","AH","BO","VXY","RSW","ELU","DFQ"],"cols":["GRU","JQY","CP","ENS","IK","BL","AX","DOT","FHW","MV"]},"cols":16,"dump":["H","R","F","Q","I","L","S","D","Z","N","E","Q","R","Z","?","P","F","A","S","V","V","Z","X","K","T","C","W","V","R","U","M","C","G","G","Z","J","X","N","K","J","D","X","L","T","T","N","G","B","P","U","N","B","I","N","K","E","X","P","T","H","J","R","B","R","G","L","I","G","H","C","V","A","Q","D","E","J","X","V","P","W","P","Z","B","Y","X","F","P","P","T","P","G","Y","G","X","V","K","I","W","E","W","D","P","Y","R","I","F","C","L","D","A","P","K","Z","T","U","X","A","V","R","L","K","A","B","Z","D","O","X","E","I","L","C","B","R","Z","G","I","Y","B","S","W","Z","V","H","B","G","Z","?","G","M","C","F","S","W","S","R","E","J","M","G","Y"],"real":[13,145,21,81,8],"strayCipher":["68","16","04","97","20"],"stray":[140,34,133,123,112],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S3-M3","time":"13:00","slots":["state","who","action","place","result"],"cipher":["77","81","53","69","22"],"clauses":[{"pattern":"Status: {0}."},{"pattern":"The {1} {2} at the {3}."},{"pattern":"Next: {4}."}],"truth":{},"hint":"","key":{"rows":["QY","BPW","MRX","HO","JT","FKN","GV","DU","ACE","ILS"],"cols":["ADV","GMQ","FY","KP","CIN","JS","LOW","RTX","EU","BH"]},"cols":16,"dump":["P","Q","F","N","S","E","E","S","Z","R","Y","X","Y","O","N","Q","Y","Q","J","P","F","Z","U","H","V","H","L","K","R","D","J","L","H","F","W","N","C","B","N","F","Z","P","D","E","B","V","N","V","J","C","U","T","J","X","L","N","Z","?","G","X","V","Z","F","K","M","H","X","J","J","W","D","I","U","S","A","Q","B","H","Q","J","Z","U","R","S","X","Z","H","M","R","C","H","Q","N","X","G","Y","C","S","O","V","R","U","L","O","H","T","A","C","S","Z","E","E","J","E","F","H","X","Z","R","V","A","V","I","R","A","F","G","Q","D","S","O","F","Y","K","X","Y","Z","?","B","T","X","H","D","S","J","Q","M","N","E","V","N","T","X","X","I","P","V","E","T","J"],"real":[80,56,61,136,8],"strayCipher":["79","88","31","20","10"],"stray":[21,109,85,117,40],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S3-M4","time":"17:20","slots":["who","action","place","result","state"],"cipher":["18","67","42","49","50"],"clauses":[{"pattern":"The {0} {1}."},{"pattern":"Place: the {2}."},{"pattern":"Next: {3}."},{"pattern":"Status: {4}."}],"truth":{},"hint":"","key":{"rows":["FLS","CKR","NTX","MV","OQ","AH","GW","IPU","EY","BDJ"],"cols":["NSX","FJL","CTW","GHY","DR","IM","BP","EU","KOV","AQ"]},"cols":16,"dump":["Y","G","J","Z","U","W","N","C","M","Z","P","Q","J","O","H","J","Z","C","P","C","I","E","G","Z","H","N","T","S","H","E","G","G","V","Z","R","J","X","B","J","T","N","A","F","G","V","C","P","R","D","D","M","L","X","D","P","M","B","J","M","E","A","H","C","C","E","F","U","W","Q","B","U","G","K","X","Y","N","K","S","B","M","G","Z","?","T","S","D","X","D","P","Q","Q","G","M","D","W","C","W","M","Z","W","U","J","M","H","X","R","G","U","X","P","D","T","J","X","U","C","L","T","O","Z","Q","M","V","B","V","I","L","S","G","N","X","S","E","I","R","V","I","O","B","Q","A","Y","S","V","A","Z","K","?","Y","Z","Q","Q","D","C","H","X","G","W","N","L"],"real":[145,98,81,149,23],"strayCipher":["11","72","16","45","79"],"stray":[33,3,16,119,9],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S3-M5","time":"22:15","slots":["result","state","who","action","place"],"cipher":["92","90","40","41","89"],"clauses":[{"pattern":"Next: {0}."},{"pattern":"Status: {1}."},{"pattern":"The {2} {3} at the {4}."}],"truth":{"1":"empty"},"hint":"OWL (10) says the warehouse has had no guards since Monday, and nobody came: the warehouse is empty.","key":{"rows":["MS","GT","CX","DU","AIR","HV","BKQ","FOY","JPW","ELN"],"cols":["HK","CPW","BX","IR","DLS","GY","FTU","ANO","JM","EQV"]},"cols":16,"dump":["A","U","C","C","O","E","N","A","Z","?","H","J","P","P","Y","P","Z","E","X","P","R","C","M","K","T","P","P","F","S","H","R","M","Z","D","Q","D","M","H","Z","A","W","Y","U","H","W","H","C","A","K","O","N","T","Z","O","Q","A","J","P","M","W","N","R","E","B","V","I","G","T","A","G","Q","E","I","I","B","E","D","Z","A","U","X","G","D","K","H","O","D","K","L","F","Z","V","J","H","C","Y","U","F","I","J","B","C","L","A","W","C","S","F","Y","E","F","P","M","I","G","Q","Z","?","V","T","K","I","N","H","K","N","B","G","Q","S","R","C","R","U","U","B","R","P","P","S","D","V","R","P","Q","Q","W","G","V","I","Z","T","X","F","D","G","Z","L","H","T"],"real":[16,156,8,38,116],"strayCipher":["79","12","46","39","58"],"stray":[52,150,77,32,90],"outcomes":{"correct":{"severity":"safe","text":"Command wrote the warehouse off. Nobody wasted another night there.","crew":[]},"hedged":{"severity":"delay","text":"Command got both readings and sent a watcher to look first. A day lost.","crew":[]},"wrong":{"severity":"harm","text":"Command read the warehouse as guarded and sent a team to break in. They found bare walls and were seen leaving.","crew":[{"id":"10","status":"exposed","note":"seen with the team at the warehouse"}]}}}],"reply":{"time":"23:59","slots":["who","place","action","state","result"],"cipher":["76","56","23","44","99"],"key":{"rows":["CD","QV","JS","APY","EGR","HM","ITX","BFO","KLW","NU"],"cols":["FLW","BDX","PU","AS","KY","EMV","IR","GHQ","CO","JNT"]}}},{"title":"The embassy","briefing":[{"id":"02","note":"cover blown last week; the embassy rooms were searched"},{"id":"05","location":"Airfield","note":"moved to watch the airfield"}],"transmissions":[{"id":"S4-M1","time":"06:10","slots":["who","action","place","result","state"],"cipher":["70","61","59","51","54"],"clauses":[{"pattern":"The {0} {1}."},{"pattern":"Place: the {2}."},{"pattern":"Next: {3}."},{"pattern":"Status: {4}."}],"truth":{},"hint":"","key":{"rows":["JKP","BEY","GHO","LQV","AF","RW","IS","CX","MNU","DT"],"cols":["EQV","BW","JNO","SU","KX","IRY","LMP","CFH","AG","DT"]},"cols":16,"dump":["J","A","T","B","C","Q","B","W","N","H","Z","W","X","D","N","J","B","I","M","Q","P","Q","X","Z","P","M","W","I","S","V","D","C","U","R","K","B","K","E","V","E","R","C","N","N","L","M","Q","Q","T","U","M","W","V","I","B","C","W","B","C","N","G","P","Q","Y","Z","S","B","D","S","X","Z","Q","W","L","Z","?","T","Y","Y","D","C","D","T","K","N","Y","Z","K","V","R","V","I","F","P","V","Q","B","C","C","B","T","J","F","L","P","Y","Z","W","W","D","C","L","V","I","O","W","Q","R","C","Y","W","U","C","Z","L","Y","A","U","F","F","X","I","B","Z","X","?","R","G","O","W","Y","Q","H","F","E","H","K","T","F","A","X","C","F","K","Y","D","Z","N","O","U"],"real":[133,64,74,106,10],"strayCipher":["00","35","06","82","31"],"stray":[86,123,23,156,70],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S4-M2","time":"10:40","slots":["result","state","who","action","place"],"cipher":["99","44","62","41","09"],"clauses":[{"pattern":"Next: {0}."},{"pattern":"Status: {1}."},{"pattern":"The {2} {3} at the {4}."}],"truth":{},"hint":"","key":{"rows":["BFG","CQR","DV","JK","HIW","LP","ENS","MX","TY","AOU"],"cols":["HR","IU","BV","DM","EFY","AT","JOQ","LNP","GKX","CSW"]},"cols":16,"dump":["Q","M","C","N","G","G","B","U","Z","?","V","R","K","R","F","Y","O","K","N","H","U","F","Y","Q","Z","J","A","T","Z","W","U","A","T","Y","Q","Y","A","N","Y","L","Y","A","H","E","Z","?","C","S","C","O","V","K","U","D","U","P","B","V","Z","B","D","X","Y","P","L","C","F","A","I","R","D","K","R","F","U","V","A","E","S","O","O","E","U","R","T","S","Z","J","W","A","R","Z","M","B","L","X","R","W","I","A","O","J","T","O","G","Q","A","Y","Q","V","X","S","S","K","W","D","B","Z","O","C","O","H","K","F","V","Y","L","L","A","S","E","Q","C","I","Q","F","Z","H","Y","B","F","H","A","X","C","D","P","R","K","G","W","M","G","M","Z","X","C","V","F","K"],"real":[117,136,8,28,44],"strayCipher":["35","79","03","39","72"],"stray":[24,154,58,86,91],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S4-M3","time":"14:25","slots":["place","who","action","result","state"],"cipher":["65","76","26","49","13"],"clauses":[{"pattern":"At the {0} the {1} {2}."},{"pattern":"Next: {3}."},{"pattern":"Status: {4}."}],"truth":{},"hint":"","key":{"rows":["FN","COX","EIY","DGP","AMV","HQT","RU","LW","BJ","KS"],"cols":["UX","DMW","CH","FJT","IO","APY","GNV","ERS","BQ","KL"]},"cols":16,"dump":["Z","J","Q","X","A","I","M","B","K","Q","W","Y","J","B","M","Q","U","L","N","O","I","N","Z","H","S","I","R","E","R","Z","X","F","H","L","Z","U","B","V","Z","E","N","P","H","Z","?","Y","Y","O","W","W","F","L","Y","I","S","S","J","D","Q","H","C","D","V","Y","P","Q","J","E","Y","H","T","Z","C","U","N","M","V","Q","J","B","F","T","T","X","L","Y","R","Z","A","L","P","H","W","O","X","C","N","P","Q","N","N","Z","F","J","X","G","R","I","C","G","Y","Y","T","C","J","E","A","Q","F","M","V","M","J","U","S","B","V","H","B","A","L","Z","W","?","P","I","X","C","T","W","J","H","C","R","A","S","C","I","F","T","D","L","E","F","P","S","I","F","E","H"],"real":[43,131,38,87,29],"strayCipher":["68","03","10","88","57"],"stray":[34,101,71,0,22],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S4-M4","time":"18:00","slots":["state","who","action","place","result"],"cipher":["94","52","60","93","33"],"clauses":[{"pattern":"Status: {0}."},{"pattern":"The {1} {2} at the {3}."},{"pattern":"Next: {4}."}],"truth":{},"hint":"","key":{"rows":["UY","DX","MPW","IQ","KRS","GNT","AHO","EV","FJL","BC"],"cols":["QX","PU","DSW","HV","IJR","EK","CFM","ABO","GY","LNT"]},"cols":16,"dump":["F","S","Y","B","F","P","Z","F","S","W","N","Y","F","E","P","Q","P","C","Y","T","B","N","R","K","R","U","S","E","E","Z","E","U","E","Z","N","O","Q","F","S","P","Z","?","W","W","C","O","N","B","I","R","U","I","Z","C","J","F","G","M","H","V","W","J","G","W","P","Q","O","Y","V","U","I","K","Z","Q","V","C","R","P","R","Q","I","S","S","J","L","H","Y","P","J","C","O","C","K","W","L","R","C","B","N","W","U","G","F","E","H","W","A","H","E","T","E","S","N","Y","C","W","A","Z","C","?","C","X","R","C","N","Z","K","K","O","T","E","T","H","N","H","N","N","Z","P","B","N","H","N","H","J","O","N","W","Z","H","Q","S","D","L","N","R","I","A","G","L"],"real":[52,40,148,117,72],"strayCipher":["45","71","27","82","57"],"stray":[125,29,137,6,33],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S4-M5","time":"23:05","slots":["who","place","action","state","result"],"cipher":["02","59","86","28","08"],"clauses":[{"pattern":"The {0} at the {1} {2}."},{"pattern":"Status: {3}."},{"pattern":"Next: {4}."}],"truth":{"3":"burned"},"hint":"The embassy rooms were searched after the cover of HERON (02) was blown. Nothing left there is clean: the site is burned.","key":{"rows":["RVW","SX","AIP","TU","JY","BNO","GM","DEF","HQ","CKL"],"cols":["LPY","IVX","DHN","TW","FKS","BO","AJ","CQR","EG","MU"]},"cols":16,"dump":["N","I","Z","Q","Q","I","Q","H","E","N","O","P","G","W","O","S","P","U","Z","?","N","G","H","V","S","M","O","M","L","H","N","T","A","Z","H","A","R","U","Y","Q","G","U","D","Z","I","B","K","O","B","G","P","T","A","Y","I","D","C","Z","P","E","Q","T","Y","M","S","R","O","D","A","A","B","R","Z","Y","B","E","O","M","S","J","C","B","Q","Q","S","Y","H","K","H","K","O","B","S","X","D","Q","U","H","G","D","D","N","X","Y","L","R","K","M","K","E","N","G","F","P","F","F","O","J","G","S","Z","T","E","K","R","E","B","I","P","T","M","O","D","B","U","S","T","B","Z","?","U","T","E","D","P","W","H","N","K","R","Q","X","Z","R","G","O","Z","W","Y","E"],"real":[18,138,33,57,152],"strayCipher":["25","45","00","87","38"],"stray":[43,72,156,2,120],"outcomes":{"correct":{"severity":"safe","text":"Command sent nobody to the embassy. The package was written off.","crew":[]},"hedged":{"severity":"delay","text":"Command got both readings and waited. The package stayed where it was.","crew":[]},"wrong":{"severity":"harm","text":"Command read the site as clean and sent the pickup man to the embassy. He was arrested at the gate.","crew":[{"id":"06","status":"arrested","note":"arrested at the embassy gate"}]}}}],"reply":{"time":"23:59","slots":["who","place","action","state","result"],"cipher":["19","65","48","15","08"],"key":{"rows":["EMR","DJY","FIX","CU","OQ","BV","AGN","KT","SW","HLP"],"cols":["LOY","FKW","BU","ES","IN","PRX","CT","GHJ","ADQ","MV"]}}},{"title":"Going dark","briefing":[{"id":"05","status":"arrested","note":"arrested this morning; knew the border meeting place"},{"id":"10","location":"Market","note":"back at the market"}],"transmissions":[{"id":"S5-M1","time":"05:05","slots":["result","state","who","action","place"],"cipher":["22","15","19","23","42"],"clauses":[{"pattern":"Next: {0}."},{"pattern":"Status: {1}."},{"pattern":"The {2} {3} at the {4}."}],"truth":{},"hint":"","key":{"rows":["EQX","JK","COT","PR","SW","BV","DGI","MN","FHY","ALU"],"cols":["AIL","GXY","CFT","DPU","JQW","BN","MR","OS","HK","EV"]},"cols":16,"dump":["R","Y","Q","E","E","U","S","M","C","Z","J","B","Y","S","G","B","P","K","A","H","Z","O","E","I","A","Z","?","T","I","N","U","W","J","Q","C","S","Y","D","N","W","V","C","B","F","S","Y","C","D","S","Q","Z","N","W","U","Z","C","C","J","J","U","F","N","E","A","B","T","G","X","V","O","O","E","B","O","Z","J","A","A","O","H","S","K","A","A","A","C","K","C","N","R","N","F","C","T","S","O","G","J","Z","T","D","T","R","D","Z","K","R","B","Z","Q","O","T","X","E","R","D","D","L","Z","J","?","E","A","J","G","B","X","E","C","I","E","H","H","Z","F","N","P","K","R","P","N","L","V","F","H","T","S","V","C","V","R","X","A","V","J","C","J","F","V","H"],"real":[54,9,118,98,25],"strayCipher":["10","07","85","16","29","74"],"stray":[74,108,133,104,20,50],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S5-M2","time":"09:15","slots":["state","who","action","place","result"],"cipher":["98","40","80","14","01"],"clauses":[{"pattern":"Status: {0}."},{"pattern":"The {1} {2} at the {3}."},{"pattern":"Next: {4}."}],"truth":{},"hint":"","key":{"rows":["ORV","MU","GS","KPX","EIT","BFH","AJ","LQY","DW","CN"],"cols":["BJN","AFR","KU","OQS","CIL","EG","MW","HPX","TV","DY"]},"cols":16,"dump":["K","A","U","Q","N","H","U","Y","G","K","B","S","L","F","S","G","Y","Z","F","H","A","Y","X","B","P","I","Z","?","J","U","C","S","Z","L","C","T","I","W","O","V","K","G","B","E","I","A","A","W","X","D","G","Z","V","N","O","N","P","X","Z","W","N","P","L","M","G","E","V","G","P","M","D","V","Z","N","T","M","U","I","U","S","L","S","A","U","V","O","D","P","L","Z","R","A","A","S","M","E","G","G","U","I","E","I","K","W","M","G","Z","A","Q","M","B","F","O","E","U","M","W","U","U","X","M","N","I","M","Z","G","B","C","N","S","T","G","D","U","I","Q","I","M","Z","?","I","V","R","H","F","Z","D","H","D","O","R","N","W","Y","J","X","B","V","M","L"],"real":[72,26,58,138,89],"strayCipher":["00","87","20","74","63","57"],"stray":[51,145,124,32,106,17],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S5-M3","time":"13:40","slots":["who","action","place","result","state"],"cipher":["18","61","56","36","94"],"clauses":[{"pattern":"The {0} {1}."},{"pattern":"Place: the {2}."},{"pattern":"Next: {3}."},{"pattern":"Status: {4}."}],"truth":{},"hint":"","key":{"rows":["EF","DLU","NW","IS","HQV","BO","CJM","RXY","KPT","AG"],"cols":["QV","EOS","CLT","HJK","BWY","MX","GI","ADN","FP","RU"]},"cols":16,"dump":["U","N","L","O","A","D","I","I","V","E","Q","K","O","J","M","J","B","D","G","V","R","Y","Z","B","?","H","J","B","K","Z","G","A","Y","I","I","Z","L","?","S","T","R","X","L","N","E","Z","D","V","Q","T","M","T","Z","E","G","G","J","H","N","K","Z","R","E","W","P","G","L","C","S","H","M","W","S","I","S","O","V","S","J","T","L","E","H","Y","Z","J","E","P","U","Q","X","Q","J","D","O","N","S","J","U","Z","A","Y","W","I","U","S","S","R","R","P","I","Q","U","C","O","T","Q","U","H","V","Z","W","R","T","E","V","G","D","X","Y","R","Z","S","G","J","O","Z","V","I","F","D","Y","N","X","U","J","T","R","Q","L","K","D","Y","Q","L","L","B","D","R","L"],"real":[35,84,22,131,99],"strayCipher":["06","97","29","71","46","10"],"stray":[52,29,120,60,136,45],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S5-M4","time":"18:30","slots":["place","who","action","result","state"],"cipher":["75","52","34","66","47"],"clauses":[{"pattern":"At the {0} the {1} {2}."},{"pattern":"Next: {3}."},{"pattern":"Status: {4}."}],"truth":{},"hint":"","key":{"rows":["FGO","IP","BU","NS","QWY","AJR","CE","DVX","HL","KMT"],"cols":["FR","AT","KV","DO","LU","PWY","HJM","EGQ","INS","BCX"]},"cols":16,"dump":["M","A","Z","M","E","U","D","G","Z","E","M","H","F","K","M","G","A","B","B","I","K","B","J","P","N","K","U","H","W","T","R","B","G","G","L","U","A","S","E","Z","W","Q","Y","E","W","C","O","W","B","X","V","M","B","C","F","L","K","L","C","K","W","C","U","R","R","T","I","N","R","C","S","K","U","K","N","V","X","P","P","K","Y","P","J","W","R","Z","K","J","J","K","M","O","Z","L","K","I","Z","C","N","G","U","R","P","S","Z","P","J","M","O","P","T","O","B","X","Q","D","Y","I","J","Y","X","Z","?","U","X","X","Q","E","M","R","J","Z","?","K","O","O","A","Z","L","S","S","K","D","O","C","H","H","D","Y","M","M","P","I","Z","?","W","B","V","K","K"],"real":[153,131,121,8,39],"strayCipher":["96","88","97","68","82","16"],"stray":[85,137,2,96,92,104],"outcomes":{"correct":{"severity":"safe","text":"Filed. Command has the message as the agent sent it.","crew":[]}}},{"id":"S5-M5","time":"23:50","slots":["state","who","action","place","result"],"cipher":["55","78","67","95","49"],"clauses":[{"pattern":"Status: {0}."},{"pattern":"The {1} {2} at the {3}."},{"pattern":"Next: {4}."}],"truth":{"0":"arrested"},"hint":"ROOK (05) was arrested this morning and knew the border meeting place. The contact missed the meeting and the message says to send no one: arrested.","key":{"rows":["BLN","PRX","CKY","EJ","OQ","GT","HI","ADV","FUW","MS"],"cols":["CGK","IN","HSX","FO","BR","DY","MQT","ALU","EVW","JP"]},"cols":16,"dump":["Y","C","W","J","H","Z","U","R","R","O","E","U","E","A","O","R","G","J","P","P","A","U","G","W","Y","U","P","J","F","S","D","D","M","A","N","O","D","Z","V","?","M","Q","O","L","P","N","T","L","X","U","W","H","U","E","K","G","C","T","O","J","E","Z","Y","G","M","P","N","N","X","X","Z","D","J","K","H","F","W","H","C","R","K","M","Q","O","S","L","E","F","Q","L","T","D","V","O","X","J","Z","Q","P","E","J","O","L","B","Z","H","?","G","R","G","P","M","S","N","F","G","B","Z","T","D","W","Z","R","M","F","S","Y","X","W","E","X","U","G","L","Z","J","Y","W","Y","M","J","T","W","X","T","T","G","T","C","Z","?","Y","N","V","G","N","I","Z","L","R"],"real":[117,37,104,149,96],"strayCipher":["84","20","35","79","04","16"],"stray":[5,61,134,70,157,121],"outcomes":{"correct":{"severity":"safe","text":"Command sent no one to the border and closed the line. Nobody else was lost.","crew":[]},"hedged":{"severity":"delay","text":"Command got both readings and held everyone back for a day.","crew":[]},"wrong":{"severity":"harm","text":"Command read the contact as free and sent the driver to the border. He drove into the same trap.","crew":[{"id":"08","status":"arrested","note":"arrested at the border"}]}}}],"reply":{"time":"23:59","slots":["who","place","action","state","result"],"cipher":["70","75","34","47","66"],"key":{"rows":["HM","DLO","KY","PQ","CSV","INW","FGU","JR","BEX","AT"],"cols":["HTU","GW","QY","ER","FL","IPS","AKM","BJX","OV","CDN"]}}}]};
 // Pure game logic: no DOM, no fetch. Ports 1:1 to C# later.
 //
 // The code table (like the real duty-radio-operator table, "TDR") is a fixed 10x10 matrix: cell "rc" is
-// row r, column c, and holds a phrase, a letter, or a service marker. Its position doubles as a number.
+// row r, column c, and holds a phrase, a letter, or a service marker.
 //
-// A transmission is a list of groups "Z" + two letters. Z is a mask and means nothing. The daily key says
+// A message is a set of groups "Z" + two letters. Z is a mask and means nothing. The daily key says
 // which digits the two letters stand for: a vertical key gives the row digit, a horizontal key gives the
 // column digit (each digit owns 2-3 letters, every letter belongs to one digit). Row + column = a cell.
-// Once the cells are found, ambiguous phrases are resolved by context.
+// Every message has the same grammar: one phrase of each kind (who, place, action, state, result), though the
+// kinds come in a different order from message to message. A decoded phrase finds its own blank by its kind,
+// whatever order the groups are decoded in.
+// The game is a run of shifts: a shift is a few messages to decode and, at the end, one reply to encode.
+// Once the blanks are filled, ambiguous phrases are resolved by context, and the decoded message is filed:
+// what others do with it depends on how it was read.
 
-const ORDERS = ['continue', 'wait', 'back', 'hurry', 'base'];
 const MAX_INTUITION = 5;
 const MASK = 'Z';
+const LOST = '?';
+const NOISE = 'ABCDEFGHIJKLMNOPQRSTUVWXY';
+const SENTENCE_KINDS = ['who', 'place', 'action', 'state', 'result'];
 
-/** A transmission with the shared matrix attached. */
-function prepare(act, index) {
-  return { ...act.transmissions[index], matrix: act.matrix };
+/** Message `index` of shift `shift`, with the shared matrix attached. */
+function prepare(act, shift, index) {
+  return { ...act.shifts[shift].transmissions[index], matrix: act.matrix };
+}
+
+/** The reply of shift `shift`, with the shared matrix attached. */
+function prepareReply(act, shift) {
+  return { ...act.shifts[shift].reply, matrix: act.matrix };
+}
+
+/** What is known about the agents when shift `shift` starts: the list, updated by every briefing so far. */
+function crewAt(act, shift) {
+  return act.shifts.slice(0, shift + 1).reduce((crew, s) => applyCrew(crew, s.briefing), act.crew);
 }
 
 function cellById(tx, id) {
   return tx.matrix.cells[id] ?? null;
-}
-
-/** The number a cell stands for when read as a number: its own id ("06"). */
-function numberOf(id) {
-  return id;
 }
 
 // --- Phase 1: decoding the groups ---
@@ -325,68 +372,97 @@ function checkGuess(real, id) {
   return { ok: id === real, row: id[0] === real[0], col: id[1] === real[1] };
 }
 
-// --- Phase 1: finding the groups in the signal ---
+// --- Phase 1: the signal ---
 //
-// The signal is a grid of letters. Every Z starts a group (Z + two letters): the real message groups, in reading
-// order, and decoys that look the same. In a damaged group one letter is lost and shows as "?"
-// (tx.damaged holds the lost letters, for the game, never for the player).
+// The signal is a grid of letters. Every Z starts a group (Z + two letters); the rest is noise. A group is named
+// by the cell it stands for. The message groups are tx.cipher (tx.cipher[k] fills blank k, at position tx.real[k]);
+// tx.strayCipher / tx.stray are groups of other traffic that fit no blank. Groups sit in no particular order.
+// In a damaged group one letter is lost and shows as "?": the other letter still gives the row or the column,
+// and the grammar and the context have to give the rest.
 
-/** The group that starts at dump position `p`, or null if p is not the start of a group. */
-function groupAt(tx, p) {
-  if (tx.dump[p] !== MASK || p % tx.cols > tx.cols - 3) return null;
-  const letters = [0, 1, 2].map((k) => tx.damaged?.[p + k] ?? tx.dump[p + k]).join('');
-  const g = decodeGroup(tx, letters);
-  if (!g) return null;
-  const shown = [0, 1, 2].map((k) => tx.dump[p + k]).join('');
-  return { ...g, pos: p, shown, damaged: shown.includes('?'), cell: cellById(tx, g.id) };
+/** The cell ids of every group in the signal: the message groups first, then the stray ones. */
+function groupIds(tx) {
+  return [...tx.cipher, ...tx.strayCipher];
 }
 
-/** Start positions of every group-looking Z in the signal, in reading order. */
-function candidates(tx) {
-  return tx.dump.map((_, p) => p).filter((p) => groupAt(tx, p));
+/** The blank (message index) that group `id` fills, or -1 for a stray group. */
+function blankOf(tx, id) {
+  return tx.cipher.indexOf(id);
 }
 
-/** The first group after position `p` in reading order (what follows a marker). */
-function nextCandidate(tx, p) {
-  return candidates(tx).find((q) => q > p) ?? null;
+/** Where group `id` starts in the signal. */
+function posOf(tx, id) {
+  const k = blankOf(tx, id);
+  return k >= 0 ? tx.real[k] : tx.stray[tx.strayCipher.indexOf(id)];
 }
 
-/** Can this cell fill a slot of the given kind? A number slot takes any cell (it is read as digits). */
-function slotAccepts(slot, cell) {
-  if (!cell) return false;
-  return slot === 'number' || cell.kind === slot;
+/** The three letters of group `id` as received, e.g. "ZSD" or "Z?D". */
+function shownOf(tx, id) {
+  const p = posOf(tx, id);
+  return tx.dump.slice(p, p + 3).join('');
+}
+
+/** The group that covers signal position `i`, or null for noise. */
+function groupIdAt(tx, i) {
+  return groupIds(tx).find((id) => i >= posOf(tx, id) && i < posOf(tx, id) + 3) ?? null;
+}
+
+/** Which half of group `id` is lost in the signal: 'row', 'col' or null. */
+function lostHalf(tx, id) {
+  const shown = shownOf(tx, id);
+  return shown[1] === LOST ? 'row' : shown[2] === LOST ? 'col' : null;
+}
+
+/** Do the letters of group `id` that did arrive point at its cell under the daily key? */
+function fitsKey(tx, id) {
+  const [mask, a, b] = shownOf(tx, id);
+  return mask === MASK
+    && (a === LOST || digitOf(tx.key.rows, a) === Number(id[0]))
+    && (b === LOST || digitOf(tx.key.cols, b) === Number(id[1]));
 }
 
 /**
- * Do the marked groups (start positions), in reading order, form the message grammar (tx.slots)?
- * A number or letter slot must be the very next group after the previous one: a marker is followed by its
- * number, and spelled letters follow one by one.
+ * Lay groups (three-letter strings) out among noise letters in a cols x rows grid. No group wraps a row or
+ * touches another. `fixed` pins some groups (by index) to a position. `rand` is a () => [0, 1) source.
+ * Returns {dump, at}: the grid and the start position of every group.
  */
-function parses(tx, marked) {
-  const sorted = [...marked].sort((a, b) => a - b);
-  if (sorted.length !== tx.slots.length) return false;
-  return sorted.every((p, i) => {
-    if (!slotAccepts(tx.slots[i], groupAt(tx, p)?.cell)) return false;
-    if ((tx.slots[i] === 'number' || tx.slots[i] === 'letter') && i > 0) return nextCandidate(tx, sorted[i - 1]) === p;
-    return true;
-  });
+function scatter(groups, cols, rows, rand, fixed = {}) {
+  const pick = (arr) => arr[Math.floor(rand() * arr.length)];
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const dump = Array.from({ length: cols * rows }, () => pick(NOISE));
+    const at = groups.map((_, i) => fixed[i] ?? null);
+    const taken = () => at.filter((p) => p !== null);
+    for (let i = 0; i < groups.length && at[i] !== undefined; i++) {
+      if (at[i] === null) {
+        const free = dump.map((_, p) => p).filter((p) => p % cols <= cols - 3 && taken().every((q) => Math.abs(q - p) >= 4));
+        at[i] = free.length ? pick(free) : undefined;
+      }
+    }
+    if (at.includes(undefined)) continue;
+    groups.forEach((g, i) => [...g].forEach((ch, d) => { dump[at[i] + d] = ch; }));
+    return { dump, at };
+  }
+  throw new Error('Could not place the groups');
 }
 
-/** Do these marked groups include exactly the real message groups? */
-function isRealMessage(tx, marked) {
-  return marked.length === tx.real.length && tx.real.every((p) => marked.includes(p));
+/** The same message with its signal shuffled: groups move, noise changes. Groups in `keep` stay where they are. */
+function relayout(tx, keep, rand) {
+  const ids = groupIds(tx);
+  const fixed = {};
+  ids.forEach((id, i) => { if (keep.includes(id)) fixed[i] = posOf(tx, id); });
+  const { dump, at } = scatter(ids.map((id) => shownOf(tx, id)), tx.cols, tx.dump.length / tx.cols, rand, fixed);
+  return { ...tx, dump, real: at.slice(0, tx.cipher.length), stray: at.slice(tx.cipher.length) };
 }
 
 // --- Phase 2: reading the message ---
 
-/** Words a key can stand for at message position `i`. A number slot reads the cell number itself. */
-function meaningsOf(tx, i, id) {
-  if (tx.slots[i] === 'number') return [numberOf(id)];
+/** Words a cell can stand for: more than one for an ambiguous phrase. */
+function meaningsOf(tx, id) {
   return cellById(tx, id).meanings;
 }
 
-function isAmbiguous(tx, i, keys = null) {
-  return meaningsOf(tx, i, keys?.[i] ?? tx.cipher[i]).length > 1;
+function isAmbiguous(tx, i) {
+  return meaningsOf(tx, tx.cipher[i]).length > 1;
 }
 
 /**
@@ -400,7 +476,7 @@ function judgeReading(tx, selection, keys = null) {
     const chosen = selection[i] ?? [];
     if (chosen.length === 0) return 'incomplete';
     const key = keys?.[i] ?? tx.cipher[i];
-    const meanings = meaningsOf(tx, i, key);
+    const meanings = meaningsOf(tx, key);
     if (!chosen.every((w) => meanings.includes(w))) return 'wrong';
     if (key !== tx.cipher[i]) return 'wrong'; // misread signal
     const truth = tx.truth[i];
@@ -425,31 +501,23 @@ function renderSentence(tx, selection) {
 }
 
 /**
- * Resolve the player's reading + order into the next transmission.
- * The world outcome depends on truth x order. Reading affects feedback and Intuition:
- *  - correct reading, no harm  -> +1 Intuition
- *  - hedged (contains truth)   -> harm softened to a near miss, no Intuition
- *  - wrong reading             -> full outcome, no Intuition
+ * File the decoded message: what happens next depends only on how the player read it.
+ *  - correct -> tx.outcomes.correct, +1 Intuition
+ *  - hedged (both meanings reported, the true one among them) -> tx.outcomes.hedged, no Intuition
+ *  - wrong   -> tx.outcomes.wrong, no Intuition
+ * A message with no ambiguous phrase can only be read correctly.
  */
-function resolve(tx, selection, order, keys = null) {
-  const reading = judgeReading(tx, selection, keys);
+function resolve(tx, selection) {
+  const reading = judgeReading(tx, selection);
   if (reading === 'incomplete') throw new Error('Reading is incomplete');
-  const outcome = tx.outcomes[order];
-  if (!outcome) throw new Error(`Unknown order: ${order}`);
-
-  const softened = reading === 'hedged' && outcome.severity === 'harm';
-  const text = softened ? outcome.nearMiss : outcome.text;
-  const crew = softened ? [] : outcome.crew;
-  const harmed = !softened && outcome.severity === 'harm';
-  const intuitionGain = reading === 'correct' && !harmed ? 1 : 0;
-
-  return { reading, order, severity: softened ? 'delay' : outcome.severity, text, crew, intuitionGain };
+  const outcome = tx.outcomes[reading];
+  return { reading, severity: outcome.severity, text: outcome.text, crew: outcome.crew, intuitionGain: reading === 'correct' ? 1 : 0 };
 }
 
 function applyCrew(crew, changes) {
   return crew.map((m) => {
     const c = changes.find((x) => x.id === m.id);
-    return c ? { ...m, status: c.status, note: c.note ?? m.note } : m;
+    return c ? { ...m, status: c.status ?? m.status, note: c.note ?? m.note, location: c.location ?? m.location } : m;
   });
 }
 
@@ -462,17 +530,103 @@ function gainIntuition(points, gain) {
   return Math.min(MAX_INTUITION, points + gain);
 }
 
+// --- The reply: encoding a message from command for the agents ---
+//
+// The other way round: a phrase is found in the table, its row digit and column digit are turned into letters
+// with the reply key (a = one of the row digit's letters, b = one of the column digit's letters), and the group
+// Z + a + b goes out. The one rule: a letter may be used once in the whole reply, in either place. Every digit
+// owns only 2-3 letters and the same letter sits in both halves of the key, so a careless choice early on can
+// leave a later phrase with no letters at all.
 
-const ORDER_LABELS = { continue: 'Continue', wait: 'Wait', back: 'Back to last CP', hurry: 'Hurry', base: 'Return to base' };
+/** The letter pairs [a, b] still free for cell `id`, given the letters already `used` (a string or an array). */
+function replyOptions(key, id, used = '') {
+  const pairs = [];
+  for (const a of key.rows[Number(id[0])]) {
+    for (const b of key.cols[Number(id[1])]) if (a !== b && !used.includes(a) && !used.includes(b)) pairs.push([a, b]);
+  }
+  return pairs;
+}
+
+/** How many ways are left to encode all the cells in `ids` without repeating a letter. */
+function countReplies(key, ids, used = '') {
+  if (ids.length === 0) return 1;
+  return replyOptions(key, ids[0], used).reduce((n, [a, b]) => n + countReplies(key, ids.slice(1), used + a + b), 0);
+}
+
+/** Can the cells in `ids` still all be encoded, given the letters already `used`? */
+function canFinishReply(key, ids, used = '') {
+  if (ids.length === 0) return true;
+  return replyOptions(key, ids[0], used).some(([a, b]) => canFinishReply(key, ids.slice(1), used + a + b));
+}
+
+
 const START_INTUITION = 3;
+const SAVE_KEY = 'unrecoder-progress-v1';
+const LOG_KEY = 'unrecoder-log-v1';
+const LOG_LIMIT = 4000; // events kept; the oldest are dropped first
 
 const $ = (id) => document.getElementById(id);
 
 let act;
+let progress = loadProgress(); // {done: {shift: {read, mistakes, replyMistakes}}, muted}: what survives between sessions
+let shiftIndex = null; // the shift in progress, or null while the player is only at the desk
+let shiftLog; // per message of the shift in progress: {reading, mistakes}
+let mode; // 'message': decoding what the agents sent; 'reply': encoding an order from command, at the end of the shift
 let txIndex = 0;
-let tx;
-let state;
-let start; // {crew, intuition} at the start of the current transmission, for Replay
+let tx; // the current message; its signal is laid out again after every wrong guess
+let state; // the message being decoded
+let reply; // the reply being encoded
+let start; // {crew, intuition} at the start of the current message, for Replay
+
+function loadProgress() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
+    if (saved && typeof saved.done === 'object') return { done: saved.done, muted: Boolean(saved.muted) };
+  } catch { /* no storage, or nothing saved: start fresh */ }
+  return { done: {}, muted: false };
+}
+
+function saveProgress() {
+  try { localStorage.setItem(SAVE_KEY, JSON.stringify(progress)); } catch { /* play on without saving */ }
+}
+
+// ---------- the game log: every click that matters, for playtest feedback ----------
+
+let gameLog = loadLog();
+
+function loadLog() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(LOG_KEY));
+    if (Array.isArray(saved)) return saved;
+  } catch { /* no storage, or nothing saved */ }
+  return [];
+}
+
+/** Record one event, stamped with the time and with where in the game it happened. */
+function logEvent(type, data = {}) {
+  const where = shiftIndex === null ? {} : { shift: shiftIndex + 1, part: mode === 'reply' ? 'reply' : `message ${txIndex + 1}` };
+  gameLog.push({ t: new Date().toISOString(), type, ...where, ...data });
+  if (gameLog.length > LOG_LIMIT) gameLog = gameLog.slice(-LOG_LIMIT);
+  try { localStorage.setItem(LOG_KEY, JSON.stringify(gameLog)); } catch { /* keep it in memory only */ }
+  if (act) renderLogBar();
+}
+
+function renderLogBar() {
+  $('logCount').textContent = `${gameLog.length} events`;
+  $('logSave').disabled = gameLog.length === 0;
+  $('logClear').disabled = gameLog.length === 0;
+}
+
+/** Save the log as a JSON file, together with the progress it led to. */
+function exportLog() {
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
+  const file = new Blob([JSON.stringify({ exported: new Date().toISOString(), progress, events: gameLog }, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file);
+  a.download = `unrecoder-log-${stamp}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
 
 async function boot() {
   try {
@@ -484,216 +638,154 @@ async function boot() {
       'prototype/unrecoder-standalone.html, which needs no server.');
     return;
   }
-  startCampaign();
+  state = { crew: crewAt(act, 0) }; // enough to draw the map before any shift is open
+  logEvent('session_start', { shiftsFiled: Object.keys(progress.done).length });
+  openFolder(false);
 }
 
 function showFatal(message) {
   const el = document.createElement('p');
   el.className = 'fatal';
   el.textContent = message;
-  document.querySelector('.desk').prepend(el);
+  document.body.prepend(el);
 }
 
-function startCampaign() {
+// ---------- the desk: one folder per shift ----------
+
+function isUnlocked(s) {
+  return s === 0 || Boolean(progress.done[s - 1]);
+}
+
+function renderDesk() {
+  $('shelf').replaceChildren(...act.shifts.map((shift, s) => {
+    const done = progress.done[s];
+    const open = shiftIndex === s;
+    const b = btn('', () => onShiftFolder(s), !isUnlocked(s), 'shift-folder' + (done ? ' done' : '') + (open ? ' open' : '') + (isUnlocked(s) ? '' : ' locked'));
+    const status = open ? `${mode === 'reply' ? 'reply' : `message ${txIndex + 1} of ${shift.transmissions.length}`} — continue`
+      : done ? `${done.read}/${shift.transmissions.length} read right · ${done.mistakes + done.replyMistakes} wrong`
+        : isUnlocked(s) ? 'click to open' : 'locked';
+    b.innerHTML = `<b>SHIFT ${s + 1}</b><span class="stitle">${shift.title}</span><span class="sstatus">${status}</span>${done ? '<i class="filed">FILED</i>' : ''}`;
+    return b;
+  }));
+}
+
+function onShiftFolder(s) {
+  if (shiftIndex === s) return openFolder(true);
+  shiftIndex = s;
+  shiftLog = [];
   txIndex = 0;
-  start = { crew: act.crew, intuition: START_INTUITION };
+  start = { crew: crewAt(act, s), intuition: START_INTUITION };
+  logEvent('shift_start', { title: act.shifts[s].title });
   begin();
 }
 
+function finishShift() {
+  const total = (pickOf) => shiftLog.reduce((n, m) => n + pickOf(m), 0);
+  progress.done[shiftIndex] = { read: total((m) => (m.reading === 'correct' ? 1 : 0)), mistakes: total((m) => m.mistakes), replyMistakes: reply.mistakes };
+  saveProgress();
+  logEvent('shift_done', progress.done[shiftIndex]);
+  shiftIndex = null;
+  openFolder(false);
+}
+
+function openFolder(open) {
+  document.body.classList.toggle('folder-open', open && shiftIndex !== null);
+  renderDesk();
+  renderWall();
+  advise();
+}
+
+// ---------- a message ----------
+
 function begin() {
-  tx = prepare(act, txIndex);
+  mode = 'message';
+  tx = prepare(act, shiftIndex, txIndex);
   state = {
     phase: 'find', // 'find' -> 'read' -> 'sent'
     crew: start.crew,
     intuition: start.intuition,
-    marked: [], // start positions in the signal of the groups the player marked
-    decoded: {}, // marked position -> cell id the player found
-    selected: null, // marked position being decoded
-    note: '',
-    selection: {}, // message index -> words
-    hedge: {}, // message index -> bool
-    order: null,
+    // Groups are named by the cell they stand for, so they keep their name when the signal is shuffled.
+    decoded: [], // groups the player has decoded
+    selected: null, // the group being decoded
+    tried: {}, // group -> wrong cell ids clicked for it
+    known: {}, // group -> {row, col}: which half of the cell the player has already hit
+    mistakes: 0,
+    feedback: null, // {tone: 'ok' | 'bad' | 'stray', text}: the result of the last click
+    flash: null, // blank that was just filled (animated once)
+    shuffled: false, // the signal was just laid out again (animated once)
+    selection: {}, // blank -> chosen words
+    hedge: {}, // blank -> bool
   };
-  $('result').hidden = true;
-  $('hint').hidden = true;
-  $('txId').textContent = tx.id.split('-')[0].replace('T', 'No.');
-  $('txTime').textContent = `RECEIVED ${tx.time}`;
+  logEvent('message_start', { id: tx.id });
   renderAll();
+  openFolder(true);
+}
+
+function beginReply() {
+  mode = 'reply';
+  tx = prepareReply(act, shiftIndex);
+  reply = {
+    groups: {}, // phrase index -> the group built for it, e.g. "ZAB"
+    selected: 0, // phrase being encoded
+    rowLetter: null, // the row letter already chosen for the selected phrase
+    mistakes: 0,
+    stuck: false, // the letters left cannot finish the reply
+    feedback: null,
+    sent: false,
+  };
+  logEvent('reply_start');
+  renderAll();
+  openFolder(true);
 }
 
 function renderAll() {
-  renderDump();
-  renderStatus();
-  renderBoard();
+  const isReply = mode === 'reply';
+  const count = act.shifts[shiftIndex].transmissions.length;
+  $('tabLabel').textContent = `SHIFT ${shiftIndex + 1} · ` + (isReply ? 'REPLY TO THE AGENTS' : `MESSAGE ${txIndex + 1} OF ${count}`);
+  $('txTime').textContent = isReply ? `DUE ${tx.time}` : `RECEIVED ${tx.time}`;
+  $('keyTitle').textContent = isReply ? 'REPLY KEY — click the letters' : "TODAY'S KEY";
+  $('dump').hidden = isReply;
+  $('orderPaper').hidden = !isReply;
+  $('readBox').hidden = isReply || state.phase === 'find';
+  if (isReply) {
+    renderOrderPaper();
+    renderReplySheet();
+  } else {
+    renderDump();
+    renderStatus();
+    renderSheet();
+    renderFrame();
+  }
   renderIntuition();
   renderCrew();
-  renderFrame();
+  renderWall();
   renderGuide();
   renderKeyCard();
   renderMatrix();
-  renderMap();
-  renderOrders();
+  renderDesk();
+  state.flash = null;
+  state.shuffled = false;
+  advise();
 }
 
-/** Cell ids of the marked groups in reading order (complete once every marked group is decoded). */
-function keysFound() {
-  return markedSorted().map((p) => state.decoded[p]);
+function isDone(id) {
+  return state.decoded.includes(id);
 }
 
-function markedSorted() {
-  return [...state.marked].sort((a, b) => a - b);
+/** Is blank `k` of the sentence filled? */
+function isFilled(k) {
+  return isDone(tx.cipher[k]);
 }
 
-function allDecoded() {
-  return state.marked.every((p) => state.decoded[p] !== undefined);
+function filledCount() {
+  return tx.cipher.filter(isDone).length;
 }
 
-function wordAt(p) {
-  const id = state.decoded[p];
-  if (id === undefined) return null;
-  const k = markedSorted().indexOf(p);
-  return tx.slots[k] === 'number' ? `number ${numberOf(id)}` : cellById(tx, id).meanings.join(' / ');
+function wordOf(id) {
+  return cellById(tx, id).meanings.join(' / ');
 }
 
-/** Does the decoded group at reading index `k` fit its blank? (undefined while it is not decoded yet) */
-function fitsBlank(k) {
-  const sorted = markedSorted();
-  const p = sorted[k];
-  if (p === undefined || state.decoded[p] === undefined || k >= tx.slots.length) return undefined;
-  if (!slotAccepts(tx.slots[k], cellById(tx, state.decoded[p]))) return false;
-  if ((tx.slots[k] === 'number' || tx.slots[k] === 'letter') && k > 0) return nextCandidate(tx, sorted[k - 1]) === p;
-  return true;
-}
-
-// ---------- radio: the signal ----------
-
-function groupOfCell(i) {
-  return state.marked.find((p) => i >= p && i < p + 3);
-}
-
-function renderDump() {
-  const root = $('dump');
-  root.replaceChildren();
-  const finding = state.phase === 'find';
-  for (let row = 0; row * tx.cols < tx.dump.length; row++) {
-    const line = document.createElement('div');
-    line.className = 'dline';
-    for (let c = 0; c < tx.cols; c++) {
-      const i = row * tx.cols + c;
-      const cell = document.createElement('button');
-      cell.type = 'button';
-      cell.className = 'cell' + (tx.dump[i] === 'Z' ? ' zed' : '') + (tx.dump[i] === '?' ? ' lost' : '');
-      cell.textContent = tx.dump[i];
-      cell.dataset.i = String(i);
-      const g = groupOfCell(i);
-      if (g !== undefined) cell.classList.add(g === state.selected ? 'anchor' : 'picked');
-      if (!finding) cell.disabled = true;
-      line.append(cell);
-    }
-    root.append(line);
-  }
-}
-
-// Delegated listener: the signal is re-rendered on state changes only, never on hover.
-$('dump').addEventListener('click', (e) => {
-  const cell = e.target.closest('.cell');
-  if (cell && !cell.disabled) onDumpCell(Number(cell.dataset.i));
-});
-
-function onDumpCell(i) {
-  const marked = groupOfCell(i);
-  if (marked !== undefined) { // click a marked group to unmark it
-    state.marked = state.marked.filter((p) => p !== marked);
-    delete state.decoded[marked];
-    if (state.selected === marked) state.selected = markedSorted().find((p) => state.decoded[p] === undefined) ?? null;
-    state.note = '';
-    return renderAll();
-  }
-  if (!groupAt(tx, i)) {
-    state.note = 'A group starts with the letter Z. Click a Z to mark the group of three letters.';
-    return renderStatus();
-  }
-  if (state.marked.some((p) => Math.abs(p - i) < 3)) {
-    state.note = 'That overlaps a group you already marked.';
-    return renderStatus();
-  }
-  state.marked.push(i);
-  state.selected = i;
-  state.note = '';
-  renderAll();
-}
-
-// ---------- decoding: the table guess ----------
-
-function onMatrixCell(id) {
-  if (state.phase !== 'find') return;
-  const p = state.selected;
-  if (p === null) { state.note = 'Mark a group in the signal first: click a Z.'; return renderStatus(); }
-  if (state.decoded[p] !== undefined) { state.note = 'That group is already decoded. Mark or pick another one.'; return renderStatus(); }
-  const g = groupAt(tx, p);
-  const r = checkGuess(g.id, id);
-  if (!r.ok) {
-    const [, a, b] = g.shown;
-    if (g.damaged) {
-      state.note = a === '?'
-        ? (r.col ? `Column ${id[1]} is right. The row letter is lost, so use the sentence: which cell of column ${id[1]} fits this blank?` : `The column is not ${id[1]}. Look the letter ${b} up in the horizontal key.`)
-        : (r.row ? `Row ${id[0]} is right. The column letter is lost, so use the sentence: which cell of row ${id[0]} fits this blank?` : `The row is not ${id[0]}. Look the letter ${a} up in the vertical key.`);
-    } else {
-      state.note = r.row
-        ? `Row ${id[0]} is right, the column is not. Look the letter ${b} up in the horizontal key.`
-        : r.col
-          ? `Column ${id[1]} is right, the row is not. Look the letter ${a} up in the vertical key.`
-          : `Neither is right. ${a} is a row letter (vertical key), ${b} is a column letter (horizontal key).`;
-    }
-    return renderStatus();
-  }
-  state.decoded[p] = id;
-  state.note = '';
-  afterDecode();
-}
-
-/** Called after a group is decoded: advance, or check whether the marked groups now form the message. */
-function afterDecode() {
-  const pending = markedSorted().find((p) => state.decoded[p] === undefined);
-  state.selected = pending ?? null;
-  if (state.marked.length === tx.slots.length && allDecoded()) {
-    if (parses(tx, state.marked)) return enterRead();
-    const have = markedSorted().map((p) => state.decoded[p]).map((id) => cellById(tx, id).kind).join(' → ');
-    state.note = `These groups do not form the sentence. Blanks need: ${tx.slots.join(' → ')}. You have: ${have}. Some of your groups are decoys: click a marked group in the signal to unmark it.`;
-    state.selected = null;
-  }
-  renderAll();
-}
-
-// ---------- status / board ----------
-
-function renderStatus() {
-  const el = $('status');
-  el.classList.remove('hedge');
-  if (state.phase === 'find') {
-    const p = state.selected;
-    const g = p === null ? null : groupAt(tx, p);
-    let text;
-    if (g && state.decoded[p] === undefined) {
-      text = g.damaged
-        ? `Group ${g.shown}: a letter is lost (?). The letter that is left still gives a row or a column. Click a cell of the table.`
-        : `Group ${g.shown}: ignore the Z. ${g.shown[1]} gives the row (vertical key), ${g.shown[2]} gives the column (horizontal key). Click that cell of the table.`;
-    } else if (markedSorted().some((_, k) => fitsBlank(k) === false)) {
-      const k = markedSorted().findIndex((_, i) => fitsBlank(i) === false);
-      text = `Group ${k + 1} (${wordAt(markedSorted()[k])}) does not fit the blank "${tx.slots[k] ?? 'extra'}". It may be a decoy: click it in the signal to unmark it.`;
-    } else {
-      text = `Find the ${tx.slots.length} groups of the message. Every group starts with Z, but not every Z group belongs to the message. Click a Z to mark it.`;
-    }
-    el.textContent = state.note || text;
-    return;
-  }
-  el.textContent = renderSentence(tx, state.selection);
-  el.classList.toggle('hedge', judgeReading(tx, state.selection, keysFound()) === 'hedged');
-}
-
-function renderIntuition() {
-  $('intuition').textContent = '●'.repeat(state.intuition) + '○'.repeat(MAX_INTUITION - state.intuition);
-}
+const line = (cls, text) => { const d = document.createElement('div'); d.className = cls; d.textContent = text; return d; };
 
 function btn(label, onClick, disabled = false, cls = '') {
   const b = document.createElement('button');
@@ -705,72 +797,166 @@ function btn(label, onClick, disabled = false, cls = '') {
   return b;
 }
 
-const SLOT_HELP = {
-  who: 'who is it about?', place: 'where?', action: 'what happened?', thing: 'about what?', state: 'in what state?',
-  marker: 'announces a number or spelling', number: 'the group right after the marker', letter: 'next letter of the word',
-};
-const KIND_NAMES = { who: 'who', place: 'place', action: 'action', thing: 'thing', state: 'state', marker: 'marker', letter: 'letter', service: 'service' };
+// ---------- decoding: the signal ----------
 
-function renderBoard() {
+function renderDump() {
+  const root = $('dump');
+  root.replaceChildren();
+  root.classList.toggle('shuffled', state.shuffled);
   const finding = state.phase === 'find';
-  $('boardTitle').textContent = finding ? 'DECODING SHEET — FIND AND DECODE THE GROUPS' : 'DECODING SHEET — READ THE MESSAGE';
-  $('readBox').hidden = finding;
+  for (let row = 0; row * tx.cols < tx.dump.length; row++) {
+    const rowEl = document.createElement('div');
+    rowEl.className = 'dline';
+    for (let c = 0; c < tx.cols; c++) {
+      const i = row * tx.cols + c;
+      const id = groupIdAt(tx, i);
+      const cell = document.createElement('button');
+      cell.type = 'button';
+      cell.className = 'cell' + (tx.dump[i] === LOST ? ' lost' : '');
+      cell.textContent = tx.dump[i];
+      cell.dataset.i = String(i);
+      cell.disabled = !finding;
+      if (id && isDone(id)) {
+        // a decoded group stays in the signal, switched off: the colour of its blank, or struck out if it fit none
+        cell.classList.add('done', blankOf(tx, id) < 0 ? 'stray' : `kind-${tx.slots[blankOf(tx, id)]}`);
+        cell.disabled = true;
+      } else if (id && id === state.selected && finding) {
+        cell.classList.add('anchor'); // a group shows as a group only once it has been clicked
+      }
+      rowEl.append(cell);
+    }
+    root.append(rowEl);
+  }
+}
+
+// Delegated listener: the signal is re-rendered on state changes only, never on hover.
+$('dump').addEventListener('click', (e) => {
+  const cell = e.target.closest('.cell');
+  if (cell && !cell.disabled) onDumpCell(Number(cell.dataset.i));
+});
+
+function onDumpCell(i) {
+  const id = groupIdAt(tx, i);
+  if (!id) {
+    logEvent('noise_click', { letter: tx.dump[i] });
+    state.feedback = { tone: 'bad', text: '✗ Just noise. A group is the letter Z and the two letters after it.' };
+    return renderAll();
+  }
+  logEvent('select', { group: shownOf(tx, id) });
+  state.selected = id;
+  state.feedback = null;
+  renderAll();
+}
+
+// ---------- decoding: the table guess ----------
+
+function onMatrixCell(cellId) {
+  if (mode !== 'message' || state.phase !== 'find') return;
+  const id = state.selected;
+  if (id === null) {
+    state.feedback = { tone: 'bad', text: '✗ Pick a group in the signal first: find a Z and click it.' };
+    return renderAll();
+  }
+  if (cellId === id) return decode(id);
+
+  // A wrong guess costs: the cell is ruled out, but the signal shifts and the group has to be found again.
+  const r = checkGuess(id, cellId);
+  const shown = shownOf(tx, id);
+  state.tried[id] = [...(state.tried[id] ?? []), cellId];
+  const known = state.known[id] ?? { row: false, col: false };
+  state.known[id] = { row: known.row || r.row, col: known.col || r.col };
+  state.mistakes += 1;
+  logEvent('wrong_cell', { group: shown, means: wordOf(id), clicked: wordOf(cellId), rowRight: r.row, colRight: r.col });
+  const half = r.row ? `Row ${cellId[0]} is right, the column is not.` : r.col ? `Column ${cellId[1]} is right, the row is not.` : 'Wrong row and wrong column.';
+  state.feedback = { tone: 'bad', shifted: true, text: `✗ ${shown} is not "${wordOf(cellId)}". ${half} The signal shifted: find ${shown} again.` };
+  tx = relayout(tx, state.decoded, Math.random);
+  state.selected = null;
+  state.shuffled = true;
+  renderAll();
+}
+
+/** Group `id` is decoded: its phrase drops into the blank of its kind, or it turns out to be stray. */
+function decode(id) {
+  const shown = shownOf(tx, id);
+  const k = blankOf(tx, id);
+  state.decoded.push(id);
+  state.selected = null;
+  logEvent('decode', { group: shown, word: wordOf(id), fills: k < 0 ? 'nothing (stray)' : tx.slots[k] });
+  if (k < 0) {
+    state.feedback = { tone: 'stray', text: `— ${shown} = "${wordOf(id)}". Other traffic: no blank of this message takes it. Crossed out.` };
+    return renderAll();
+  }
+  state.flash = k;
+  const left = tx.cipher.length - filledCount();
+  state.feedback = {
+    tone: 'ok',
+    text: `✓ ${shown} = "${wordOf(id)}". It fills the blank ${tx.slots[k].toUpperCase()}. ` +
+      (left ? `${filledCount()} of ${tx.cipher.length} blanks filled.` : 'The whole message is decoded.'),
+  };
+  if (!left) return enterRead();
+  renderAll();
+}
+
+// ---------- decoding: status and sheet ----------
+
+function renderStatus() {
+  const el = $('status');
+  el.classList.remove('hedge');
+  const fb = state.feedback ? [line(`fb ${state.feedback.tone}`, state.feedback.text)] : [];
+  if (state.phase !== 'find') {
+    el.replaceChildren(...fb, line('todo', renderSentence(tx, state.selection)));
+    el.classList.toggle('hedge', judgeReading(tx, state.selection) === 'hedged');
+    return;
+  }
+  const id = state.selected;
+  if (id === null) {
+    const open = tx.slots.filter((_, k) => !isFilled(k)).map((s) => s.toUpperCase()).join(', ');
+    el.replaceChildren(...fb, line('todo', `Blanks still empty: ${open}. Find a group in the signal (Z and two letters) and click it.`));
+    return;
+  }
+  const [, a, b] = shownOf(tx, id);
+  const lost = lostHalf(tx, id);
+  const text = lost === 'row'
+    ? `Group Z${a}${b}: the row letter is lost. ${b} still gives the column (horizontal key). Which cell of that column belongs in the message? Go by colour and by sense.`
+    : lost === 'col'
+      ? `Group Z${a}${b}: the column letter is lost. ${a} still gives the row (vertical key). Which cell of that row belongs in the message? Go by colour and by sense.`
+      : `Group Z${a}${b}: ${a} gives the row (vertical key), ${b} gives the column (horizontal key). Click that cell of the table.`;
+  el.replaceChildren(...fb, line('todo', text));
+}
+
+function renderIntuition() {
+  $('intuition').textContent = '●'.repeat(state.intuition) + '○'.repeat(MAX_INTUITION - state.intuition);
+}
+
+const KIND_NAMES = { who: 'who', place: 'place', action: 'action', state: 'state', result: 'result', marker: 'marker', letter: 'letter', service: 'service' };
+
+function renderSheet() {
+  const finding = state.phase === 'find';
+  const mistakes = state.mistakes ? ` · ${state.mistakes} WRONG` : '';
+  $('boardTitle').textContent = finding
+    ? `DECODING — ${filledCount()} OF ${tx.cipher.length} BLANKS FILLED${mistakes}`
+    : `DECODED — NOW READ IT${mistakes}`;
   $('controls').hidden = !finding;
-
-  const picks = $('picks');
-  picks.replaceChildren();
-  const sorted = markedSorted();
-  const count = Math.max(tx.slots.length, sorted.length);
-  for (let k = 0; k < count; k++) {
-    const slot = tx.slots[k];
-    const p = sorted[k];
-    const chip = document.createElement('div');
-    const fit = fitsBlank(k);
-    chip.className = `pick kind-${slot ?? 'extra'}` + (p !== undefined ? ' filled' : '') + (p !== undefined && p === state.selected ? ' sel' : '') + (fit === false ? ' bad' : '');
-    const g = p === undefined ? null : groupAt(tx, p);
-    const sub = p === undefined ? SLOT_HELP[slot] : (wordAt(p) ?? 'not decoded yet');
-    chip.innerHTML = `<div class="type">${k + 1}. ${slot ?? 'extra'}</div><div class="k">${g ? g.shown : '···'}</div><div class="m">${sub}${fit === false ? '<br>does not fit this blank' : ''}</div>`;
-    if (finding && p !== undefined) chip.addEventListener('click', () => { state.selected = p; state.note = ''; renderAll(); });
-    picks.append(chip);
-  }
-
-  if (finding) {
-    $('controls').replaceChildren(
-      btn('AUTO (1 ●): find the next real group', autoFind, state.intuition < 1 || !nextReal()),
-      btn('Clear', () => { state.marked = []; state.decoded = {}; state.selected = null; state.note = ''; renderAll(); }, state.marked.length === 0),
-    );
-    $('legend').textContent = 'Blanks, in order: ' + tx.slots.join(' → ') + '. A number or a spelled letter is the group right after its marker.';
-  } else {
-    renderReadBox();
-    $('legend').textContent = 'Ambiguous phrases have several meanings. Choose from the crew and map context, or HEDGE to hold both.';
-  }
+  $('controls').replaceChildren(btn('AUTO (1 ●): decode the selected group', autoDecode, state.intuition < 1 || state.selected === null));
+  if (!finding) renderReadBox();
+  $('sendBtn').textContent = 'FILE THE MESSAGE ▸';
+  $('sendBtn').hidden = state.phase !== 'read';
+  $('sendBtn').disabled = judgeReading(tx, state.selection) === 'incomplete';
+  $('result').hidden = state.phase !== 'sent';
 }
 
-function nextReal() {
-  return tx.real.find((p) => !state.marked.includes(p) || state.decoded[p] === undefined) ?? null;
-}
-
-function autoFind() {
+function autoDecode() {
   const left = spendIntuition(state.intuition);
-  const p = nextReal();
-  if (left === null || p === null) return;
+  if (left === null || state.selected === null) return;
   state.intuition = left;
-  if (!state.marked.includes(p)) {
-    // make room: drop any marked group that overlaps the real one
-    state.marked = state.marked.filter((q) => Math.abs(q - p) >= 3);
-    state.marked.push(p);
-  }
-  state.decoded[p] = groupAt(tx, p).id;
-  state.note = '';
-  afterDecode();
+  logEvent('auto', { intuitionLeft: left });
+  decode(state.selected);
 }
 
 function enterRead() {
   state.phase = 'read';
-  state.note = '';
-  state.selected = null;
-  keysFound().forEach((id, i) => {
-    const meanings = meaningsOf(tx, i, id);
+  tx.cipher.forEach((id, i) => {
+    const meanings = meaningsOf(tx, id);
     if (meanings.length === 1) state.selection[i] = [meanings[0]];
   });
   renderAll();
@@ -779,21 +965,13 @@ function enterRead() {
 function renderReadBox() {
   const box = $('readBox');
   box.replaceChildren();
-  keysFound().forEach((id, i) => {
-    const meanings = meaningsOf(tx, i, id);
-    if (tx.slots[i] === 'number') {
-      const n = numberOf(id);
-      const m = state.crew.find((c) => c.id === n);
-      const note = document.createElement('div');
-      note.className = 'readnote';
-      note.textContent = m ? `Number ${n} = crew member ${n}: ${m.role} (${m.status}).` : `Number ${n}: no crew member has this ID.`;
-      box.append(note);
-    }
+  tx.cipher.forEach((id, i) => {
+    const meanings = meaningsOf(tx, id);
     if (meanings.length < 2) return;
     const row = document.createElement('div');
     row.className = 'readrow';
     const label = document.createElement('span');
-    label.textContent = `${id} (${tx.slots[i]}):`;
+    label.textContent = `${tx.slots[i]}:`;
     row.append(label);
     meanings.forEach((w) => {
       const chosen = (state.selection[i] ?? []).includes(w);
@@ -806,12 +984,12 @@ function renderReadBox() {
     }, state.phase === 'sent', 'hedge' + (state.hedge[i] ? ' on' : '')));
     box.append(row);
   });
-  if (![...box.children].some((c) => c.classList.contains('readrow'))) {
-    const none = document.createElement('div');
-    none.className = 'readnote';
-    none.textContent = 'Every key has a single meaning.';
-    box.append(none);
-  }
+  const note = document.createElement('div');
+  note.className = 'readnote';
+  note.textContent = box.children.length
+    ? 'One phrase has two meanings under the same code. Pick the one that fits what you know about the agents, or HEDGE to pass on both. Then file the message.'
+    : 'Every phrase has a single meaning. File the message.';
+  box.prepend(note);
 }
 
 function chooseWord(i, w) {
@@ -820,19 +998,208 @@ function chooseWord(i, w) {
   else if (state.hedge[i]) state.selection[i] = [...cur, w];
   else state.selection[i] = [w];
   if (state.selection[i].length === 0) delete state.selection[i];
+  state.feedback = null;
   renderAll();
 }
 
-// ---------- side panels ----------
+/** The sentence with a blank for every phrase of the grammar; decoded phrases drop into the blank of their kind. */
+function renderFrame() {
+  const el = $('frame');
+  el.className = 'frame';
+  el.replaceChildren();
+  tx.clauses.forEach((clause) => {
+    clause.pattern.split(/(\{\d+\})/).forEach((part) => {
+      const m = /^\{(\d+)\}$/.exec(part);
+      if (!m) { if (part) el.append(document.createTextNode(part)); return; }
+      const k = Number(m[1]);
+      const done = isFilled(k);
+      const span = document.createElement('span');
+      span.className = `blank kind-${tx.slots[k]}` + (done ? ' filled' : '') + (k === state.flash ? ' flash' : '');
+      span.textContent = done ? wordOf(tx.cipher[k]) : tx.slots[k];
+      el.append(span);
+    });
+    el.append(document.createTextNode(' '));
+  });
+}
+
+function send() {
+  if (mode === 'reply') return transmitReply();
+  const r = resolve(tx, state.selection);
+  state.phase = 'sent';
+  state.feedback = null;
+  state.crew = applyCrew(state.crew, r.crew);
+  state.intuition = gainIntuition(state.intuition, r.intuitionGain);
+  shiftLog[txIndex] = { reading: r.reading, mistakes: state.mistakes };
+  logEvent('file', { id: tx.id, reading: r.reading, read: renderSentence(tx, state.selection), wrongGuesses: state.mistakes, outcome: r.severity });
+
+  $('message').textContent = `"${r.text}"`;
+  $('message').className = `message ${r.severity}`;
+  const truthSelection = Object.fromEntries(tx.cipher.map((id, i) => [i, [tx.truth[i] ?? meaningsOf(tx, id)[0]]]));
+  const verdict = {
+    correct: 'You read it right.',
+    hedged: 'You hedged: the right reading was there, but you didn\'t commit to it.',
+    wrong: `You misread it. The real reading: "${renderSentence(tx, truthSelection)}"`,
+  }[r.reading];
+  $('debrief').innerHTML = `
+    <p><span class="tag ${r.reading}">${r.reading.toUpperCase()}</span> ${verdict}</p>
+    <p>Intuition ${r.intuitionGain ? '+' + r.intuitionGain : '+0'}. Wrong guesses while decoding: ${state.mistakes}.</p>
+    ${tx.hint ? `<p><i>Why:</i> ${tx.hint}</p>` : ''}`;
+  $('nextBtn').textContent = txIndex < act.shifts[shiftIndex].transmissions.length - 1 ? 'NEXT MESSAGE ▸' : 'END OF SHIFT: REPLY TO THE AGENTS ▸';
+  renderAll();
+}
+
+function next() {
+  if (mode === 'reply') return finishShift();
+  start = { crew: state.crew, intuition: state.intuition };
+  if (txIndex >= act.shifts[shiftIndex].transmissions.length - 1) return beginReply();
+  txIndex += 1;
+  begin();
+}
+
+// ---------- the reply: encoding an order from command ----------
+
+function usedLetters() {
+  return Object.values(reply.groups).map((g) => g.slice(1)).join('') + (reply.rowLetter ?? '');
+}
+
+function replyDone() {
+  return tx.cipher.every((_, k) => reply.groups[k]);
+}
+
+function renderOrderPaper() {
+  $('sheetTitle').textContent = 'FROM COMMAND — ENCODE FOR THE AGENTS';
+  $('orderPaper').replaceChildren(...tx.cipher.map((id, k) => {
+    const done = reply.groups[k];
+    const row = btn('', () => onOrderRow(k), reply.sent, 'orow' + (k === reply.selected ? ' sel' : '') + (done ? ' done' : ''));
+    const group = done ?? (k === reply.selected && reply.rowLetter ? `${MASK}${reply.rowLetter}·` : `${MASK}··`);
+    row.innerHTML = `<span class="okind kind-${tx.slots[k]}">${tx.slots[k]}</span><span class="oword">${wordOf(id)}</span><span class="ogroup">${group}${done ? ' ✓' : ''}</span>`;
+    return row;
+  }));
+}
+
+function openPhrases() {
+  return tx.cipher.map((_, i) => i).filter((i) => !reply.groups[i]);
+}
+
+function onOrderRow(k) {
+  if (reply.groups[k]) { // take a finished group back: its letters are free again
+    const g = reply.groups[k];
+    delete reply.groups[k];
+    reply.feedback = { tone: 'stray', text: `— ${g} taken back. The letters ${g[1]} and ${g[2]} are free again.` };
+    logEvent('reply_take_back', { group: g, word: wordOf(tx.cipher[k]) });
+  } else {
+    reply.feedback = null;
+  }
+  reply.selected = k;
+  reply.rowLetter = null;
+  reply.stuck = !canFinishReply(tx.key, openPhrases().map((i) => tx.cipher[i]), usedLetters());
+  renderAll();
+}
+
+function onKeyLetter(half, letter) {
+  if (mode !== 'reply' || reply.sent) return;
+  const k = reply.selected;
+  if (k === null) {
+    reply.feedback = { tone: 'bad', text: '✗ Pick a phrase on the order first.' };
+    return renderAll();
+  }
+  const id = tx.cipher[k];
+  const rows = half === 'rows';
+  if (!rows && reply.rowLetter === null) {
+    reply.feedback = { tone: 'bad', text: '✗ The row letter comes first: take it from the vertical key.' };
+    return renderAll();
+  }
+  if (rows) reply.rowLetter = null; // choosing the row letter again replaces it
+  const digit = digitOf(rows ? tx.key.rows : tx.key.cols, letter);
+  if (digit !== Number(id[rows ? 0 : 1])) {
+    reply.mistakes += 1;
+    logEvent('reply_wrong_letter', { word: wordOf(id), half: rows ? 'row' : 'column', letter });
+    reply.feedback = { tone: 'bad', text: `✗ ${letter} stands for ${rows ? 'row' : 'column'} ${digit}. "${wordOf(id)}" is not in ${rows ? 'row' : 'column'} ${digit}: find it in the table.` };
+    return renderAll();
+  }
+  if (rows) {
+    reply.rowLetter = letter;
+    reply.feedback = { tone: 'ok', text: `✓ ${letter} is the row. Now the column letter, from the horizontal key.` };
+    return renderAll();
+  }
+  reply.groups[k] = MASK + reply.rowLetter + letter;
+  reply.rowLetter = null;
+  const open = openPhrases();
+  reply.selected = open[0] ?? null;
+  reply.stuck = !canFinishReply(tx.key, open.map((i) => tx.cipher[i]), usedLetters());
+  reply.feedback = reply.stuck
+    ? { tone: 'bad', text: `✗ ${reply.groups[k]} goes out, but now there are not enough free letters for the rest. Click a finished phrase to take its group back.` }
+    : { tone: 'ok', text: `✓ "${wordOf(id)}" = ${reply.groups[k]}. ` + (open.length ? `${tx.cipher.length - open.length} of ${tx.cipher.length} encoded.` : 'The whole order is encoded.') };
+  if (reply.stuck) reply.mistakes += 1;
+  logEvent('reply_group', { word: wordOf(id), group: reply.groups[k], deadEnd: reply.stuck });
+  renderAll();
+}
+
+function renderReplySheet() {
+  const done = tx.cipher.length - openPhrases().length;
+  const mistakes = reply.mistakes ? ` · ${reply.mistakes} WRONG` : '';
+  $('boardTitle').textContent = `OUTGOING — ${done} OF ${tx.cipher.length} ENCODED${mistakes}`;
+  const tape = $('frame');
+  tape.className = 'frame tape';
+  tape.textContent = tx.cipher.map((_, k) => reply.groups[k] ?? '···').join('  ');
+
+  const fb = reply.feedback ? [line(`fb ${reply.feedback.tone}`, reply.feedback.text)] : [];
+  const k = reply.selected;
+  const todo = reply.sent ? 'Sent.'
+    : k === null ? 'Every phrase is encoded. Transmit the reply.'
+      : reply.rowLetter === null
+        ? `Find "${wordOf(tx.cipher[k])}" in the table. Click a letter of its row in the vertical key. Each letter can be used once in the whole reply.`
+        : `Row letter ${reply.rowLetter}. Now click a letter of its column in the horizontal key.`;
+  $('status').classList.remove('hedge');
+  $('status').replaceChildren(...fb, line('todo', todo));
+
+  $('controls').hidden = true;
+  $('sendBtn').textContent = 'TRANSMIT THE REPLY ▸';
+  $('sendBtn').hidden = reply.sent;
+  $('sendBtn').disabled = !replyDone();
+  $('result').hidden = !reply.sent;
+}
+
+function transmitReply() {
+  reply.sent = true;
+  reply.feedback = null;
+  logEvent('reply_sent', { groups: tx.cipher.map((_, k) => reply.groups[k]).join(' '), mistakes: reply.mistakes });
+  const read = shiftLog.filter((m) => m.reading === 'correct').length;
+  const wrong = shiftLog.reduce((n, m) => n + m.mistakes, 0);
+  $('message').textContent = `"${tx.cipher.map((_, k) => reply.groups[k]).join(' ')}" — sent ${tx.time}. End of shift ${shiftIndex + 1}.`;
+  $('message').className = `message ${reply.mistakes ? 'delay' : 'safe'}`;
+  $('debrief').innerHTML = `<p>Messages read right: ${read} of ${shiftLog.length}. Wrong guesses while decoding: ${wrong}.</p>
+    <p>Wrong letters and dead ends while encoding: ${reply.mistakes}.</p>`;
+  $('nextBtn').textContent = 'PUT THE FOLDER AWAY ▸';
+  renderAll();
+}
+
+// ---------- the folder: table, key, agents ----------
 
 function renderCrew() {
   $('crewList').replaceChildren(...state.crew.map((m) => {
     const li = document.createElement('li');
-    if (m.status === 'injured') li.classList.add('injured');
-    li.innerHTML = `<span class="id">${m.id}</span><span>${m.role}${m.note ? `<br><span class="note">${m.note}</span>` : ''}</span><span class="where">${m.location}</span>`;
+    if (m.status !== 'ok') li.classList.add('out');
+    li.innerHTML = `<span class="photo"></span><span><b>${m.name}</b> ${m.id}<br>${m.role}<br>${m.status === 'ok' ? m.location : m.status}${m.note ? `<br><span class="note">${m.note}</span>` : ''}</span>`;
     return li;
   }));
 }
+
+const STEPS = {
+  message: [
+    '<b>Find a group.</b> A group is the letter <b>Z</b> and the two letters after it. They are scattered in the signal in no order. Click one.',
+    'Ignore the Z. The <b>second</b> letter gives the row (vertical key), the <b>third</b> gives the column (horizontal key). Click that cell in the table.',
+    'Right: the phrase drops into the blank of its colour by itself. <b>Wrong: the signal shifts</b>, every group moves and you have to find yours again. Do not click at random.',
+    'Every message has one phrase of each kind: <b>who, place, action, state, result</b>. Their order in the sentence changes. Some groups are other traffic and fit no blank.',
+    'A <b>?</b> is a lost letter. The letter that is left gives one row or one column; pick the cell in it by colour, and where several fit, by sense: the map says who is where.',
+  ],
+  reply: [
+    'Command gives you five phrases. Pick one and <b>find it in the table</b>: its row digit and column digit.',
+    'Click a letter that stands for the row in the <b>vertical key</b>, then a letter for the column in the <b>horizontal key</b>. The group is Z + those two letters.',
+    '<b>Each letter can go out once</b> in the whole reply, as a row letter or as a column letter. Used letters are struck out in both keys.',
+    'A digit owns only two or three letters, so think ahead. If you run out, click a finished phrase to take its group back.',
+  ],
+};
 
 function renderGuide() {
   $('kinds').replaceChildren(...Object.entries(KIND_NAMES).map(([k, name]) => {
@@ -841,48 +1208,36 @@ function renderGuide() {
     el.textContent = name;
     return el;
   }));
-}
-
-/** The sentence with a blank for every key still to find; found keys are filled in as words. */
-function renderFrame() {
-  const words = {};
-  markedSorted().forEach((p, k) => {
-    if (k < tx.slots.length && state.decoded[p] !== undefined) words[k] = wordAt(p).replace(/^number /, '');
-  });
-  const el = $('frame');
-  el.replaceChildren();
-  tx.clauses.forEach((clause) => {
-    clause.pattern.split(/(\{\d+\})/).forEach((part) => {
-      const m = /^\{(\d+)\}$/.exec(part);
-      if (!m) { if (part) el.append(document.createTextNode(part)); return; }
-      const k = Number(m[1]);
-      const span = document.createElement('span');
-      span.className = `blank kind-${tx.slots[k]}` + (words[k] ? ' filled' : '');
-      span.textContent = words[k] ?? tx.slots[k];
-      el.append(span);
-    });
-    el.append(document.createTextNode(' '));
-  });
+  $('steps').innerHTML = STEPS[mode].map((s) => `<li>${s}</li>`).join('');
+  if (mode === 'message') $('sheetTitle').textContent = `INTERCEPT ${tx.id}`;
 }
 
 function renderMatrix() {
+  const finding = mode === 'message' && state.phase === 'find';
+  const id = finding ? state.selected : null;
+  const known = (id !== null && state.known[id]) || { row: false, col: false };
+  const tried = new Set(id === null ? [] : state.tried[id] ?? []);
   const t = document.createElement('table');
-  t.className = 'grid matrix';
+  t.className = 'matrix';
   const head = document.createElement('tr');
-  head.innerHTML = '<th></th>' + [...'0123456789'].map((c) => `<th>${c}</th>`).join('');
+  head.innerHTML = '<th></th>' + [...'0123456789'].map((c) => `<th class="${known.col && id[1] === c ? 'hit' : ''}">${c}</th>`).join('');
   t.append(head);
-  const found = new Set(Object.values(state.decoded));
   for (let r = 0; r < 10; r++) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<th>${r}</th>`;
+    tr.innerHTML = `<th class="${known.row && id[0] === String(r) ? 'hit' : ''}">${r}</th>`;
     for (let c = 0; c < 10; c++) {
-      const id = `${r}${c}`;
-      const cell = cellById(tx, id);
+      const cellId = `${r}${c}`;
+      const cell = cellById(tx, cellId);
       const td = document.createElement('td');
-      td.className = `kind-${cell.kind}` + (cell.meanings.length > 1 ? ' multi' : '') + (found.has(id) ? ' found' : '');
-      td.textContent = cell.text;
-      td.title = id;
-      td.addEventListener('click', () => onMatrixCell(id));
+      td.title = cellId;
+      if (mode === 'message' && isDone(cellId)) {
+        td.className = 'gone'; // decoded: out of the table, nothing left to click
+      } else {
+        td.className = `kind-${cell.kind}` + (cell.meanings.length > 1 ? ' multi' : '') + (tried.has(cellId) ? ' tried' : '');
+        td.textContent = cell.text;
+        if (finding && !tried.has(cellId)) td.addEventListener('click', () => onMatrixCell(cellId));
+        else td.classList.add('locked');
+      }
       tr.append(td);
     }
     t.append(tr);
@@ -890,97 +1245,165 @@ function renderMatrix() {
   $('codeTable').replaceChildren(t);
 }
 
-/** The daily key: which letters stand for which digit. The letters of the selected group are lit. */
+/**
+ * The key: which letters stand for which digit. While decoding, the letters of the selected group are lit.
+ * While encoding, the letters are buttons, and the ones already sent are struck out.
+ */
 function renderKeyCard() {
-  const g = state.selected === null || state.phase !== 'find' ? null : groupAt(tx, state.selected)?.shown;
-  const half = (title, letters, lit) => {
+  const isReply = mode === 'reply';
+  const g = !isReply && state.phase === 'find' && state.selected !== null ? shownOf(tx, state.selected) : null;
+  const used = isReply ? usedLetters() : '';
+  const live = (halfName) => isReply && !reply.sent && reply.selected !== null && (halfName === 'rows' || reply.rowLetter !== null);
+  const half = (halfName, title, letters, lit) => {
     const cells = letters.map((ls, d) => {
-      const chars = [...ls].map((ch) => `<span class="kl${ch === lit ? ' hit' : ''}">${ch}</span>`).join('');
+      const chars = [...ls].map((ch) => {
+        const cls = 'kl' + (ch === lit ? ' hit' : '') + (used.includes(ch) ? ' used' : '') + (isReply ? ' pickable' : '');
+        return `<span class="${cls}" data-half="${halfName}" data-letter="${ch}">${ch}</span>`;
+      }).join('');
       return `<span class="kd"><b>${d}</b>${chars}</span>`;
     }).join('');
-    return `<div class="keyhalf"><div class="kt">${title}</div><div class="kr">${cells}</div></div>`;
+    return `<div class="keyhalf${live(halfName) ? ' live' : ''}"><div class="kt">${title}</div><div class="kr">${cells}</div></div>`;
   };
   $('keyCard').innerHTML =
-    half('VERTICAL KEY: letter → row digit', tx.key.rows, g?.[1]) +
-    half('HORIZONTAL KEY: letter → column digit', tx.key.cols, g?.[2]);
+    half('rows', 'VERTICAL KEY: letter ↔ row digit', tx.key.rows, isReply ? reply.rowLetter : g?.[1]) +
+    half('cols', 'HORIZONTAL KEY: letter ↔ column digit', tx.key.cols, g?.[2]);
 }
 
-function renderMap() {
-  const pts = act.map.points;
-  const ns = 'http://www.w3.org/2000/svg';
-  const svg = $('map');
-  svg.replaceChildren();
-  const line = document.createElementNS(ns, 'polyline');
-  line.setAttribute('points', pts.map((p) => `${p.x},${p.y}`).join(' '));
-  line.setAttribute('fill', 'none');
-  line.setAttribute('stroke', '#8a7a4a');
-  line.setAttribute('stroke-dasharray', '6 5');
-  line.setAttribute('stroke-width', '2');
-  svg.append(line);
-  pts.forEach((p) => {
-    const g = document.createElementNS(ns, 'g');
-    g.innerHTML = `<circle cx="${p.x}" cy="${p.y}" r="6" fill="#2b261c"/><text x="${p.x + 9}" y="${p.y + 4}" font-size="12" fill="#2b261c">${p.id}</text>`;
-    svg.append(g);
+$('keyCard').addEventListener('click', (e) => {
+  const el = e.target.closest('.kl.pickable:not(.used)');
+  if (el) onKeyLetter(el.dataset.half, el.dataset.letter);
+});
+
+// ---------- the room: the district map on the wall ----------
+
+// Where the places of the district sit on the map (in the map's own 560 x 296 units). HQ is the cipher station.
+const HQ = [272, 150];
+const PLACES = {
+  Station: [80, 44], Embassy: [212, 74], Hotel: [350, 40], Airfield: [470, 36], Border: [486, 128], 'Safe house': [140, 150],
+  Harbour: [84, 232], Warehouse: [230, 238], Market: [380, 236],
+};
+
+/** The map: a pin for every place, under it the agents who are there, and a red string from each manned place to HQ. */
+function renderWall() {
+  const crewNow = shiftIndex === null ? crewAt(act, Math.min(Object.keys(progress.done).length, act.shifts.length - 1)) : state.crew;
+  const active = crewNow.filter((m) => m.status === 'ok');
+  const out = crewNow.filter((m) => m.status !== 'ok');
+  const strings = [];
+  const pins = Object.entries(PLACES).map(([place, [x, y]]) => {
+    const here = active.filter((m) => m.location === place).map((m) => m.name);
+    if (here.length) strings.push(`<line class="string" x1="${HQ[0]}" y1="${HQ[1]}" x2="${x}" y2="${y}"/>`);
+    return `<circle class="pin${here.length ? '' : ' empty'}" cx="${x}" cy="${y}" r="6"/>
+      <text class="place" x="${x}" y="${y + 19}">${place.toUpperCase()}</text><text x="${x}" y="${y + 31}">${here.join(' · ')}</text>`;
   });
-  const team = pts.find((p) => p.id === 'CP4');
-  const t = document.createElementNS(ns, 'circle');
-  t.setAttribute('cx', team.x); t.setAttribute('cy', team.y); t.setAttribute('r', 11);
-  t.setAttribute('fill', 'none'); t.setAttribute('stroke', '#a4382a'); t.setAttribute('stroke-width', '2');
-  svg.append(t);
+  const lostList = out.map((m, i) => `<text class="out" x="10" y="${286 - (out.length - 1 - i) * 13}">${m.name} — ${m.status}</text>`);
+  $('board').innerHTML = `<svg viewBox="0 0 560 296">
+    <path class="sea" d="M0 250 C90 205 130 268 215 236 S350 190 405 226 500 262 560 212 V296 H0Z"/>
+    <path class="road" d="M80 44 L212 74 L350 40 L470 36 L486 128"/>
+    ${strings.join('')}${pins.join('')}
+    <rect class="hq" x="${HQ[0] - 13}" y="${HQ[1] - 11}" width="26" height="22"/><text class="place" x="${HQ[0]}" y="${HQ[1] + 26}">STATION HQ</text>
+    ${lostList.join('')}</svg>`;
 }
 
-function renderOrders() {
-  $('orders').replaceChildren(...ORDERS.map((o) => {
-    const b = btn(ORDER_LABELS[o], () => { state.order = o; renderOrders(); }, state.phase !== 'read');
-    b.setAttribute('aria-pressed', String(state.order === o));
-    return b;
-  }));
-  const ready = state.phase === 'read' && judgeReading(tx, state.selection, keysFound()) !== 'incomplete' && state.order;
-  $('sendBtn').disabled = !ready;
+// ---------- Mr. Pike: the advisor ----------
+//
+// Pike talks the player through the first shift step by step, and in any shift speaks up when the player is
+// plainly stuck. Each remark is made once. He can be silenced, and asked again with ASK PIKE.
+
+const pike = { seen: new Set(), last: null, asked: false, askedId: null };
+
+const ADVICE = {
+  home: 'New here? I am Pike, I run this room. Agents report in cipher, you turn it back into words. Open the first folder on your desk.',
+  find: 'A message came in. Somewhere in these letters are groups of three: a Z and the two letters after it. Nothing will point them out for you. Find one and click it.',
+  selected: 'Good, that is a group. Forget the Z. Find its second letter in the vertical key: that digit is the row. Find the third in the horizontal key: the column. Click the cell where they cross.',
+  lost: 'A letter was lost on the air. You still have one line of the table. Look along it for a colour that a blank still needs. If more than one fits, think: the map on the wall and the cards say who is where.',
+  wrong: 'Wrong cell, and the signal shifted: your group has moved. Find it again. The table keeps what you learned: the cell you struck and any row or column you got right.',
+  stray: 'That group was somebody else\'s traffic. Not every Z in the signal is ours. Move on.',
+  ok: 'There. The phrase went to the blank of its colour by itself. The order you decode in does not matter, only the kind: who, place, action, state, result.',
+  file: 'All five blanks are filled. Read it over and file it.',
+  ambiguous: 'One code, two meanings. The cipher cannot tell you which. The agents can: read their cards, then choose. If you really cannot tell, HEDGE and pass on both.',
+  sent: 'That is the job. A wrong guess costs you time; a wrong reading costs somebody else more. Next message.',
+  struggle: 'Stop guessing, it only shakes the signal. Second letter of the group, vertical key: that digit is the row. Third letter, horizontal key: the column. If a letter is lost, read the cards before you click.',
+  reply: 'End of shift. Now the other way round: command wants this sent out. Find each phrase in the table, then give it a letter for its row and a letter for its column. One rule: no letter goes out twice.',
+  replyCol: 'Now the column: a letter from the horizontal key. Mind which letters you spend, the later phrases need some too.',
+  deadend: 'You have spent the letters a later phrase needs. Take one group back and choose its letters with the others in mind.',
+  replySent: 'Shift over. Put the folder away with the others.',
+};
+
+/** What Pike would say right now, as [id, text], or null. `guide`: hand-holding, on the first shift or when asked. */
+function currentAdvice(guide) {
+  const say = (id, key = id) => [id, ADVICE[key]];
+  if (!document.body.classList.contains('folder-open')) {
+    return shiftIndex === null && Object.keys(progress.done).length === 0 ? say('home') : null;
+  }
+  if (mode === 'reply') {
+    if (reply.stuck && !reply.sent) return say(`deadend-${shiftIndex}`, 'deadend');
+    if (!guide) return null;
+    return reply.sent ? say('replySent') : reply.rowLetter !== null ? say('replyCol') : say('reply');
+  }
+  if (state.phase === 'find') {
+    const tone = state.feedback?.tone;
+    if (tone === 'bad' && state.mistakes >= 3 && state.selected === null) return say(`struggle-${shiftIndex}-${txIndex}`, 'struggle');
+    if (!guide) return null;
+    if (state.selected !== null) return lostHalf(tx, state.selected) ? say('lost') : say('selected');
+    if (tone === 'bad' && state.feedback.shifted) return say('wrong');
+    if (tone === 'stray') return say('stray');
+    if (tone === 'ok') return say('ok');
+    return say('find');
+  }
+  if (!guide) return null;
+  if (state.phase === 'sent') return say('sent');
+  if (Object.keys(tx.truth).length === 0) return say('file');
+  return pike.asked ? ['hint', tx.hint] : say('ambiguous');
 }
 
-function send() {
-  const r = resolve(tx, state.selection, state.order, keysFound());
-  state.phase = 'sent';
-  state.crew = applyCrew(state.crew, r.crew);
-  state.intuition = gainIntuition(state.intuition, r.intuitionGain);
-
-  $('result').hidden = false;
-  $('resultTime').textContent = `AFTER ${tx.time}`;
-  $('message').textContent = `"${r.text}"`;
-  $('message').className = `message ${r.severity}`;
-
-  const truthSelection = Object.fromEntries(tx.cipher.map((id, i) => [i, [tx.truth[i] ?? meaningsOf(tx, i, id)[0]]]));
-  const verdict = {
-    correct: 'You read it right.',
-    hedged: 'You hedged: the right reading was in your answer, but you didn\'t commit to it.',
-    wrong: `You misread it. The real reading: "${renderSentence(tx, truthSelection)}"`,
-  }[r.reading];
-  $('debrief').innerHTML = `
-    <p><span class="tag ${r.reading}">${r.reading.toUpperCase()}</span> ${verdict}</p>
-    <p>Order: <b>${ORDER_LABELS[r.order]}</b>. Intuition ${r.intuitionGain ? '+' + r.intuitionGain : '+0'}.</p>
-    <p><i>Why:</i> ${tx.hint}</p>
-    <p style="opacity:.7">(Prototype debrief — in the real game you'd only learn this from the next message.)</p>`;
-  $('nextBtn').hidden = txIndex >= act.transmissions.length - 1;
-  renderAll();
-  $('result').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+function advise() {
+  if (!act) return;
+  let advice = currentAdvice(pike.asked || shiftIndex === 0);
+  if (pike.asked && pike.askedId && advice?.[0] !== pike.askedId) { // the moment he was asked about has passed
+    pike.asked = false;
+    pike.askedId = null;
+    advice = currentAdvice(shiftIndex === 0);
+  }
+  if (pike.asked && advice) pike.askedId = advice[0];
+  if (pike.last && pike.last !== advice?.[0]) pike.seen.add(pike.last); // a remark that scrolled by is not repeated
+  const show = Boolean(advice) && (pike.asked || (!progress.muted && !pike.seen.has(advice[0])));
+  $('advisor').hidden = !show;
+  if (show && pike.last !== advice[0]) logEvent('pike_says', { advice: advice[0], asked: pike.asked });
+  pike.last = show ? advice[0] : null;
+  if (show) $('advice').textContent = advice[1];
 }
 
-function next() {
-  txIndex += 1;
-  start = { crew: state.crew, intuition: state.intuition };
-  begin();
-  window.scrollTo({ top: 0, behavior: 'smooth' });
-}
+$('adviceOk').addEventListener('click', () => {
+  if (pike.last) pike.seen.add(pike.last);
+  pike.asked = false;
+  pike.askedId = null;
+  advise();
+});
+$('adviceSkip').addEventListener('click', () => {
+  progress.muted = true;
+  saveProgress();
+  logEvent('pike_skipped');
+  pike.asked = false;
+  pike.askedId = null;
+  advise();
+});
+$('askPike').addEventListener('click', () => {
+  progress.muted = false;
+  saveProgress();
+  pike.asked = true;
+  pike.askedId = null;
+  advise();
+});
 
 $('sendBtn').addEventListener('click', send);
 $('nextBtn').addEventListener('click', next);
-$('restartBtn').addEventListener('click', begin);
-$('restartAllBtn').addEventListener('click', startCampaign);
-$('hintBtn').addEventListener('click', () => {
-  const h = $('hint');
-  h.textContent = 'Hint: ' + tx.hint;
-  h.hidden = !h.hidden;
+$('restartBtn').addEventListener('click', () => (mode === 'reply' ? beginReply() : begin()));
+$('closeFolder').addEventListener('click', () => { logEvent('back_to_desk'); openFolder(false); });
+$('logSave').addEventListener('click', exportLog);
+$('logClear').addEventListener('click', () => {
+  gameLog = [];
+  try { localStorage.removeItem(LOG_KEY); } catch { /* nothing stored */ }
+  renderLogBar();
 });
 boot();
 
