@@ -602,10 +602,6 @@ function canFinishReply(key, ids, used = '') {
   return replyOptions(key, ids[0], used).some(([a, b]) => canFinishReply(key, ids.slice(1), used + a + b));
 }
 
-import {
-  MAX_INTUITION, MASK, LOST, prepare, prepareReply, crewAt, cellById, digitOf, groupIdAt, blankOf, shownOf, lostHalf, relayout, checkGuess,
-  meaningsOf, judgeReading, renderSentence, resolve, canFinishReply, applyCrew, spendIntuition, gainIntuition,
-} from './core/engine.js';
 
 const START_INTUITION = 3;
 const SAVE_KEY = 'unrecoder-progress-v1';

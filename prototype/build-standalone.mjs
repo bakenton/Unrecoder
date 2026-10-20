@@ -9,7 +9,7 @@ const here = dirname(fileURLToPath(import.meta.url));
 const read = (p) => readFileSync(resolve(here, p), 'utf8');
 
 const engine = read('src/core/engine.js').replace(/^export /gm, '');
-const main = read('src/main.js').replace(/^import[\s\S]*?from '\.\/core\/engine\.js';\n/, '');
+const main = read('src/main.js').replace(/^import[\s\S]*?from '\.\/core\/engine\.js';\r?\n/, '');
 const act = JSON.stringify(JSON.parse(read('../content/campaign/act1.json')));
 
 const script = `window.__ACT__ = ${act};\n${engine}\n${main}`;
