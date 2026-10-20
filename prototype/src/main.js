@@ -1,6 +1,7 @@
 import {
   MAX_INTUITION, MASK, LOST, prepare, prepareReply, crewAt, cellById, digitOf, groupIdAt, blankOf, shownOf, lostHalf, relayout, checkGuess,
   meaningsOf, judgeReading, renderSentence, resolve, canFinishReply, applyCrew, spendIntuition, gainIntuition,
+  buildLevels, describeTwists, receivedMask, viewOf, displayedKeys, canonicalAt, wheelLetter, ALPHABET, posOf, labelOf, errorLimit,
 } from './core/engine.js';
 
 const START_INTUITION = 3;
@@ -10,8 +11,13 @@ const LOG_LIMIT = 4000; // events kept; the oldest are dropped first
 
 const $ = (id) => document.getElementById(id);
 
-let act;
-let progress = loadProgress(); // {done: {shift: {read, mistakes, replyMistakes}}, muted, introduced, toured}: what survives between sessions
+let act; // the game in play: the shifts, or the test levels
+let baseAct; // the shifts
+let levelAct; // the test levels: one twist of the cipher each
+let level = false; // a test level is in play rather than a shift
+// What survives between sessions: {done: {shift: {read, mistakes, replyMistakes}}, levels: {level: {read, mistakes}},
+// checkpoints: {'S0' | 'L2': where a shift or level was left, after the last solved message}, muted, introduced, toured}
+let progress = loadProgress();
 let shiftIndex = null; // the shift in progress, or null while the player is only at the desk
 let shiftLog; // per message of the shift in progress: {reading, mistakes}
 let mode; // 'message': decoding what the agents sent; 'reply': encoding an order from command, at the end of the shift
@@ -21,12 +27,21 @@ let state; // the message being decoded
 let reply; // the reply being encoded
 let start; // {crew, intuition} at the start of the current message, for Replay
 
+/** Whatever was saved (or loaded from a file), made into the shape the game expects. */
+function normalizeProgress(raw) {
+  const plain = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+  return {
+    done: plain(raw.done), levels: plain(raw.levels), checkpoints: plain(raw.checkpoints),
+    muted: Boolean(raw.muted), introduced: Boolean(raw.introduced), toured: Boolean(raw.toured),
+  };
+}
+
 function loadProgress() {
   try {
     const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
-    if (saved && typeof saved.done === 'object') return { done: saved.done, muted: Boolean(saved.muted), introduced: Boolean(saved.introduced), toured: Boolean(saved.toured) };
+    if (saved && typeof saved.done === 'object') return normalizeProgress(saved);
   } catch { /* no storage, or nothing saved: start fresh */ }
-  return { done: {}, muted: false, introduced: false, toured: false };
+  return normalizeProgress({});
 }
 
 function saveProgress() {
@@ -47,7 +62,7 @@ function loadLog() {
 
 /** Record one event, stamped with the time and with where in the game it happened. */
 function logEvent(type, data = {}) {
-  const where = shiftIndex === null ? {} : { shift: shiftIndex + 1, part: mode === 'reply' ? 'reply' : `message ${txIndex + 1}` };
+  const where = shiftIndex === null ? {} : { [level ? 'level' : 'shift']: shiftIndex + 1, part: mode === 'reply' ? 'reply' : `message ${txIndex + 1}` };
   gameLog.push({ t: new Date().toISOString(), type, ...where, ...data });
   if (gameLog.length > LOG_LIMIT) gameLog = gameLog.slice(-LOG_LIMIT);
   try { localStorage.setItem(LOG_KEY, JSON.stringify(gameLog)); } catch { /* keep it in memory only */ }
@@ -81,6 +96,8 @@ async function boot() {
       'prototype/unrecoder-standalone.html, which needs no server.');
     return;
   }
+  baseAct = act;
+  levelAct = buildLevels(act);
   state = { crew: crewAt(act, 0) }; // enough to draw the map before any shift is open
   logEvent('session_start', { shiftsFiled: Object.keys(progress.done).length });
   openFolder(false);
@@ -104,34 +121,59 @@ function isUnlocked(s) {
 }
 
 function renderDesk() {
-  $('shelf').replaceChildren(...act.shifts.map((shift, s) => {
-    const done = progress.done[s];
-    const open = shiftIndex === s;
-    const b = btn('', () => onShiftFolder(s), !isUnlocked(s), 'shift-folder' + (done ? ' done' : '') + (open ? ' open' : '') + (isUnlocked(s) ? '' : ' locked'));
-    const status = open ? `${mode === 'reply' ? 'reply' : `message ${txIndex + 1} of ${shift.transmissions.length}`} — continue`
-      : done ? `${done.read}/${shift.transmissions.length} read right · ${done.mistakes + done.replyMistakes} wrong`
-        : isUnlocked(s) ? 'click to open' : 'locked';
-    b.innerHTML = `<b>SHIFT ${s + 1}</b><span class="stitle">${shift.title}</span><span class="sstatus">${status}</span>${done ? '<i class="filed">FILED</i>' : ''}`;
+  const fill = (root, game, isLevel) => root.replaceChildren(...game.shifts.map((shift, s) => {
+    const done = (isLevel ? progress.levels : progress.done)[s];
+    const open = shiftIndex === s && level === isLevel;
+    const saved = progress.checkpoints[`${isLevel ? 'L' : 'S'}${s}`];
+    const unlocked = isLevel || isUnlocked(s);
+    const count = shift.transmissions.length;
+    const status = open ? `${mode === 'reply' ? 'reply' : `message ${txIndex + 1} of ${count}`} — continue`
+      : saved ? `${saved.reply ? 'reply' : `message ${saved.txIndex + 1} of ${count}`} — continue`
+        : done ? `${done.read}/${count} read right · ${done.mistakes + (done.replyMistakes ?? 0)} wrong`
+          : unlocked ? 'click to open' : 'locked';
+    const cls = 'shift-folder' + (isLevel ? ' level' : '') + (done ? ' done' : '') + (open ? ' open' : '') + (unlocked ? '' : ' locked');
+    const b = btn('', () => onShiftFolder(s, isLevel), !unlocked, cls);
+    b.innerHTML = `<b>${isLevel ? 'LEVEL' : 'SHIFT'} ${s + 1}</b><span class="stitle">${shift.title}</span>` +
+      `${isLevel ? `<span class="snote">${shift.note}</span>` : ''}<span class="sstatus">${status}</span>${done ? '<i class="filed">FILED</i>' : ''}`;
     return b;
   }));
+  fill($('shelf'), baseAct, false);
+  fill($('levelShelf'), levelAct, true);
 }
 
-function onShiftFolder(s) {
-  if (shiftIndex === s) return openFolder(true);
+const checkpointKey = () => `${level ? 'L' : 'S'}${shiftIndex}`;
+
+function onShiftFolder(s, isLevel = false) {
+  if (shiftIndex === s && level === isLevel) return openFolder(true);
+  level = isLevel;
+  act = isLevel ? levelAct : baseAct;
   shiftIndex = s;
+  const saved = progress.checkpoints[checkpointKey()];
+  if (saved) { // pick up where the last solved message left off
+    txIndex = saved.txIndex;
+    shiftLog = saved.shiftLog;
+    start = { crew: saved.crew, intuition: saved.intuition };
+    logEvent('shift_resume', { title: act.shifts[s].title });
+    return saved.reply ? beginReply() : begin();
+  }
   shiftLog = [];
   txIndex = 0;
   start = { crew: crewAt(act, s), intuition: START_INTUITION };
-  logEvent('shift_start', { title: act.shifts[s].title });
+  logEvent(level ? 'level_start' : 'shift_start', { title: act.shifts[s].title });
   begin();
 }
 
 function finishShift() {
   const total = (pickOf) => shiftLog.reduce((n, m) => n + pickOf(m), 0);
-  progress.done[shiftIndex] = { read: total((m) => (m.reading === 'correct' ? 1 : 0)), mistakes: total((m) => m.mistakes), replyMistakes: reply.mistakes };
+  const record = { read: total((m) => (m.reading === 'correct' ? 1 : 0)), mistakes: total((m) => m.mistakes), replyMistakes: mode === 'reply' ? reply.mistakes : 0 };
+  (level ? progress.levels : progress.done)[shiftIndex] = record;
+  delete progress.checkpoints[checkpointKey()];
   saveProgress();
-  logEvent('shift_done', progress.done[shiftIndex]);
+  noteSaved('Autosaved');
+  logEvent(level ? 'level_done' : 'shift_done', record);
   shiftIndex = null;
+  level = false;
+  act = baseAct;
   openFolder(false);
 }
 
@@ -157,6 +199,10 @@ function begin() {
     tried: {}, // group -> wrong cell ids clicked for it
     known: {}, // group -> {row, col}: which half of the cell the player has already hit
     mistakes: 0,
+    lost: false, // too many wrong guesses: the signal faded before the message was decoded
+    wheel: { shift: 0, mirror: false }, // the cipher wheel as the player has set it (the true setting is tx.shift, tx.mirror)
+    pencil: false, // pencil mode: a click on a letter of the signal writes its translation by the wheel
+    marks: new Set(), // signal positions the player has pencilled
     feedback: null, // {tone: 'ok' | 'bad' | 'stray', text}: the result of the last click
     flash: null, // blank that was just filled (animated once)
     shuffled: false, // the signal was just laid out again (animated once)
@@ -166,7 +212,7 @@ function begin() {
   logEvent('message_start', { id: tx.id });
   renderAll();
   openFolder(true);
-  if (shiftIndex === 0 && txIndex === 0 && !progress.toured) startTour();
+  if (!level && shiftIndex === 0 && txIndex === 0 && !progress.toured) startTour();
 }
 
 function beginReply() {
@@ -182,6 +228,7 @@ function beginReply() {
     sent: false,
   };
   logEvent('reply_start');
+  saveCheckpoint(true);
   renderAll();
   openFolder(true);
 }
@@ -189,12 +236,12 @@ function beginReply() {
 function renderAll() {
   const isReply = mode === 'reply';
   const count = act.shifts[shiftIndex].transmissions.length;
-  $('tabLabel').textContent = `SHIFT ${shiftIndex + 1} · ` + (isReply ? 'REPLY TO THE AGENTS' : `MESSAGE ${txIndex + 1} OF ${count}`);
+  $('tabLabel').textContent = `${level ? 'LEVEL' : 'SHIFT'} ${shiftIndex + 1} · ` + (isReply ? 'REPLY TO THE AGENTS' : `MESSAGE ${txIndex + 1} OF ${count}`);
   $('txTime').textContent = isReply ? `DUE ${tx.time}` : `RECEIVED ${tx.time}`;
   $('keyTitle').textContent = isReply ? 'REPLY KEY — click the letters' : "TODAY'S KEY";
   $('dump').hidden = isReply;
   $('orderPaper').hidden = !isReply;
-  $('readBox').hidden = isReply || state.phase === 'find';
+  $('readBox').hidden = isReply || state.phase === 'find' || state.lost;
   if (isReply) {
     renderOrderPaper();
     renderReplySheet();
@@ -208,6 +255,8 @@ function renderAll() {
   renderCrew();
   renderWall();
   renderGuide();
+  renderRules();
+  renderWheel();
   renderKeyCard();
   renderMatrix();
   renderDesk();
@@ -262,7 +311,13 @@ function renderDump() {
       const cell = document.createElement('button');
       cell.type = 'button';
       cell.className = 'cell' + (tx.dump[i] === LOST ? ' lost' : '');
-      cell.textContent = tx.dump[i];
+      const smear = id && tx.smudged?.[id];
+      const smeared = smear && i - posOf(tx, id) === smear.pos; // this letter arrived smudged: two candidates, F/P
+      const raw = smeared ? `${tx.dump[i]}/${smear.alt}` : tx.dump[i];
+      const marked = state.marks.has(i); // pencilled: shown as the wheel, set by the player, translates it
+      cell.textContent = marked ? raw.split('/').map((ch) => wheelLetter(state.wheel, ch)).join('/') : raw;
+      if (smeared) cell.classList.add('smeared');
+      if (marked) cell.classList.add('pencilled');
       cell.dataset.i = String(i);
       cell.disabled = !finding;
       if (id && isDone(id)) {
@@ -282,12 +337,12 @@ function renderDump() {
 
 /** The very first message of the game: one group glows, so the first click is never a guess about what to click. */
 function isFirstMessage() {
-  return shiftIndex === 0 && txIndex === 0;
+  return !level && shiftIndex === 0 && txIndex === 0;
 }
 
 /** Position of the Z of the first real (not stray) group in the signal. */
 function firstGroupStart() {
-  return tx.dump.findIndex((ch, i) => ch === MASK && tx.cipher.includes(groupIdAt(tx, i)));
+  return tx.dump.findIndex((ch, i) => ch === receivedMask(tx) && tx.cipher.includes(groupIdAt(tx, i)));
 }
 
 // Delegated listener: the signal is re-rendered on state changes only, never on hover.
@@ -297,10 +352,14 @@ $('dump').addEventListener('click', (e) => {
 });
 
 function onDumpCell(i) {
+  if (state.pencil) { // the pencil only writes: it does not pick a group
+    if (state.marks.has(i)) state.marks.delete(i); else state.marks.add(i);
+    return renderAll();
+  }
   const id = groupIdAt(tx, i);
   if (!id) {
     logEvent('noise_click', { letter: tx.dump[i] });
-    state.feedback = { tone: 'bad', text: '✗ Just noise. A group is the letter Z and the two letters after it.' };
+    state.feedback = { tone: 'bad', text: `✗ Just noise. A group is the letter ${receivedMask(tx)} and the two letters after it.` };
     return renderAll();
   }
   logEvent('select', { group: shownOf(tx, id) });
@@ -328,11 +387,32 @@ function onMatrixCell(cellId) {
   state.known[id] = { row: known.row || r.row, col: known.col || r.col };
   state.mistakes += 1;
   logEvent('wrong_cell', { group: shown, means: wordOf(id), clicked: wordOf(cellId), rowRight: r.row, colRight: r.col });
-  const half = r.row ? `Row ${cellId[0]} is right, the column is not.` : r.col ? `Column ${cellId[1]} is right, the row is not.` : 'Wrong row and wrong column.';
+  const [rowWord, colWord] = viewOf(tx).transpose ? ['column', 'row'] : ['row', 'column']; // the first letter's axis, the second's
+  const cap = (w) => w[0].toUpperCase() + w.slice(1);
+  const half = r.row ? `${cap(rowWord)} ${cellId[0]} is right, the ${colWord} is not.` : r.col ? `${cap(colWord)} ${cellId[1]} is right, the ${rowWord} is not.` : 'Wrong row and wrong column.';
   state.feedback = { tone: 'bad', shifted: true, text: `✗ ${shown} is not "${wordOf(cellId)}". ${half} The signal shifted: find ${shown} again.` };
+  if (state.mistakes >= errorLimit(level, shiftIndex)) return loseMessage();
   tx = relayout(tx, state.decoded, Math.random);
+  state.marks.clear(); // the pencil marks sat on positions that have just moved
   state.selected = null;
   state.shuffled = true;
+  renderAll();
+}
+
+/** Too many wrong guesses: the signal fades and the message is lost. Nothing reaches command. */
+function loseMessage() {
+  state.phase = 'sent';
+  state.lost = true;
+  state.selected = null;
+  state.feedback = null;
+  state.intuition = Math.max(0, state.intuition - 1);
+  shiftLog[txIndex] = { reading: 'lost', mistakes: state.mistakes };
+  logEvent('lost', { id: tx.id, wrongGuesses: state.mistakes });
+  $('message').textContent = 'The signal faded. The message is lost.';
+  $('message').className = 'message delay';
+  $('debrief').innerHTML = `<p><span class="tag wrong">LOST</span> ${state.mistakes} wrong guesses: the radio window closed before you finished.</p>` +
+    '<p>Intuition −1. Nothing reached command, and the agent is waiting for an answer that will not come. Replay this one, or move on.</p>';
+  $('nextBtn').textContent = txIndex < act.shifts[shiftIndex].transmissions.length - 1 ? 'NEXT MESSAGE ▸' : level ? 'FINISH THE LEVEL ▸' : 'END OF SHIFT: REPLY TO THE AGENTS ▸';
   renderAll();
 }
 
@@ -365,23 +445,33 @@ function renderStatus() {
   el.classList.remove('hedge');
   const fb = state.feedback ? [line(`fb ${state.feedback.tone}`, state.feedback.text)] : [];
   if (state.phase !== 'find') {
-    el.replaceChildren(...fb, line('todo', renderSentence(tx, state.selection)));
+    el.replaceChildren(...fb, line('todo', state.lost ? 'Message lost: the signal faded before it was decoded.' : renderSentence(tx, state.selection)));
     el.classList.toggle('hedge', judgeReading(tx, state.selection) === 'hedged');
     return;
   }
   const id = state.selected;
   if (id === null) {
     const open = tx.slots.filter((_, k) => !isFilled(k)).map((s) => s.toUpperCase()).join(', ');
-    el.replaceChildren(...fb, line('todo', `Blanks still empty: ${open}. Find a group in the signal (Z and two letters) and click it.`));
+    el.replaceChildren(...fb, line('todo', `Blanks still empty: ${open}. Find a group in the signal (${receivedMask(tx)} and two letters) and click it.`));
     return;
   }
-  const [, a, b] = shownOf(tx, id);
+  if (level) { // no walkthrough in the test levels: the rules panel says what the day is, reading the key is the player's job
+    el.replaceChildren(...fb, line('todo', `Group ${labelOf(tx, id)}. Click the cell it points at.` +
+      (lostHalf(tx, id) ? ' One letter was lost: work out the rest from the message and the agents.' : '')));
+    return;
+  }
+  const [mark, a, b] = shownOf(tx, id);
   const lost = lostHalf(tx, id);
+  const turned = viewOf(tx).transpose;
+  const first = turned ? { axis: 'column', key: 'horizontal' } : { axis: 'row', key: 'vertical' };
+  const second = turned ? { axis: 'row', key: 'vertical' } : { axis: 'column', key: 'horizontal' };
+  const name = `Group ${mark}${a}${b}`;
   const text = lost === 'row'
-    ? `Group Z${a}${b}: the row letter is lost. ${b} still gives the column (horizontal key). Which cell of that column belongs in the message? Go by colour and by sense.`
+    ? `${name}: the ${first.axis} letter is lost. ${b} still gives the ${second.axis} (${second.key} key). Which cell of that ${second.axis} belongs in the message? Go by colour and by sense.`
     : lost === 'col'
-      ? `Group Z${a}${b}: the column letter is lost. ${a} still gives the row (vertical key). Which cell of that row belongs in the message? Go by colour and by sense.`
-      : `Group Z${a}${b}: ${a} gives the row (vertical key), ${b} gives the column (horizontal key). Click that cell of the table.`;
+      ? `${name}: the ${second.axis} letter is lost. ${a} still gives the ${first.axis} (${first.key} key). Which cell of that ${first.axis} belongs in the message? Go by colour and by sense.`
+      : `${name}: ${a} gives the ${first.axis} (${first.key} key), ${b} gives the ${second.axis} (${second.key} key). Click that cell of the table.` +
+        (tx.mirror ? ' The signal is mirrored: translate the letters first.' : '');
   el.replaceChildren(...fb, line('todo', text));
 }
 
@@ -393,13 +483,15 @@ const KIND_NAMES = { who: 'who', place: 'place', action: 'action', state: 'state
 
 function renderSheet() {
   const finding = state.phase === 'find';
-  const mistakes = state.mistakes ? ` · ${state.mistakes} WRONG` : '';
+  const limit = errorLimit(level, shiftIndex);
+  const mistakes = Number.isFinite(limit) ? ` · WRONG ${state.mistakes} OF ${limit}` : state.mistakes ? ` · ${state.mistakes} WRONG` : '';
   $('boardTitle').textContent = finding
     ? `DECODING — ${filledCount()} OF ${tx.cipher.length} BLANKS FILLED${mistakes}`
-    : `DECODED — NOW READ IT${mistakes}`;
+    : state.lost ? `LOST${mistakes}` : `DECODED — NOW READ IT${mistakes}`;
   $('controls').hidden = !finding;
-  $('controls').replaceChildren(btn('AUTO (1 ●): decode the selected group', autoDecode, state.intuition < 1 || state.selected === null));
-  if (!finding) renderReadBox();
+  $('controls').replaceChildren(btn('AUTO (1 ●): decode the selected group', autoDecode, state.intuition < 1 || state.selected === null),
+    ...(tx.shift || tx.mirror ? [btn(`✎ PENCIL: ${state.pencil ? 'ON' : 'OFF'}`, () => { state.pencil = !state.pencil; renderAll(); }, false, state.pencil ? 'on' : '')] : []));
+  if (!finding && !state.lost) renderReadBox();
   $('sendBtn').textContent = 'FILE THE MESSAGE ▸';
   $('sendBtn').hidden = state.phase !== 'read';
   $('sendBtn').disabled = judgeReading(tx, state.selection) === 'incomplete';
@@ -505,15 +597,16 @@ function send() {
     <p><span class="tag ${r.reading}">${r.reading.toUpperCase()}</span> ${verdict}</p>
     <p>Intuition ${r.intuitionGain ? '+' + r.intuitionGain : '+0'}. Wrong guesses while decoding: ${state.mistakes}.</p>
     ${tx.hint ? `<p><i>Why:</i> ${tx.hint}</p>` : ''}`;
-  $('nextBtn').textContent = txIndex < act.shifts[shiftIndex].transmissions.length - 1 ? 'NEXT MESSAGE ▸' : 'END OF SHIFT: REPLY TO THE AGENTS ▸';
+  $('nextBtn').textContent = txIndex < act.shifts[shiftIndex].transmissions.length - 1 ? 'NEXT MESSAGE ▸' : level ? 'FINISH THE LEVEL ▸' : 'END OF SHIFT: REPLY TO THE AGENTS ▸';
   renderAll();
 }
 
 function next() {
   if (mode === 'reply') return finishShift();
   start = { crew: state.crew, intuition: state.intuition };
-  if (txIndex >= act.shifts[shiftIndex].transmissions.length - 1) return beginReply();
+  if (txIndex >= act.shifts[shiftIndex].transmissions.length - 1) return level ? finishShift() : beginReply();
   txIndex += 1;
+  saveCheckpoint(false);
   begin();
 }
 
@@ -678,19 +771,23 @@ function renderMatrix() {
   const id = finding ? state.selected : null;
   const known = (id !== null && state.known[id]) || { row: false, col: false };
   const tried = new Set(id === null ? [] : state.tried[id] ?? []);
+  const view = viewOf(tx);
+  // A half of the cell already found is lit on the edge where it sits in this view (turned over, rows are columns).
+  const rowHit = (label) => id !== null && String(label) === (view.transpose ? known.col && id[1] : known.row && id[0]);
+  const colHit = (label) => id !== null && String(label) === (view.transpose ? known.row && id[0] : known.col && id[1]);
   const t = document.createElement('table');
   t.className = 'matrix';
   const head = document.createElement('tr');
-  head.innerHTML = '<th></th>' + [...'0123456789'].map((c) => `<th class="${known.col && id[1] === c ? 'hit' : ''}">${c}</th>`).join('');
+  head.innerHTML = '<th></th>' + view.colLabels.map((c) => `<th class="${colHit(c) ? 'hit' : ''}">${c}</th>`).join('');
   t.append(head);
-  for (let r = 0; r < 10; r++) {
+  for (const r of view.rowLabels) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<th class="${known.row && id[0] === String(r) ? 'hit' : ''}">${r}</th>`;
-    for (let c = 0; c < 10; c++) {
-      const cellId = `${r}${c}`;
+    tr.innerHTML = `<th class="${rowHit(r) ? 'hit' : ''}">${r}</th>`;
+    for (const c of view.colLabels) {
+      const cellId = canonicalAt(tx, r, c);
       const cell = cellById(tx, cellId);
       const td = document.createElement('td');
-      td.title = cellId;
+      if (!tx.twists?.length) td.title = cellId;
       if (mode === 'message' && isDone(cellId)) {
         td.className = 'gone'; // decoded: out of the table, nothing left to click
       } else {
@@ -706,13 +803,52 @@ function renderMatrix() {
   $('codeTable').replaceChildren(t);
 }
 
+/** The day's rules: the twists of the cipher, and how many wrong guesses the message allows. */
+function renderRules() {
+  const steps = mode === 'message' ? describeTwists(tx) : [];
+  const lines = steps.length >= 2 ? steps.map((l, i) => `${i + 1}. ${l}`) : steps; // several twists: the rules come in the order to apply them
+  const limit = errorLimit(level, shiftIndex);
+  if (mode === 'message' && Number.isFinite(limit)) lines.push(`Limit: ${limit} wrong guesses, then the message is lost.`);
+  $('rules').hidden = lines.length === 0;
+  if (!lines.length) return;
+  $('rules').innerHTML = `<div class="rt">TODAY'S RULES</div>${lines.map((l) => `<div class="rl">${l}</div>`).join('')}`;
+}
+
+/** The cipher wheel: what the signal's letters stand for under the setting the player has dialled in. */
+function renderWheel() {
+  const show = mode === 'message' && Boolean(tx.shift || tx.mirror) && state.phase === 'find';
+  $('wheel').hidden = !show;
+  if (!show) return;
+  const start = receivedMask(tx);
+  const aligned = wheelLetter(state.wheel, start) === (tx.mask ?? MASK);
+  const cells = [...ALPHABET].map((c) =>
+    `<span class="${c === start ? `start${aligned ? ' aligned' : ''}` : ''}"><i>${c}</i><b>${wheelLetter(state.wheel, c)}</b></span>`).join('');
+  $('wheel').innerHTML = '<div class="wt">CIPHER WHEEL · top: what arrives, bottom: what it stands for</div>' +
+    `<div class="wl">${cells}</div>` +
+    '<div class="wb"><button data-turn="-5">⏪ 5</button><button data-turn="-1">◀ 1</button><button data-turn="1">1 ▶</button><button data-turn="5">5 ⏩</button>' +
+    (tx.mirror ? `<button data-turn="flip" class="${state.wheel.mirror ? 'on' : ''}">⇄ FLIP</button>` : '') +
+    `<span class="wturn">turned by ${state.wheel.shift}${state.wheel.mirror ? ', flipped' : ''}</span></div>`;
+}
+
+$('wheel').addEventListener('click', (e) => {
+  const turn = e.target.closest('button[data-turn]')?.dataset.turn;
+  if (!turn || mode !== 'message' || state.phase !== 'find') return;
+  if (turn === 'flip') state.wheel.mirror = !state.wheel.mirror;
+  else state.wheel.shift = (state.wheel.shift + Number(turn) + 26) % 26;
+  renderAll();
+});
+
 /**
- * The key: which letters stand for which digit. While decoding, the letters of the selected group are lit.
+ * The key: which letters stand for which digit. While decoding, the letters of the selected group are lit
+ * (never in the test levels, and not when the signal is mirrored or shifted: that would do the work for the player).
  * While encoding, the letters are buttons, and the ones already sent are struck out.
  */
 function renderKeyCard() {
   const isReply = mode === 'reply';
-  const g = !isReply && state.phase === 'find' && state.selected !== null ? shownOf(tx, state.selected) : null;
+  const g = !isReply && state.phase === 'find' && state.selected !== null && !tx.mirror && !tx.shift && !level ? shownOf(tx, state.selected) : null;
+  const turned = viewOf(tx).transpose;
+  const litVertical = g ? g[turned ? 2 : 1] : undefined;
+  const litHorizontal = g ? g[turned ? 1 : 2] : undefined;
   const used = isReply ? usedLetters() : '';
   const live = (halfName) => isReply && !reply.sent && reply.selected !== null && (halfName === 'rows' || reply.rowLetter !== null);
   const half = (halfName, title, letters, lit) => {
@@ -725,9 +861,10 @@ function renderKeyCard() {
     }).join('');
     return `<div class="keyhalf${live(halfName) ? ' live' : ''}"><div class="kt">${title}</div><div class="kr">${cells}</div></div>`;
   };
+  const keys = displayedKeys(tx);
   $('keyCard').innerHTML =
-    half('rows', 'VERTICAL KEY: letter ↔ row digit', tx.key.rows, isReply ? reply.rowLetter : g?.[1]) +
-    half('cols', 'HORIZONTAL KEY: letter ↔ column digit', tx.key.cols, g?.[2]);
+    half('rows', 'VERTICAL KEY: letter ↔ row digit', keys.vertical, isReply ? reply.rowLetter : litVertical) +
+    half('cols', 'HORIZONTAL KEY: letter ↔ column digit', keys.horizontal, litHorizontal);
 }
 
 $('keyCard').addEventListener('click', (e) => {
@@ -746,7 +883,7 @@ const PLACES = {
 
 /** The map: a pin for every place, under it the agents who are there, and a red string from each manned place to HQ. */
 function renderWall() {
-  const crewNow = shiftIndex === null ? crewAt(act, Math.min(Object.keys(progress.done).length, act.shifts.length - 1)) : state.crew;
+  const crewNow = shiftIndex === null ? crewAt(baseAct, Math.min(Object.keys(progress.done).length, baseAct.shifts.length - 1)) : state.crew;
   const active = crewNow.filter((m) => m.status === 'ok');
   const out = crewNow.filter((m) => m.status !== 'ok');
   const strings = [];
@@ -763,6 +900,46 @@ function renderWall() {
     ${strings.join('')}${pins.join('')}
     <rect class="hq" x="${HQ[0] - 13}" y="${HQ[1] - 11}" width="26" height="22"/><text class="place" x="${HQ[0]}" y="${HQ[1] + 26}">STATION HQ</text>
     ${lostList.join('')}</svg>`;
+}
+
+// ---------- pointing: the room dims, the panel in question stays lit, Pike's card sits beside it ----------
+
+/** Lift the panels `ids` above the dimmed room and put Pike's card next to them. */
+function pointAt(ids) {
+  document.querySelectorAll('.tour-target').forEach((el) => el.classList.remove('tour-target'));
+  const targets = ids.map((id) => $(id)).filter((el) => el && !el.hidden);
+  targets.forEach((el) => el.classList.add('tour-target'));
+  $('dim').hidden = false;
+  placeAdvisor(targets);
+}
+
+function clearPointing() {
+  document.querySelectorAll('.tour-target').forEach((el) => el.classList.remove('tour-target'));
+  $('dim').hidden = true;
+}
+
+/** Put Pike's card beside the lit panels without covering them: right, left, below, above, then the middle and the corners. */
+function placeAdvisor(targets) {
+  const adv = $('advisor');
+  const w = adv.offsetWidth;
+  const h = adv.offsetHeight;
+  const gap = 14;
+  const rects = targets.map((el) => el.getBoundingClientRect());
+  const fit = (x, y) => ({ x: Math.max(10, Math.min(x, innerWidth - w - 10)), y: Math.max(10, Math.min(y, innerHeight - h - 10)) });
+  const spots = [];
+  const near = rects[0];
+  if (near) {
+    const midY = near.top + near.height / 2 - h / 2;
+    const midX = near.left + near.width / 2 - w / 2;
+    spots.push(fit(near.right + gap, midY), fit(near.left - w - gap, midY), fit(midX, near.bottom + gap), fit(midX, near.top - h - gap));
+  }
+  spots.push(fit((innerWidth - w) / 2, (innerHeight - h) / 2), fit(innerWidth, innerHeight), fit(0, innerHeight), fit((innerWidth - w) / 2, 0), fit(0, 0), fit(innerWidth, 0));
+  // What the player is working on stays readable too (the signal, the status line), though it matters less than the lit panels.
+  const working = ['dump', 'status'].map((id) => $(id)).filter((el) => el && !el.hidden && !targets.includes(el)).map((el) => el.getBoundingClientRect());
+  const area = (c, r) => Math.max(0, Math.min(c.x + w, r.right) - Math.max(c.x, r.left)) * Math.max(0, Math.min(c.y + h, r.bottom) - Math.max(c.y, r.top));
+  const covered = (c) => 3 * rects.reduce((sum, r) => sum + area(c, r), 0) + working.reduce((sum, r) => sum + area(c, r), 0);
+  const best = spots.find((c) => covered(c) === 0) ?? spots.reduce((a, c) => (covered(c) < covered(a) ? c : a));
+  Object.assign(adv.style, { left: `${best.x}px`, top: `${best.y}px`, right: 'auto', bottom: 'auto', transform: 'none' });
 }
 
 // ---------- the welcome card and the tour of the folder ----------
@@ -785,16 +962,8 @@ function startTour() {
 }
 
 function renderTour() {
-  document.querySelectorAll('.tour-target').forEach((el) => el.classList.remove('tour-target'));
   const step = TOUR[tour.step];
   const last = tour.step === TOUR.length - 1;
-  document.body.dataset.focus = '';
-  $('dim').hidden = false;
-  if (step.target) {
-    const el = $(step.target);
-    el.classList.add('tour-target');
-    el.scrollIntoView({ block: 'nearest' });
-  }
   $('advisor').hidden = false;
   $('advice').textContent = step.text;
   $('adviceOk').hidden = true;
@@ -804,26 +973,8 @@ function renderTour() {
   $('tourSkip').hidden = last;
   $('tourStep').hidden = false;
   $('tourStep').textContent = `${tour.step + 1} / ${TOUR.length}`;
-  placeAdvisor(step.target ? $(step.target) : null);
-}
-
-/** Put Pike in a corner that does not cover what he is pointing at. */
-function placeAdvisor(target) {
-  const adv = $('advisor');
-  adv.style.cssText = '';
-  if (!target) return;
-  const t = target.getBoundingClientRect();
-  const w = adv.offsetWidth;
-  const h = adv.offsetHeight;
-  const corners = [{ right: 18, bottom: 18 }, { left: 18, bottom: 18 }, { right: 18, top: 18 }, { left: 18, top: 18 }];
-  const free = corners.find((c) => {
-    const x = c.left !== undefined ? c.left : innerWidth - c.right - w;
-    const y = c.top !== undefined ? c.top : innerHeight - c.bottom - h;
-    return x + w < t.left - 8 || x > t.right + 8 || y + h < t.top - 8 || y > t.bottom + 8;
-  }) ?? corners[0];
-  Object.entries(free).forEach(([side, px]) => { adv.style[side] = `${px}px`; });
-  if (free.left !== undefined) adv.style.right = 'auto';
-  if (free.top !== undefined) adv.style.bottom = 'auto';
+  document.body.dataset.focus = '';
+  pointAt(step.target ? [step.target] : []);
 }
 
 function endTour() {
@@ -831,9 +982,7 @@ function endTour() {
   tour = null;
   progress.toured = true;
   saveProgress();
-  document.querySelectorAll('.tour-target').forEach((el) => el.classList.remove('tour-target'));
-  $('dim').hidden = true;
-  $('advisor').style.cssText = '';
+  clearPointing();
   $('adviceOk').hidden = false;
   $('adviceSkip').hidden = false;
   $('tourNext').hidden = true;
@@ -876,7 +1025,7 @@ const ADVICE = {
   file: 'All five blanks are filled. Read it over and file it.',
   ambiguous: 'One code, two meanings. The cipher cannot tell you which. The agents can: read their cards, then choose. If you really cannot tell, HEDGE and pass on both.',
   sent: 'That is the job. A wrong guess costs you time; a wrong reading costs somebody else more. Next message.',
-  struggle: 'Stop guessing, it only shakes the signal. Second letter of the group, vertical key: that digit is the row. Third letter, horizontal key: the column. If a letter is lost, read the cards before you click.',
+  struggle: 'Stop guessing, it only shakes the signal. The letters of the group give a row and a column: check the key card, and the rules panel if there is one. If a letter is lost, read the cards before you click.',
   reply: 'End of shift. Now the other way round: command wants this sent out. Find each phrase in the table, then give it a letter for its row and a letter for its column. One rule: no letter goes out twice.',
   replyCol: 'Now the column: a letter from the horizontal key. Mind which letters you spend, the later phrases need some too.',
   deadend: 'You have spent the letters a later phrase needs. Take one group back and choose its letters with the others in mind.',
@@ -896,7 +1045,8 @@ function currentAdvice(guide) {
   }
   if (state.phase === 'find') {
     const tone = state.feedback?.tone;
-    if (tone === 'bad' && state.mistakes >= 3 && state.selected === null) return say(`struggle-${shiftIndex}-${txIndex}`, 'struggle');
+    if (tone === 'bad' && state.mistakes >= 3 && state.selected === null) return say(`struggle-${level ? 'L' : 'S'}${shiftIndex}-${txIndex}`, 'struggle');
+    if (level && (pike.asked || (txIndex === 0 && state.decoded.length === 0 && state.selected === null))) return [`twist-${shiftIndex}`, act.shifts[shiftIndex].advice];
     if (!guide) return null;
     if (state.selected !== null) return lostHalf(tx, state.selected) ? say('lost') : say('selected');
     if (tone === 'bad' && state.feedback.shifted) return say('wrong');
@@ -910,19 +1060,20 @@ function currentAdvice(guide) {
   return pike.asked ? ['hint', tx.hint] : say('ambiguous');
 }
 
-/** Which panels glow for each piece of advice. */
+/** The panels Pike points at (and lights up) for each piece of advice. */
 const FOCUS = {
   findFirst: 'dump', find: 'dump', wrong: 'dump', stray: 'dump', selected: 'keyCard codeTable', lost: 'keyCard codeTable crewList',
   ok: 'frame', file: 'sendBtn', ambiguous: 'readBox crewList', hint: 'readBox crewList', reply: 'orderPaper keyCard codeTable', replyCol: 'keyCard',
+  twist: 'rules wheel keyCard', struggle: 'keyCard',
 };
 
 function advise() {
   if (!act || tour) return;
-  let advice = currentAdvice(pike.asked || shiftIndex === 0);
+  let advice = currentAdvice(pike.asked || (!level && shiftIndex === 0));
   if (pike.asked && pike.askedId && advice?.[0] !== pike.askedId) { // the moment he was asked about has passed
     pike.asked = false;
     pike.askedId = null;
-    advice = currentAdvice(shiftIndex === 0);
+    advice = currentAdvice(!level && shiftIndex === 0);
   }
   if (pike.asked && advice) pike.askedId = advice[0];
   if (pike.last && pike.last !== advice?.[0]) pike.seen.add(pike.last); // a remark that scrolled by is not repeated
@@ -930,8 +1081,9 @@ function advise() {
   $('advisor').hidden = !show;
   if (show && pike.last !== advice[0]) logEvent('pike_says', { advice: advice[0], asked: pike.asked });
   pike.last = show ? advice[0] : null;
-  if (show) $('advice').textContent = advice[1];
-  document.body.dataset.focus = show ? FOCUS[advice[0].split('-')[0]] ?? '' : '';
+  if (!show) return clearPointing();
+  $('advice').textContent = advice[1];
+  pointAt((FOCUS[advice[0].split('-')[0]] ?? '').split(' ').filter(Boolean));
 }
 
 $('adviceOk').addEventListener('click', () => {
@@ -954,6 +1106,97 @@ $('askPike').addEventListener('click', () => {
   pike.asked = true;
   pike.askedId = null;
   advise();
+});
+
+// ---------- saving: automatic after every solved message, and by hand to a file ----------
+
+function noteSaved(text) {
+  $('saveNote').textContent = `${text} ${new Date().toTimeString().slice(0, 5)}`;
+}
+
+/** Remember where this shift or level stands: called after every solved message, and when the reply starts. */
+function saveCheckpoint(toReply) {
+  progress.checkpoints[checkpointKey()] = { txIndex, reply: toReply, crew: start.crew, intuition: start.intuition, shiftLog };
+  saveProgress();
+  noteSaved('Autosaved');
+  logEvent('autosave', { toReply });
+}
+
+function exportProgress() {
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
+  const file = new Blob([JSON.stringify({ game: 'unrecoder', saved: new Date().toISOString(), progress }, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file);
+  a.download = `unrecoder-save-${stamp}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  logEvent('save_file');
+  noteSaved('Saved to a file (up to the last solved message)');
+}
+
+/** Back to the desk with `next` as the progress, nothing in play. */
+function resetTo(next) {
+  progress = next;
+  saveProgress();
+  tour = null;
+  shiftIndex = null;
+  level = false;
+  act = baseAct;
+  pike.seen.clear();
+  pike.last = null;
+  pike.asked = false;
+  clearPointing();
+  $('advisor').hidden = true;
+  $('adviceOk').hidden = false;
+  $('adviceSkip').hidden = false;
+  $('tourNext').hidden = true;
+  $('tourSkip').hidden = true;
+  $('tourStep').hidden = true;
+  openFolder(false);
+}
+
+function importProgress(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (data?.game !== 'unrecoder' || typeof data.progress?.done !== 'object') throw new Error('not a save');
+      resetTo(normalizeProgress(data.progress));
+      logEvent('load_file');
+      noteSaved('Loaded from a file');
+    } catch {
+      noteSaved('That file is not a save of this game.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+let newGameTimer = null;
+function disarmNewGame() {
+  clearTimeout(newGameTimer);
+  newGameTimer = null;
+  $('newGame').textContent = 'NEW GAME';
+  $('newGame').classList.remove('armed');
+}
+$('newGame').addEventListener('click', () => {
+  if (!newGameTimer) { // the first click only asks; a second click within a few seconds starts over
+    $('newGame').textContent = 'SURE? CLICK AGAIN';
+    $('newGame').classList.add('armed');
+    newGameTimer = setTimeout(disarmNewGame, 4000);
+    return;
+  }
+  disarmNewGame();
+  logEvent('new_game');
+  resetTo(normalizeProgress({ muted: progress.muted }));
+  $('intro').hidden = false;
+  noteSaved('New game started');
+});
+$('saveGame').addEventListener('click', exportProgress);
+$('saveTab').addEventListener('click', exportProgress);
+$('loadGame').addEventListener('click', () => $('loadFile').click());
+$('loadFile').addEventListener('change', (e) => {
+  if (e.target.files[0]) importProgress(e.target.files[0]);
+  e.target.value = '';
 });
 
 $('sendBtn').addEventListener('click', send);

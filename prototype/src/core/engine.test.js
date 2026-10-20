@@ -7,6 +7,8 @@ import {
   prepare, prepareReply, crewAt, cellById, digitOf, decodeGroup, checkGuess, groupIds, posOf, shownOf, groupIdAt, blankOf, lostHalf, fitsKey,
   scatter, relayout, meaningsOf, isAmbiguous, judgeReading, renderSentence, resolve, replyOptions, countReplies, canFinishReply,
   applyCrew, spendIntuition, gainIntuition, MASK, LOST, SENTENCE_KINDS,
+  LEVELS, buildLevels, applyTwists, receivedMask, decodeShown, displayedKeys, canonicalAt, viewOf, describeTwists, mirrorLetter,
+  candidatesOf, labelOf, shiftLetter, realLetter, roleOf, errorLimit, wheelLetter,
 } from './engine.js';
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -327,4 +329,156 @@ test('every reply has one phrase of each kind, can be encoded, and most careless
     assert.ok(ways >= 1, `${shift.title}: the reply cannot be encoded`);
     assert.ok(ways / free < 0.5, `${shift.title}: too easy, ${ways} of ${free} choices work`);
   });
+});
+
+// ---------- twists: the same cipher under different rules ----------
+
+const TWIST_SETS = [['mask'], ['scramble'], ['swap'], ['mirror'], ['shift'], ['axis'], ['smudge'], ['mask', 'swap'], ['mask', 'shift', 'smudge'],
+  ['mask', 'scramble', 'shift', 'mirror', 'axis', 'smudge']];
+
+test('under every twist, every group that arrived whole decodes to the cell it stands for', () => {
+  for (const twists of TWIST_SETS) {
+    for (const base of txs) {
+      for (let run = 0; run < 3; run++) {
+        const tx = applyTwists(base, twists, Math.random);
+        for (const id of groupIds(tx)) {
+          const shown = shownOf(tx, id);
+          if (shown.includes(LOST) || tx.smudged[id]) continue;
+          assert.equal(decodeShown(tx, shown), id, `${base.id} [${twists}] ${shown}`);
+        }
+      }
+    }
+  }
+});
+
+test('under every twist the start letter marks exactly the groups, in the signal and after a relayout', () => {
+  for (const twists of TWIST_SETS) {
+    for (const base of txs) {
+      const tx = applyTwists(base, twists, Math.random);
+      const starts = (t) => t.dump.filter((c) => c === receivedMask(t)).length;
+      assert.equal(starts(tx), groupIds(tx).length, `${base.id} [${twists}]`);
+      const again = relayout(tx, [], Math.random);
+      assert.equal(starts(again), groupIds(again).length, `${base.id} [${twists}] relayout`);
+      for (const id of groupIds(again)) if (!again.smudged[id]) assert.equal(decodeShown(again, shownOf(again, id)) ?? id, id);
+    }
+  }
+});
+
+test('the mask twist really changes the start letter, and the mirror twist really mirrors the alphabet', () => {
+  const masked = applyTwists(plain, ['mask'], () => 0.5);
+  assert.notEqual(masked.mask, MASK);
+  assert.ok(!masked.key.rows.join('').includes(masked.mask) && !masked.key.cols.join('').includes(masked.mask));
+  const mirrored = applyTwists(plain, ['mirror']);
+  assert.equal(receivedMask(mirrored), 'A');
+  assert.equal(mirrorLetter('B'), 'Y');
+  assert.equal(mirrorLetter(LOST), LOST);
+});
+
+test('swap turns the table over and the keys with it; scramble only reorders the edges', () => {
+  const swapped = applyTwists(plain, ['swap']);
+  assert.equal(displayedKeys(swapped).vertical, swapped.key.cols);
+  assert.equal(canonicalAt(swapped, 3, 7), '73');
+  const scrambled = applyTwists(plain, ['scramble']);
+  const { rowLabels, colLabels } = viewOf(scrambled);
+  assert.deepEqual(sorted(rowLabels), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  assert.deepEqual(sorted(colLabels), [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  assert.notDeepEqual(rowLabels, [0, 1, 2, 3, 4, 5, 6, 7, 8, 9]);
+  assert.deepEqual(describeTwists(plain), []);
+  assert.equal(describeTwists(applyTwists(plain, ['swap'])).length, 1);
+});
+
+test('the test levels are one game: a level per twist, three messages each, no reply, the right crew', () => {
+  const levels = buildLevels(act);
+  assert.equal(levels.shifts.length, LEVELS.length);
+  levels.shifts.forEach((level, i) => {
+    assert.equal(level.transmissions.length, 3);
+    assert.ok(level.advice && level.note && level.twists.length);
+    assert.equal(level.crew.length, act.crew.length);
+    const tx = prepare(levels, i, 0);
+    assert.deepEqual(tx.twists, LEVELS[i].twists);
+    assert.deepEqual(crewAt(levels, i), level.crew);
+  });
+  assert.deepEqual(new Set(levels.shifts.map((l) => l.title)).size, LEVELS.length);
+});
+
+test('every group still points at its cell under every twist, smudged ones among their candidates', () => {
+  for (const twists of TWIST_SETS) {
+    for (const base of txs) {
+      const tx = applyTwists(base, twists, Math.random);
+      for (const id of groupIds(tx)) {
+        if (!shownOf(tx, id).includes(LOST)) assert.ok(candidatesOf(tx, id).includes(id), `${base.id} [${twists}] ${labelOf(tx, id)}`);
+        assert.ok(fitsKey(tx, id), `${base.id} [${twists}] ${shownOf(tx, id)} does not fit ${id}`);
+      }
+    }
+  }
+});
+
+test('a smudged letter can always be settled: the wrong candidate is not a phrase the message can take', () => {
+  let smudges = 0;
+  for (let run = 0; run < 30; run++) {
+    for (const base of txs) {
+      const tx = applyTwists(base, ['smudge'], Math.random);
+      const ids = Object.keys(tx.smudged);
+      assert.ok(ids.length <= 2);
+      for (const id of ids) {
+        smudges += 1;
+        const [wrong, ...rest] = candidatesOf(tx, id).filter((c) => c !== id);
+        assert.equal(rest.length, 0);
+        assert.ok(wrong, `${base.id}: no second candidate`);
+        const kind = cellById(tx, wrong).kind;
+        const k = tx.cipher.indexOf(id);
+        const clearOwner = tx.cipher.find((other, j) => j !== k && tx.slots[j] === kind && !shownOf(tx, other).includes(LOST) && !tx.smudged[other]);
+        assert.ok(!SENTENCE_KINDS.includes(kind) || clearOwner, `${base.id}: the wrong candidate ${wrong} (${kind}) cannot be ruled out`);
+        assert.ok(!labelOf(tx, id).split(' ').every((c) => c.length === 1));
+      }
+    }
+  }
+  assert.ok(smudges > 30, 'smudges are too rare');
+});
+
+test('the axis twist gives each letter to one key, in either order, and never mixes the keys', () => {
+  const tx = applyTwists(plain, ['axis'], Math.random);
+  const letters = (half) => new Set(half.join(''));
+  assert.equal([...letters(tx.key.rows)].filter((ch) => letters(tx.key.cols).has(ch)).length, 0);
+  assert.ok(tx.key.rows.every((l) => l.length >= 1) && tx.key.cols.every((l) => l.length >= 1));
+  const orders = new Set();
+  for (let run = 0; run < 30; run++) for (const id of groupIds(applyTwists(plain, ['axis'], Math.random))) orders.add(roleOf(applyTwists(plain, ['axis'], () => 0.3), id, 1));
+  assert.ok(orders.size >= 1);
+  const mixed = new Set(txs.flatMap((b) => { const t = applyTwists(b, ['axis']); return groupIds(t).map((id) => roleOf(t, id, 1)); }));
+  assert.deepEqual(sorted([...mixed]), ['col', 'row']);
+});
+
+test('the Caesar shift moves every letter and is undone by realLetter; the mirror still works with it', () => {
+  assert.equal(shiftLetter('A', 3), 'D');
+  assert.equal(shiftLetter('Y', 3), 'B');
+  assert.equal(shiftLetter('D', -3), 'A');
+  assert.equal(shiftLetter(LOST, 5), LOST);
+  const tx = applyTwists(plain, ['shift', 'mirror'], Math.random);
+  assert.ok(tx.shift >= 2);
+  for (const ch of 'ABCXYZ') assert.equal(realLetter(tx, tx.mirror ? shiftLetter(mirrorLetter(ch), tx.shift) : ch), ch);
+  assert.equal(describeTwists(applyTwists(plain, ['shift'])).length, 2);
+});
+
+test('shifts and levels from the second on allow only a few wrong guesses; the first shift allows any number', () => {
+  assert.equal(errorLimit(false, 0), Infinity);
+  assert.equal(errorLimit(false, 1), 3);
+  assert.equal(errorLimit(true, 0), 3);
+});
+
+test('the cipher wheel set to the true shift and mirror translates every letter, and a wrong setting does not', () => {
+  for (const twists of [['shift'], ['mirror'], ['shift', 'mirror'], ['mask', 'shift', 'smudge']]) {
+    const tx = applyTwists(plain, twists, Math.random);
+    const right = { shift: tx.shift, mirror: tx.mirror };
+    for (const ch of 'ABCMXYZ') assert.equal(wheelLetter(right, ch), realLetter(tx, ch));
+    // the start letter, turned by the true wheel, is the real start letter
+    assert.equal(wheelLetter(right, receivedMask(tx)), tx.mask);
+    assert.notEqual(wheelLetter({ shift: (tx.shift + 1) % 26, mirror: tx.mirror }, receivedMask(tx)), tx.mask);
+  }
+});
+
+test('the rules name the received and the true start letter, and never the amount of the shift', () => {
+  const tx = applyTwists(plain, ['shift'], Math.random);
+  const text = describeTwists(tx).join(' ');
+  assert.ok(text.includes(receivedMask(tx)) && text.includes(tx.mask));
+  assert.ok(!new RegExp(`\b${tx.shift}\b`).test(text), 'the rules give the shift away');
 });

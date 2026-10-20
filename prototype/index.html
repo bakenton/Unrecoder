@@ -18,19 +18,29 @@
     <div class="teletype" aria-hidden="true"></div>
 
     <div class="desktop">
+      <div class="savebar">
+        <button id="newGame" type="button" title="Start again from the first shift">NEW GAME</button>
+        <button id="saveGame" type="button" title="Download your progress as a file">SAVE GAME</button>
+        <button id="loadGame" type="button" title="Continue from a saved file">LOAD GAME</button>
+        <input id="loadFile" type="file" accept=".json,application/json" hidden>
+        <span id="saveNote" class="savenote">Progress is also saved by itself after every message.</span>
+      </div>
       <div class="desklabel">YOUR DESK — SHIFTS
         <span class="logbar">GAME LOG: <span id="logCount"></span>
           <button id="logSave" type="button">Save as JSON</button>
           <button id="logClear" type="button">Clear</button></span>
       </div>
       <div class="shelf" id="shelf" aria-label="Shift folders"></div>
+      <div class="desklabel levels">TEST LEVELS — ONE TWIST AT A TIME, FOR PLAYTESTING</div>
+      <div class="shelf" id="levelShelf" aria-label="Test levels"></div>
     </div>
 
     <section class="folder" id="folder" aria-label="Case folder">
       <div class="tabs">
         <span class="tab on" id="tabLabel"></span>
         <span class="tab info">INTUITION <span class="intuition" id="intuition" title="Intuition Points"></span></span>
-        <button id="tourBtn" class="tab ask" type="button">HOW TO PLAY</button>
+        <button id="saveTab" class="tab ask" type="button" title="Download your progress as a file">SAVE GAME</button>
+        <button id="tourBtn" class="tab" type="button">HOW TO PLAY</button>
         <button id="askPike" class="tab" type="button">ASK PIKE</button>
         <button id="closeFolder" class="tab close" type="button">BACK TO THE DESK ✕</button>
       </div>
@@ -61,6 +71,8 @@
 
         <section class="sheet book" aria-label="Code table">
           <header><span>CODE TABLE</span><span id="keyTitle"></span></header>
+          <div class="rules" id="rules" hidden></div>
+          <div class="wheel" id="wheel" hidden></div>
           <div class="keycard" id="keyCard"></div>
           <div id="codeTable"></div>
           <div class="kinds" id="kinds"></div>

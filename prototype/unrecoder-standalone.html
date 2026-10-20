@@ -25,7 +25,7 @@ button { font: inherit; color: inherit; }
 .kind-letter { background: var(--k-letter); } .kind-service { background: var(--k-service); }
 
 /* ---- the room: the cipher station at night. The wall with the district map above, your desk below ---- */
-.room { position: relative; min-height: 100vh; min-width: 1080px; overflow: hidden;
+.room { position: relative; min-height: 100vh; min-width: 1080px; overflow-x: hidden;
   background: linear-gradient(#27323a 0 330px, #141a1e 330px 336px, #2a2118 336px); }
 .wall { position: relative; height: 330px; }
 .window { position: absolute; left: 3%; top: 40px; width: 15%; max-width: 170px; height: 240px; border: 8px solid #1c1812;
@@ -56,7 +56,8 @@ button { font: inherit; color: inherit; }
 .map text.place { font-weight: bold; letter-spacing: .06em; }
 .map text.out { fill: var(--red); text-anchor: start; text-decoration: line-through; }
 
-body.folder-open .desktop { visibility: hidden; }
+body.folder-open .desktop { display: none; }
+body.folder-open .room { height: 100vh; overflow: hidden; }
 
 /* ---- the folder: opens over the room, the room stays visible around it ---- */
 .folder { display: none; position: absolute; inset: 14px 4% 14px 4%; }
@@ -190,12 +191,12 @@ button.tab.ask { margin-left: auto; background: var(--card); color: var(--ink); 
 button.tab.close { margin-right: 20px; background: var(--ink); color: var(--amber); }
 
 /* ---- Mr. Pike ---- */
-.advisor { position: fixed; right: 18px; bottom: 18px; z-index: 30; width: 430px; display: flex; gap: 12px; background: var(--card); border: 2px solid var(--ink);
+.advisor { position: fixed; left: 50%; top: 50%; transform: translate(-50%, -50%); z-index: 30; width: 470px; display: flex; gap: 12px; background: var(--card); border: 2px solid var(--ink);
   box-shadow: 0 10px 24px rgba(0,0,0,.6); padding: 10px 12px; }
-.advisor .avatar { flex: none; width: 76px; height: 90px; border: 2px solid var(--ink); }
+.advisor .avatar { flex: none; width: 84px; height: 100px; border: 2px solid var(--ink); }
 .advisor .who { font-size: 12px; font-weight: bold; letter-spacing: .12em; }
 .advisor .who span { font-weight: normal; letter-spacing: 0; color: var(--ink-soft); margin-left: 6px; }
-.advisor p { margin: 6px 0 8px; font-size: 13px; line-height: 1.45; }
+.advisor p { margin: 6px 0 10px; font-size: 15px; line-height: 1.5; }
 .advisor-actions { display: flex; gap: 10px; align-items: center; }
 .advisor-actions .send { margin: 0; padding: 5px 12px; }
 .advisor-actions button:not(.send) { background: none; border: 0; text-decoration: underline; cursor: pointer; font-size: 12px; color: var(--ink-soft); }
@@ -217,17 +218,53 @@ button.tab.close { margin-right: 20px; background: var(--ink); color: var(--ambe
 
 /* ---- the tour: everything dims except the thing being explained ---- */
 .dim { position: fixed; inset: 0; z-index: 20; background: rgba(10,8,5,.62); }
-.tour-target { position: relative; z-index: 25; outline: 3px solid var(--amber); outline-offset: 4px; background-color: var(--paper); }
+.tour-target { position: relative; z-index: 25; outline: 3px solid var(--amber); outline-offset: 4px; }
+.tour-target:not(button) { background-color: var(--paper); }
 .tourstep { font-size: 12px; color: var(--ink-soft); letter-spacing: .1em; }
 
-/* ---- pointing at what matters now ---- */
-@keyframes glow { 0%, 100% { outline-color: rgba(224,161,58,0); } 50% { outline-color: rgba(224,161,58,1); } }
-body[data-focus~="dump"] #dump, body[data-focus~="keyCard"] #keyCard, body[data-focus~="codeTable"] #codeTable,
-body[data-focus~="frame"] #frame, body[data-focus~="readBox"] #readBox, body[data-focus~="crewList"] #crewList,
-body[data-focus~="sendBtn"] #sendBtn, body[data-focus~="orderPaper"] #orderPaper {
-  outline: 3px solid rgba(224,161,58,0); outline-offset: 3px; animation: glow 1.6s ease-in-out infinite; }
+/* ---- the first group of the first message ---- */
 @keyframes nudge { 0%, 100% { background: transparent; } 50% { background: var(--amber); } }
 .cell.nudge { animation: nudge 1.1s ease-in-out infinite; font-weight: bold; }
+
+/* ---- saving ---- */
+.savebar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 14px; }
+.savebar button { padding: 5px 12px; background: none; border: 1px solid #b9a77a; color: #b9a77a; cursor: pointer; font-size: 11px; letter-spacing: .1em; }
+.savebar button:hover { background: #b9a77a; color: var(--ink); }
+.savebar button.armed { background: var(--red); border-color: var(--red); color: #fff; }
+.savenote { font-size: 11px; color: #8d7f5c; margin-left: 6px; }
+
+/* ---- the test levels ---- */
+.desklabel.levels { margin-top: 28px; }
+.shift-folder.level { background: #b8c4a2; height: auto; min-height: 158px; padding-bottom: 12px; }
+.shift-folder .snote { display: block; margin-top: 3px; font-size: 11px; color: var(--ink-soft); }
+
+/* ---- today's rules (the twists) ---- */
+.rules { background: var(--card); border: 2px solid var(--red); padding: 8px 10px; margin-bottom: 10px; font-size: 13px; line-height: 1.4; }
+.rules .rt { font-size: 11px; font-weight: bold; letter-spacing: .14em; color: var(--red); margin-bottom: 4px; }
+.rules .rl { margin: 3px 0; }
+.rules .strip { display: grid; grid-template-columns: repeat(13, 1fr); gap: 3px; margin-top: 4px; font-size: 18px; font-weight: bold; }
+.rules .strip span { display: flex; flex-direction: column; align-items: center; background: var(--paper); padding-top: 2px; }
+.rules .strip b { background: var(--ink); color: var(--amber); width: 100%; text-align: center; margin-top: 2px; }
+.rules .stripnote { margin-top: 8px; font-size: 12px; color: var(--ink-soft); }
+
+/* ---- a smudged letter: two candidates in one cell ---- */
+.cell.smeared { font-size: .62em; letter-spacing: -.04em; white-space: nowrap; color: var(--red); font-weight: bold; }
+
+/* ---- the cipher wheel and the pencil ---- */
+.wheel { background: var(--card); border: 2px solid var(--ink); padding: 8px 10px; margin-bottom: 10px; }
+.wheel .wt { font-size: 11px; font-weight: bold; letter-spacing: .12em; margin-bottom: 6px; }
+.wheel .wl { display: grid; grid-template-columns: repeat(26, 1fr); gap: 1px; font-size: 13px; font-weight: bold; }
+.wheel .wl span { display: flex; flex-direction: column; align-items: center; background: var(--paper); }
+.wheel .wl i { font-style: normal; padding: 1px 0; }
+.wheel .wl b { background: var(--ink); color: var(--amber); width: 100%; text-align: center; padding: 1px 0; }
+.wheel .wl span.start { outline: 2px solid var(--amber); outline-offset: 1px; position: relative; z-index: 1; }
+.wheel .wl span.start.aligned b { background: var(--green); color: #fff; }
+.wheel .wb { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 8px; }
+.wheel .wb button { padding: 5px 10px; background: var(--ink); color: var(--amber); border: 0; font-weight: bold; cursor: pointer; }
+.wheel .wb button.on { background: var(--amber); color: var(--ink); }
+.wheel .wturn { margin-left: 8px; font-size: 12px; color: var(--ink-soft); }
+.cell.pencilled { background: rgba(224,161,58,.38); font-weight: bold; }
+#controls button.on { background: var(--amber); color: var(--ink); }
 
 </style>
 </head>
@@ -243,19 +280,29 @@ body[data-focus~="sendBtn"] #sendBtn, body[data-focus~="orderPaper"] #orderPaper
     <div class="teletype" aria-hidden="true"></div>
 
     <div class="desktop">
+      <div class="savebar">
+        <button id="newGame" type="button" title="Start again from the first shift">NEW GAME</button>
+        <button id="saveGame" type="button" title="Download your progress as a file">SAVE GAME</button>
+        <button id="loadGame" type="button" title="Continue from a saved file">LOAD GAME</button>
+        <input id="loadFile" type="file" accept=".json,application/json" hidden>
+        <span id="saveNote" class="savenote">Progress is also saved by itself after every message.</span>
+      </div>
       <div class="desklabel">YOUR DESK — SHIFTS
         <span class="logbar">GAME LOG: <span id="logCount"></span>
           <button id="logSave" type="button">Save as JSON</button>
           <button id="logClear" type="button">Clear</button></span>
       </div>
       <div class="shelf" id="shelf" aria-label="Shift folders"></div>
+      <div class="desklabel levels">TEST LEVELS — ONE TWIST AT A TIME, FOR PLAYTESTING</div>
+      <div class="shelf" id="levelShelf" aria-label="Test levels"></div>
     </div>
 
     <section class="folder" id="folder" aria-label="Case folder">
       <div class="tabs">
         <span class="tab on" id="tabLabel"></span>
         <span class="tab info">INTUITION <span class="intuition" id="intuition" title="Intuition Points"></span></span>
-        <button id="tourBtn" class="tab ask" type="button">HOW TO PLAY</button>
+        <button id="saveTab" class="tab ask" type="button" title="Download your progress as a file">SAVE GAME</button>
+        <button id="tourBtn" class="tab" type="button">HOW TO PLAY</button>
         <button id="askPike" class="tab" type="button">ASK PIKE</button>
         <button id="closeFolder" class="tab close" type="button">BACK TO THE DESK ✕</button>
       </div>
@@ -286,6 +333,8 @@ body[data-focus~="sendBtn"] #sendBtn, body[data-focus~="orderPaper"] #orderPaper
 
         <section class="sheet book" aria-label="Code table">
           <header><span>CODE TABLE</span><span id="keyTitle"></span></header>
+          <div class="rules" id="rules" hidden></div>
+          <div class="wheel" id="wheel" hidden></div>
           <div class="keycard" id="keyCard"></div>
           <div id="codeTable"></div>
           <div class="kinds" id="kinds"></div>
@@ -367,9 +416,13 @@ const LOST = '?';
 const NOISE = 'ABCDEFGHIJKLMNOPQRSTUVWXY';
 const SENTENCE_KINDS = ['who', 'place', 'action', 'state', 'result'];
 
-/** Message `index` of shift `shift`, with the shared matrix attached. */
-function prepare(act, shift, index) {
-  return { ...act.shifts[shift].transmissions[index], matrix: act.matrix };
+/**
+ * Message `index` of shift `shift`, with the shared matrix attached. A message that carries `twists` is
+ * played with them applied (see applyTwists); `rand` picks the day's random choices.
+ */
+function prepare(act, shift, index, rand = Math.random) {
+  const tx = { ...act.shifts[shift].transmissions[index], matrix: act.matrix };
+  return tx.twists?.length ? applyTwists(tx, tx.twists, rand) : tx;
 }
 
 /** The reply of shift `shift`, with the shared matrix attached. */
@@ -379,7 +432,302 @@ function prepareReply(act, shift) {
 
 /** What is known about the agents when shift `shift` starts: the list, updated by every briefing so far. */
 function crewAt(act, shift) {
-  return act.shifts.slice(0, shift + 1).reduce((crew, s) => applyCrew(crew, s.briefing), act.crew);
+  return act.shifts[shift].crew ?? act.shifts.slice(0, shift + 1).reduce((crew, s) => applyCrew(crew, s.briefing), act.crew);
+}
+
+// --- Twists: the same cipher, read by different rules ---
+//
+// A twist changes how the day's message is presented, not what it says, so every message stays solvable:
+//   mask     groups start with another letter than Z (Z and that letter trade places in the key and the noise)
+//   scramble the rows and columns of the table are in a shuffled order (the digits on the edges say which is which)
+//   shift    a Caesar shift: every letter of the signal arrived N places further along the alphabet
+//   mirror   the signal arrives with a mirrored alphabet: A is Z, B is Y, ... (a shift of the whole alphabet, reversed)
+//   axis     the two letters of a group come in either order; the letter's own key says whether it is the row or the column
+//   smudge   some letters arrive smudged, showing two candidates (F/P); only one is right, and the other one is a phrase
+//            the message cannot take once the clear groups are decoded
+//   swap     the first letter of a group gives the column and the second the row; the table is shown turned over
+// Cell ids stay canonical ("rc" of the shared matrix); only what the player sees changes.
+
+const ALPHABET = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const DIGITS = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
+const IDENTITY_VIEW = { transpose: false, rowLabels: DIGITS, colLabels: DIGITS };
+
+/** Wrong table clicks a message allows before the signal is lost. */
+const MAX_ERRORS = 3;
+
+/** How many wrong clicks a message allows: unlimited in the first shift, which teaches the game. */
+function errorLimit(isLevel, shift) {
+  return isLevel || shift >= 1 ? MAX_ERRORS : Infinity;
+}
+
+const TWIST_NAMES = {
+  mask: 'start letter', scramble: 'scrambled table', shift: 'Caesar shift', mirror: 'mirrored alphabet',
+  axis: 'letter sets the axis', smudge: 'smudged letters', swap: 'swapped axes',
+};
+
+const LEVELS = [
+  {
+    title: 'New start letter', twists: ['mask'],
+    advice: 'Today the groups do not begin with Z. The rules panel names the letter that starts every group. Z is now an ordinary letter, so do not trust your eye for it.',
+  },
+  {
+    title: 'Scrambled table', twists: ['scramble'],
+    advice: 'The edges of the table are shuffled. Do not count on the rows going 0 to 9: find the digit on the edge first, then read along it.',
+  },
+  {
+    title: 'Caesar shift', twists: ['shift'],
+    advice: 'The whole signal is turned along the alphabet by an amount nobody tells you. The rules panel says which letter the groups start with, and which letter that should be in the clear. Turn the wheel until the first lands on the second. Then switch on the pencil and click letters: they are translated with the wheel as you set it. Set it wrong, and the translations are wrong too.',
+  },
+  {
+    title: 'Mirrored alphabet', twists: ['mirror'],
+    advice: 'The alphabet of the signal is mirrored. Press FLIP on the wheel, then check that the start letter lands on the right one. Switch on the pencil and click letters to translate them with the wheel.',
+  },
+  {
+    title: 'Smudged letters', twists: ['smudge'],
+    advice: 'Some letters arrived smudged and show two candidates, like F/P. Only one is right. Decode the clear groups first: a candidate that points at a phrase the message already has, or cannot take, is the wrong one. Careful, three wrong guesses lose the message.',
+  },
+  {
+    title: 'Cipher day', twists: ['mask', 'shift', 'smudge'],
+    advice: 'A new start letter, a turned alphabet and smudged letters. Set the wheel from the start letter first, translate with the pencil, then deal with the smudges by elimination.',
+  },
+  {
+    title: 'Everything', note: 'Four twists at once', twists: ['mask', 'scramble', 'shift', 'smudge'],
+    advice: 'Four changes at once. Set the wheel from the start letter, translate the signal with the pencil, find the digits on the shuffled edges, and leave the smudged groups for last.',
+  },
+].map((level) => ({ ...level, note: level.note ?? level.twists.map((t) => TWIST_NAMES[t]).join(' + ') }));
+
+/** Messages 2-4 of a shift: no ambiguity yet, so the crew list is the same as at the start of that shift. */
+const LEVEL_MESSAGES = [1, 2, 3];
+
+/** The test levels as a game of their own: one level per twist, a few messages each, no reply. */
+function buildLevels(act) {
+  return {
+    ...act,
+    shifts: LEVELS.map((level, i) => {
+      const source = i % act.shifts.length;
+      return {
+        title: level.title, note: level.note, advice: level.advice, twists: level.twists,
+        briefing: [], crew: crewAt(act, source),
+        transmissions: LEVEL_MESSAGES.map((m) => ({ ...act.shifts[source].transmissions[m], twists: level.twists })),
+      };
+    }),
+  };
+}
+
+function mirrorLetter(ch) {
+  const i = ALPHABET.indexOf(ch);
+  return i < 0 ? ch : ALPHABET[ALPHABET.length - 1 - i];
+}
+
+/** `ch` moved `n` places along the alphabet (back for a negative n); anything that is not a letter stays. */
+function shiftLetter(ch, n) {
+  const i = ALPHABET.indexOf(ch);
+  return i < 0 ? ch : ALPHABET[(((i + n) % 26) + 26) % 26];
+}
+
+/** A true letter as it arrives in the signal: mirrored, then shifted. */
+function toReceived(tx, ch) {
+  let c = tx.mirror ? mirrorLetter(ch) : ch;
+  if (tx.shift) c = shiftLetter(c, tx.shift);
+  return c;
+}
+
+/**
+ * What the cipher wheel says a letter of the signal stands for, with the wheel turned by `wheel.shift` and flipped
+ * if `wheel.mirror`. The player sets the wheel; the true setting is the message's own shift and mirror.
+ */
+function wheelLetter(wheel, ch) {
+  const c = wheel.shift ? shiftLetter(ch, -wheel.shift) : ch;
+  return wheel.mirror ? mirrorLetter(c) : c;
+}
+
+/** A letter of the signal as the key knows it: the shift and the mirror undone. */
+function realLetter(tx, ch) {
+  return wheelLetter({ shift: tx.shift, mirror: tx.mirror }, ch);
+}
+
+function shuffled(items, rand) {
+  const out = [...items];
+  for (let i = out.length - 1; i > 0; i--) {
+    const j = Math.floor(rand() * (i + 1));
+    [out[i], out[j]] = [out[j], out[i]];
+  }
+  return out;
+}
+
+/** Which axis letter `pos` (1 or 2) of group `id` gives: positional, unless the axis twist mixed the order. */
+function roleOf(tx, id, pos) {
+  const order = tx.axisOrder?.[id] ?? 'rc';
+  return (pos === 1) === (order === 'rc') ? 'row' : 'col';
+}
+
+/** The axis twist: every key letter belongs to one key only, and a group's two letters come in either order. */
+function rekeyByAxis(out, rand) {
+  const letters = shuffled([...out.key.rows.join('')], rand);
+  const half = Math.ceil(letters.length / 2);
+  const spread = (list) => { // the letters over ten digits, at least one each
+    const buckets = DIGITS.map((d) => [list[d]]);
+    list.slice(10).forEach((ch) => buckets[Math.floor(rand() * 10)].push(ch));
+    return buckets;
+  };
+  const rows = spread(letters.slice(0, half));
+  const cols = spread(letters.slice(half));
+  const pickIn = (bucket) => bucket[Math.floor(rand() * bucket.length)];
+  const dump = [...out.dump];
+  const order = {};
+  for (const id of groupIds(out)) {
+    const p = posOf(out, id);
+    const lost = lostHalf(out, id); // still positional: row letter first
+    const rowLetter = lost === 'row' ? LOST : pickIn(rows[Number(id[0])]);
+    const colLetter = lost === 'col' ? LOST : pickIn(cols[Number(id[1])]);
+    order[id] = rand() < 0.5 ? 'rc' : 'cr';
+    [dump[p + 1], dump[p + 2]] = order[id] === 'rc' ? [rowLetter, colLetter] : [colLetter, rowLetter];
+  }
+  out.dump = dump;
+  out.key = { rows: rows.map((b) => b.join('')), cols: cols.map((b) => b.join('')) };
+  out.axis = true;
+  out.axisOrder = order;
+}
+
+/**
+ * The smudge twist: up to two clear groups get one letter that shows two candidates. The wrong candidate always
+ * points at a phrase the message cannot take once the clear groups are decoded: not a phrase of the sentence at all,
+ * or the kind of a blank that a clear group (which is never smudged) already fills.
+ */
+function smudge(out, rand) {
+  const dump = [...out.dump];
+  const smudged = {};
+  const sureOf = new Set(); // clear groups that a smudge relies on: they stay clear
+  const kindOf = (id) => cellById(out, id).kind;
+  const isClear = (id) => !shownOf(out, id).includes(LOST) && !smudged[id];
+  for (const k of shuffled(out.cipher.map((_, i) => i), rand)) {
+    if (Object.keys(smudged).length >= 2) break;
+    const id = out.cipher[k];
+    if (!isClear(id) || sureOf.has(id)) continue;
+    const pos = 1 + Math.floor(rand() * 2);
+    const row = roleOf(out, id, pos) === 'row';
+    const keyHalf = row ? out.key.rows : out.key.cols;
+    const own = Number(id[row ? 0 : 1]);
+    const options = [];
+    keyHalf.forEach((letters, d) => {
+      if (d === own) return;
+      const decoy = row ? `${d}${id[1]}` : `${id[0]}${d}`;
+      const kind = kindOf(decoy);
+      if (!SENTENCE_KINDS.includes(kind)) return options.push({ letters, anchor: null });
+      const j = out.slots.findIndex((slot, n) => slot === kind && n !== k);
+      if (j >= 0 && isClear(out.cipher[j])) options.push({ letters, anchor: out.cipher[j] });
+    });
+    if (!options.length) continue;
+    const { letters, anchor } = options[Math.floor(rand() * options.length)];
+    if (anchor) sureOf.add(anchor);
+    const decoyLetter = toReceived(out, [...letters][Math.floor(rand() * letters.length)]);
+    const p = posOf(out, id);
+    const truth = dump[p + pos];
+    const [primary, alt] = rand() < 0.5 ? [truth, decoyLetter] : [decoyLetter, truth];
+    dump[p + pos] = primary;
+    smudged[id] = { pos, alt };
+  }
+  out.dump = dump;
+  out.smudged = smudged;
+}
+
+/** The message with `twists` applied: its signal, key and view are rewritten, its meaning is not. */
+function applyTwists(tx, twists, rand = Math.random) {
+  const out = { ...tx, mask: MASK, mirror: false, shift: 0, axis: false, axisOrder: {}, smudged: {}, view: IDENTITY_VIEW, twists };
+  if (twists.includes('axis')) rekeyByAxis(out, rand);
+  if (twists.includes('mask')) {
+    const letter = NOISE[Math.floor(rand() * NOISE.length)];
+    const swap = (ch) => (ch === MASK ? letter : ch === letter ? MASK : ch);
+    out.mask = letter;
+    out.dump = out.dump.map(swap);
+    out.key = { rows: out.key.rows.map((s) => [...s].map(swap).join('')), cols: out.key.cols.map((s) => [...s].map(swap).join('')) };
+  }
+  if (twists.includes('mirror')) out.mirror = true;
+  if (twists.includes('shift')) out.shift = 2 + Math.floor(rand() * 22);
+  if (out.mirror || out.shift) out.dump = out.dump.map((ch) => toReceived(out, ch));
+  if (twists.includes('smudge')) smudge(out, rand);
+  if (twists.includes('swap')) out.view = { ...out.view, transpose: true };
+  if (twists.includes('scramble')) {
+    const mixed = () => { let l; do l = shuffled(DIGITS, rand); while (l.every((d, i) => d === i)); return l; };
+    out.view = { ...out.view, rowLabels: mixed(), colLabels: mixed() };
+  }
+  return out;
+}
+
+/** The letter every group starts with, as it arrives in the signal. */
+function receivedMask(tx) {
+  return toReceived(tx, tx.mask ?? MASK);
+}
+
+function viewOf(tx) {
+  return tx.view ?? IDENTITY_VIEW;
+}
+
+/** The two keys as the player sees them: which one is labelled vertical (rows) and which horizontal (columns). */
+function displayedKeys(tx) {
+  return viewOf(tx).transpose ? { vertical: tx.key.cols, horizontal: tx.key.rows } : { vertical: tx.key.rows, horizontal: tx.key.cols };
+}
+
+/** The cell id behind the table position with row label `rowLabel` and column label `colLabel`. */
+function canonicalAt(tx, rowLabel, colLabel) {
+  return viewOf(tx).transpose ? `${colLabel}${rowLabel}` : `${rowLabel}${colLabel}`;
+}
+
+/** Decode a group as it arrives, by the day's rules: the cell id it points at, or null. (Smudged letters: the first candidate.) */
+function decodeShown(tx, shown) {
+  const [mask, a, b] = shown;
+  if (mask !== receivedMask(tx)) return null;
+  if (tx.axis) { // the letter's own key says which axis it gives
+    const [x, y] = [realLetter(tx, a), realLetter(tx, b)];
+    const first = digitOf(tx.key.rows, x);
+    const [row, col] = first >= 0 ? [first, digitOf(tx.key.cols, y)] : [digitOf(tx.key.rows, y), digitOf(tx.key.cols, x)];
+    return row < 0 || col < 0 ? null : `${row}${col}`;
+  }
+  const keys = displayedKeys(tx);
+  const turned = viewOf(tx).transpose;
+  const first = digitOf(turned ? keys.horizontal : keys.vertical, realLetter(tx, a));
+  const second = digitOf(turned ? keys.vertical : keys.horizontal, realLetter(tx, b));
+  if (first < 0 || second < 0) return null;
+  return turned ? canonicalAt(tx, second, first) : canonicalAt(tx, first, second);
+}
+
+/** Every cell group `id` could point at: one, or two while a letter is smudged. */
+function candidatesOf(tx, id) {
+  const p = posOf(tx, id);
+  const smear = tx.smudged?.[id];
+  const letters = (pos) => (smear?.pos === pos ? [tx.dump[p + pos], smear.alt] : [tx.dump[p + pos]]);
+  const out = [];
+  for (const a of letters(1)) {
+    for (const b of letters(2)) {
+      const cell = decodeShown(tx, `${tx.dump[p]}${a}${b}`);
+      if (cell && !out.includes(cell)) out.push(cell);
+    }
+  }
+  return out;
+}
+
+/** The three letters of group `id` as the player reads them, with smudged letters as "F/P". */
+function labelOf(tx, id) {
+  const p = posOf(tx, id);
+  const smear = tx.smudged?.[id];
+  return [0, 1, 2].map((o) => (smear?.pos === o ? `${tx.dump[p + o]}/${smear.alt}` : tx.dump[p + o])).join(' ');
+}
+
+/** The day's rules as lines of text for the rules panel; empty when nothing is twisted. */
+function describeTwists(tx) {
+  const twists = tx.twists ?? [];
+  const lines = [];
+  const turned = twists.includes('mirror') || twists.includes('shift');
+  const mask = tx.mask ?? MASK;
+  if (turned) lines.push(`Groups arrive starting with ${receivedMask(tx)}. In the clear they start with ${mask}.`);
+  else if (twists.includes('mask')) lines.push(`Every group starts with the letter ${receivedMask(tx)}.`);
+  if (twists.includes('shift')) lines.push(`The alphabet of the signal is turned by an amount you must find: turn the wheel until ${receivedMask(tx)} lands on ${mask}.`);
+  if (twists.includes('mirror')) lines.push('The alphabet of the signal is mirrored: flip the wheel.');
+  if (twists.includes('axis')) lines.push('The two letters of a group come in either order. A letter in the VERTICAL key gives the row, a letter in the HORIZONTAL key gives the column.');
+  if (twists.includes('swap')) lines.push('The FIRST letter of a group gives the COLUMN (horizontal key). The SECOND gives the ROW (vertical key).');
+  if (twists.includes('smudge')) lines.push('Some letters are smudged and show two candidates, like F/P. Only one is right: decode the clear groups first, then see which candidate still fits.');
+  if (twists.includes('scramble')) lines.push('The rows and columns of the table are in a scrambled order. Go by the digits on its edges.');
+  return lines;
 }
 
 function cellById(tx, id) {
@@ -453,15 +801,21 @@ function groupIdAt(tx, i) {
 /** Which half of group `id` is lost in the signal: 'row', 'col' or null. */
 function lostHalf(tx, id) {
   const shown = shownOf(tx, id);
-  return shown[1] === LOST ? 'row' : shown[2] === LOST ? 'col' : null;
+  return shown[1] === LOST ? roleOf(tx, id, 1) : shown[2] === LOST ? roleOf(tx, id, 2) : null;
 }
 
 /** Do the letters of group `id` that did arrive point at its cell under the daily key? */
 function fitsKey(tx, id) {
-  const [mask, a, b] = shownOf(tx, id);
-  return mask === MASK
-    && (a === LOST || digitOf(tx.key.rows, a) === Number(id[0]))
-    && (b === LOST || digitOf(tx.key.cols, b) === Number(id[1]));
+  const p = posOf(tx, id);
+  if (tx.dump[p] !== receivedMask(tx)) return false;
+  const smear = tx.smudged?.[id];
+  return [1, 2].every((pos) => {
+    const shown = tx.dump[p + pos];
+    if (shown === LOST) return true;
+    const row = roleOf(tx, id, pos) === 'row';
+    const digit = Number(id[row ? 0 : 1]);
+    return (smear?.pos === pos ? [shown, smear.alt] : [shown]).some((ch) => digitOf(row ? tx.key.rows : tx.key.cols, realLetter(tx, ch)) === digit);
+  });
 }
 
 /**
@@ -469,10 +823,10 @@ function fitsKey(tx, id) {
  * touches another. `fixed` pins some groups (by index) to a position. `rand` is a () => [0, 1) source.
  * Returns {dump, at}: the grid and the start position of every group.
  */
-function scatter(groups, cols, rows, rand, fixed = {}) {
+function scatter(groups, cols, rows, rand, fixed = {}, noise = NOISE) {
   const pick = (arr) => arr[Math.floor(rand() * arr.length)];
   for (let attempt = 0; attempt < 200; attempt++) {
-    const dump = Array.from({ length: cols * rows }, () => pick(NOISE));
+    const dump = Array.from({ length: cols * rows }, () => pick(noise));
     const at = groups.map((_, i) => fixed[i] ?? null);
     const taken = () => at.filter((p) => p !== null);
     for (let i = 0; i < groups.length && at[i] !== undefined; i++) {
@@ -493,7 +847,8 @@ function relayout(tx, keep, rand) {
   const ids = groupIds(tx);
   const fixed = {};
   ids.forEach((id, i) => { if (keep.includes(id)) fixed[i] = posOf(tx, id); });
-  const { dump, at } = scatter(ids.map((id) => shownOf(tx, id)), tx.cols, tx.dump.length / tx.cols, rand, fixed);
+  const noise = [...ALPHABET].filter((ch) => ch !== receivedMask(tx)).join(''); // the start letter never appears as noise
+  const { dump, at } = scatter(ids.map((id) => shownOf(tx, id)), tx.cols, tx.dump.length / tx.cols, rand, fixed, noise);
   return { ...tx, dump, real: at.slice(0, tx.cipher.length), stray: at.slice(tx.cipher.length) };
 }
 
@@ -610,8 +965,13 @@ const LOG_LIMIT = 4000; // events kept; the oldest are dropped first
 
 const $ = (id) => document.getElementById(id);
 
-let act;
-let progress = loadProgress(); // {done: {shift: {read, mistakes, replyMistakes}}, muted, introduced, toured}: what survives between sessions
+let act; // the game in play: the shifts, or the test levels
+let baseAct; // the shifts
+let levelAct; // the test levels: one twist of the cipher each
+let level = false; // a test level is in play rather than a shift
+// What survives between sessions: {done: {shift: {read, mistakes, replyMistakes}}, levels: {level: {read, mistakes}},
+// checkpoints: {'S0' | 'L2': where a shift or level was left, after the last solved message}, muted, introduced, toured}
+let progress = loadProgress();
 let shiftIndex = null; // the shift in progress, or null while the player is only at the desk
 let shiftLog; // per message of the shift in progress: {reading, mistakes}
 let mode; // 'message': decoding what the agents sent; 'reply': encoding an order from command, at the end of the shift
@@ -621,12 +981,21 @@ let state; // the message being decoded
 let reply; // the reply being encoded
 let start; // {crew, intuition} at the start of the current message, for Replay
 
+/** Whatever was saved (or loaded from a file), made into the shape the game expects. */
+function normalizeProgress(raw) {
+  const plain = (v) => (v && typeof v === 'object' && !Array.isArray(v) ? v : {});
+  return {
+    done: plain(raw.done), levels: plain(raw.levels), checkpoints: plain(raw.checkpoints),
+    muted: Boolean(raw.muted), introduced: Boolean(raw.introduced), toured: Boolean(raw.toured),
+  };
+}
+
 function loadProgress() {
   try {
     const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
-    if (saved && typeof saved.done === 'object') return { done: saved.done, muted: Boolean(saved.muted), introduced: Boolean(saved.introduced), toured: Boolean(saved.toured) };
+    if (saved && typeof saved.done === 'object') return normalizeProgress(saved);
   } catch { /* no storage, or nothing saved: start fresh */ }
-  return { done: {}, muted: false, introduced: false, toured: false };
+  return normalizeProgress({});
 }
 
 function saveProgress() {
@@ -647,7 +1016,7 @@ function loadLog() {
 
 /** Record one event, stamped with the time and with where in the game it happened. */
 function logEvent(type, data = {}) {
-  const where = shiftIndex === null ? {} : { shift: shiftIndex + 1, part: mode === 'reply' ? 'reply' : `message ${txIndex + 1}` };
+  const where = shiftIndex === null ? {} : { [level ? 'level' : 'shift']: shiftIndex + 1, part: mode === 'reply' ? 'reply' : `message ${txIndex + 1}` };
   gameLog.push({ t: new Date().toISOString(), type, ...where, ...data });
   if (gameLog.length > LOG_LIMIT) gameLog = gameLog.slice(-LOG_LIMIT);
   try { localStorage.setItem(LOG_KEY, JSON.stringify(gameLog)); } catch { /* keep it in memory only */ }
@@ -681,6 +1050,8 @@ async function boot() {
       'prototype/unrecoder-standalone.html, which needs no server.');
     return;
   }
+  baseAct = act;
+  levelAct = buildLevels(act);
   state = { crew: crewAt(act, 0) }; // enough to draw the map before any shift is open
   logEvent('session_start', { shiftsFiled: Object.keys(progress.done).length });
   openFolder(false);
@@ -704,34 +1075,59 @@ function isUnlocked(s) {
 }
 
 function renderDesk() {
-  $('shelf').replaceChildren(...act.shifts.map((shift, s) => {
-    const done = progress.done[s];
-    const open = shiftIndex === s;
-    const b = btn('', () => onShiftFolder(s), !isUnlocked(s), 'shift-folder' + (done ? ' done' : '') + (open ? ' open' : '') + (isUnlocked(s) ? '' : ' locked'));
-    const status = open ? `${mode === 'reply' ? 'reply' : `message ${txIndex + 1} of ${shift.transmissions.length}`} — continue`
-      : done ? `${done.read}/${shift.transmissions.length} read right · ${done.mistakes + done.replyMistakes} wrong`
-        : isUnlocked(s) ? 'click to open' : 'locked';
-    b.innerHTML = `<b>SHIFT ${s + 1}</b><span class="stitle">${shift.title}</span><span class="sstatus">${status}</span>${done ? '<i class="filed">FILED</i>' : ''}`;
+  const fill = (root, game, isLevel) => root.replaceChildren(...game.shifts.map((shift, s) => {
+    const done = (isLevel ? progress.levels : progress.done)[s];
+    const open = shiftIndex === s && level === isLevel;
+    const saved = progress.checkpoints[`${isLevel ? 'L' : 'S'}${s}`];
+    const unlocked = isLevel || isUnlocked(s);
+    const count = shift.transmissions.length;
+    const status = open ? `${mode === 'reply' ? 'reply' : `message ${txIndex + 1} of ${count}`} — continue`
+      : saved ? `${saved.reply ? 'reply' : `message ${saved.txIndex + 1} of ${count}`} — continue`
+        : done ? `${done.read}/${count} read right · ${done.mistakes + (done.replyMistakes ?? 0)} wrong`
+          : unlocked ? 'click to open' : 'locked';
+    const cls = 'shift-folder' + (isLevel ? ' level' : '') + (done ? ' done' : '') + (open ? ' open' : '') + (unlocked ? '' : ' locked');
+    const b = btn('', () => onShiftFolder(s, isLevel), !unlocked, cls);
+    b.innerHTML = `<b>${isLevel ? 'LEVEL' : 'SHIFT'} ${s + 1}</b><span class="stitle">${shift.title}</span>` +
+      `${isLevel ? `<span class="snote">${shift.note}</span>` : ''}<span class="sstatus">${status}</span>${done ? '<i class="filed">FILED</i>' : ''}`;
     return b;
   }));
+  fill($('shelf'), baseAct, false);
+  fill($('levelShelf'), levelAct, true);
 }
 
-function onShiftFolder(s) {
-  if (shiftIndex === s) return openFolder(true);
+const checkpointKey = () => `${level ? 'L' : 'S'}${shiftIndex}`;
+
+function onShiftFolder(s, isLevel = false) {
+  if (shiftIndex === s && level === isLevel) return openFolder(true);
+  level = isLevel;
+  act = isLevel ? levelAct : baseAct;
   shiftIndex = s;
+  const saved = progress.checkpoints[checkpointKey()];
+  if (saved) { // pick up where the last solved message left off
+    txIndex = saved.txIndex;
+    shiftLog = saved.shiftLog;
+    start = { crew: saved.crew, intuition: saved.intuition };
+    logEvent('shift_resume', { title: act.shifts[s].title });
+    return saved.reply ? beginReply() : begin();
+  }
   shiftLog = [];
   txIndex = 0;
   start = { crew: crewAt(act, s), intuition: START_INTUITION };
-  logEvent('shift_start', { title: act.shifts[s].title });
+  logEvent(level ? 'level_start' : 'shift_start', { title: act.shifts[s].title });
   begin();
 }
 
 function finishShift() {
   const total = (pickOf) => shiftLog.reduce((n, m) => n + pickOf(m), 0);
-  progress.done[shiftIndex] = { read: total((m) => (m.reading === 'correct' ? 1 : 0)), mistakes: total((m) => m.mistakes), replyMistakes: reply.mistakes };
+  const record = { read: total((m) => (m.reading === 'correct' ? 1 : 0)), mistakes: total((m) => m.mistakes), replyMistakes: mode === 'reply' ? reply.mistakes : 0 };
+  (level ? progress.levels : progress.done)[shiftIndex] = record;
+  delete progress.checkpoints[checkpointKey()];
   saveProgress();
-  logEvent('shift_done', progress.done[shiftIndex]);
+  noteSaved('Autosaved');
+  logEvent(level ? 'level_done' : 'shift_done', record);
   shiftIndex = null;
+  level = false;
+  act = baseAct;
   openFolder(false);
 }
 
@@ -757,6 +1153,10 @@ function begin() {
     tried: {}, // group -> wrong cell ids clicked for it
     known: {}, // group -> {row, col}: which half of the cell the player has already hit
     mistakes: 0,
+    lost: false, // too many wrong guesses: the signal faded before the message was decoded
+    wheel: { shift: 0, mirror: false }, // the cipher wheel as the player has set it (the true setting is tx.shift, tx.mirror)
+    pencil: false, // pencil mode: a click on a letter of the signal writes its translation by the wheel
+    marks: new Set(), // signal positions the player has pencilled
     feedback: null, // {tone: 'ok' | 'bad' | 'stray', text}: the result of the last click
     flash: null, // blank that was just filled (animated once)
     shuffled: false, // the signal was just laid out again (animated once)
@@ -766,7 +1166,7 @@ function begin() {
   logEvent('message_start', { id: tx.id });
   renderAll();
   openFolder(true);
-  if (shiftIndex === 0 && txIndex === 0 && !progress.toured) startTour();
+  if (!level && shiftIndex === 0 && txIndex === 0 && !progress.toured) startTour();
 }
 
 function beginReply() {
@@ -782,6 +1182,7 @@ function beginReply() {
     sent: false,
   };
   logEvent('reply_start');
+  saveCheckpoint(true);
   renderAll();
   openFolder(true);
 }
@@ -789,12 +1190,12 @@ function beginReply() {
 function renderAll() {
   const isReply = mode === 'reply';
   const count = act.shifts[shiftIndex].transmissions.length;
-  $('tabLabel').textContent = `SHIFT ${shiftIndex + 1} · ` + (isReply ? 'REPLY TO THE AGENTS' : `MESSAGE ${txIndex + 1} OF ${count}`);
+  $('tabLabel').textContent = `${level ? 'LEVEL' : 'SHIFT'} ${shiftIndex + 1} · ` + (isReply ? 'REPLY TO THE AGENTS' : `MESSAGE ${txIndex + 1} OF ${count}`);
   $('txTime').textContent = isReply ? `DUE ${tx.time}` : `RECEIVED ${tx.time}`;
   $('keyTitle').textContent = isReply ? 'REPLY KEY — click the letters' : "TODAY'S KEY";
   $('dump').hidden = isReply;
   $('orderPaper').hidden = !isReply;
-  $('readBox').hidden = isReply || state.phase === 'find';
+  $('readBox').hidden = isReply || state.phase === 'find' || state.lost;
   if (isReply) {
     renderOrderPaper();
     renderReplySheet();
@@ -808,6 +1209,8 @@ function renderAll() {
   renderCrew();
   renderWall();
   renderGuide();
+  renderRules();
+  renderWheel();
   renderKeyCard();
   renderMatrix();
   renderDesk();
@@ -862,7 +1265,13 @@ function renderDump() {
       const cell = document.createElement('button');
       cell.type = 'button';
       cell.className = 'cell' + (tx.dump[i] === LOST ? ' lost' : '');
-      cell.textContent = tx.dump[i];
+      const smear = id && tx.smudged?.[id];
+      const smeared = smear && i - posOf(tx, id) === smear.pos; // this letter arrived smudged: two candidates, F/P
+      const raw = smeared ? `${tx.dump[i]}/${smear.alt}` : tx.dump[i];
+      const marked = state.marks.has(i); // pencilled: shown as the wheel, set by the player, translates it
+      cell.textContent = marked ? raw.split('/').map((ch) => wheelLetter(state.wheel, ch)).join('/') : raw;
+      if (smeared) cell.classList.add('smeared');
+      if (marked) cell.classList.add('pencilled');
       cell.dataset.i = String(i);
       cell.disabled = !finding;
       if (id && isDone(id)) {
@@ -882,12 +1291,12 @@ function renderDump() {
 
 /** The very first message of the game: one group glows, so the first click is never a guess about what to click. */
 function isFirstMessage() {
-  return shiftIndex === 0 && txIndex === 0;
+  return !level && shiftIndex === 0 && txIndex === 0;
 }
 
 /** Position of the Z of the first real (not stray) group in the signal. */
 function firstGroupStart() {
-  return tx.dump.findIndex((ch, i) => ch === MASK && tx.cipher.includes(groupIdAt(tx, i)));
+  return tx.dump.findIndex((ch, i) => ch === receivedMask(tx) && tx.cipher.includes(groupIdAt(tx, i)));
 }
 
 // Delegated listener: the signal is re-rendered on state changes only, never on hover.
@@ -897,10 +1306,14 @@ $('dump').addEventListener('click', (e) => {
 });
 
 function onDumpCell(i) {
+  if (state.pencil) { // the pencil only writes: it does not pick a group
+    if (state.marks.has(i)) state.marks.delete(i); else state.marks.add(i);
+    return renderAll();
+  }
   const id = groupIdAt(tx, i);
   if (!id) {
     logEvent('noise_click', { letter: tx.dump[i] });
-    state.feedback = { tone: 'bad', text: '✗ Just noise. A group is the letter Z and the two letters after it.' };
+    state.feedback = { tone: 'bad', text: `✗ Just noise. A group is the letter ${receivedMask(tx)} and the two letters after it.` };
     return renderAll();
   }
   logEvent('select', { group: shownOf(tx, id) });
@@ -928,11 +1341,32 @@ function onMatrixCell(cellId) {
   state.known[id] = { row: known.row || r.row, col: known.col || r.col };
   state.mistakes += 1;
   logEvent('wrong_cell', { group: shown, means: wordOf(id), clicked: wordOf(cellId), rowRight: r.row, colRight: r.col });
-  const half = r.row ? `Row ${cellId[0]} is right, the column is not.` : r.col ? `Column ${cellId[1]} is right, the row is not.` : 'Wrong row and wrong column.';
+  const [rowWord, colWord] = viewOf(tx).transpose ? ['column', 'row'] : ['row', 'column']; // the first letter's axis, the second's
+  const cap = (w) => w[0].toUpperCase() + w.slice(1);
+  const half = r.row ? `${cap(rowWord)} ${cellId[0]} is right, the ${colWord} is not.` : r.col ? `${cap(colWord)} ${cellId[1]} is right, the ${rowWord} is not.` : 'Wrong row and wrong column.';
   state.feedback = { tone: 'bad', shifted: true, text: `✗ ${shown} is not "${wordOf(cellId)}". ${half} The signal shifted: find ${shown} again.` };
+  if (state.mistakes >= errorLimit(level, shiftIndex)) return loseMessage();
   tx = relayout(tx, state.decoded, Math.random);
+  state.marks.clear(); // the pencil marks sat on positions that have just moved
   state.selected = null;
   state.shuffled = true;
+  renderAll();
+}
+
+/** Too many wrong guesses: the signal fades and the message is lost. Nothing reaches command. */
+function loseMessage() {
+  state.phase = 'sent';
+  state.lost = true;
+  state.selected = null;
+  state.feedback = null;
+  state.intuition = Math.max(0, state.intuition - 1);
+  shiftLog[txIndex] = { reading: 'lost', mistakes: state.mistakes };
+  logEvent('lost', { id: tx.id, wrongGuesses: state.mistakes });
+  $('message').textContent = 'The signal faded. The message is lost.';
+  $('message').className = 'message delay';
+  $('debrief').innerHTML = `<p><span class="tag wrong">LOST</span> ${state.mistakes} wrong guesses: the radio window closed before you finished.</p>` +
+    '<p>Intuition −1. Nothing reached command, and the agent is waiting for an answer that will not come. Replay this one, or move on.</p>';
+  $('nextBtn').textContent = txIndex < act.shifts[shiftIndex].transmissions.length - 1 ? 'NEXT MESSAGE ▸' : level ? 'FINISH THE LEVEL ▸' : 'END OF SHIFT: REPLY TO THE AGENTS ▸';
   renderAll();
 }
 
@@ -965,23 +1399,33 @@ function renderStatus() {
   el.classList.remove('hedge');
   const fb = state.feedback ? [line(`fb ${state.feedback.tone}`, state.feedback.text)] : [];
   if (state.phase !== 'find') {
-    el.replaceChildren(...fb, line('todo', renderSentence(tx, state.selection)));
+    el.replaceChildren(...fb, line('todo', state.lost ? 'Message lost: the signal faded before it was decoded.' : renderSentence(tx, state.selection)));
     el.classList.toggle('hedge', judgeReading(tx, state.selection) === 'hedged');
     return;
   }
   const id = state.selected;
   if (id === null) {
     const open = tx.slots.filter((_, k) => !isFilled(k)).map((s) => s.toUpperCase()).join(', ');
-    el.replaceChildren(...fb, line('todo', `Blanks still empty: ${open}. Find a group in the signal (Z and two letters) and click it.`));
+    el.replaceChildren(...fb, line('todo', `Blanks still empty: ${open}. Find a group in the signal (${receivedMask(tx)} and two letters) and click it.`));
     return;
   }
-  const [, a, b] = shownOf(tx, id);
+  if (level) { // no walkthrough in the test levels: the rules panel says what the day is, reading the key is the player's job
+    el.replaceChildren(...fb, line('todo', `Group ${labelOf(tx, id)}. Click the cell it points at.` +
+      (lostHalf(tx, id) ? ' One letter was lost: work out the rest from the message and the agents.' : '')));
+    return;
+  }
+  const [mark, a, b] = shownOf(tx, id);
   const lost = lostHalf(tx, id);
+  const turned = viewOf(tx).transpose;
+  const first = turned ? { axis: 'column', key: 'horizontal' } : { axis: 'row', key: 'vertical' };
+  const second = turned ? { axis: 'row', key: 'vertical' } : { axis: 'column', key: 'horizontal' };
+  const name = `Group ${mark}${a}${b}`;
   const text = lost === 'row'
-    ? `Group Z${a}${b}: the row letter is lost. ${b} still gives the column (horizontal key). Which cell of that column belongs in the message? Go by colour and by sense.`
+    ? `${name}: the ${first.axis} letter is lost. ${b} still gives the ${second.axis} (${second.key} key). Which cell of that ${second.axis} belongs in the message? Go by colour and by sense.`
     : lost === 'col'
-      ? `Group Z${a}${b}: the column letter is lost. ${a} still gives the row (vertical key). Which cell of that row belongs in the message? Go by colour and by sense.`
-      : `Group Z${a}${b}: ${a} gives the row (vertical key), ${b} gives the column (horizontal key). Click that cell of the table.`;
+      ? `${name}: the ${second.axis} letter is lost. ${a} still gives the ${first.axis} (${first.key} key). Which cell of that ${first.axis} belongs in the message? Go by colour and by sense.`
+      : `${name}: ${a} gives the ${first.axis} (${first.key} key), ${b} gives the ${second.axis} (${second.key} key). Click that cell of the table.` +
+        (tx.mirror ? ' The signal is mirrored: translate the letters first.' : '');
   el.replaceChildren(...fb, line('todo', text));
 }
 
@@ -993,13 +1437,15 @@ const KIND_NAMES = { who: 'who', place: 'place', action: 'action', state: 'state
 
 function renderSheet() {
   const finding = state.phase === 'find';
-  const mistakes = state.mistakes ? ` · ${state.mistakes} WRONG` : '';
+  const limit = errorLimit(level, shiftIndex);
+  const mistakes = Number.isFinite(limit) ? ` · WRONG ${state.mistakes} OF ${limit}` : state.mistakes ? ` · ${state.mistakes} WRONG` : '';
   $('boardTitle').textContent = finding
     ? `DECODING — ${filledCount()} OF ${tx.cipher.length} BLANKS FILLED${mistakes}`
-    : `DECODED — NOW READ IT${mistakes}`;
+    : state.lost ? `LOST${mistakes}` : `DECODED — NOW READ IT${mistakes}`;
   $('controls').hidden = !finding;
-  $('controls').replaceChildren(btn('AUTO (1 ●): decode the selected group', autoDecode, state.intuition < 1 || state.selected === null));
-  if (!finding) renderReadBox();
+  $('controls').replaceChildren(btn('AUTO (1 ●): decode the selected group', autoDecode, state.intuition < 1 || state.selected === null),
+    ...(tx.shift || tx.mirror ? [btn(`✎ PENCIL: ${state.pencil ? 'ON' : 'OFF'}`, () => { state.pencil = !state.pencil; renderAll(); }, false, state.pencil ? 'on' : '')] : []));
+  if (!finding && !state.lost) renderReadBox();
   $('sendBtn').textContent = 'FILE THE MESSAGE ▸';
   $('sendBtn').hidden = state.phase !== 'read';
   $('sendBtn').disabled = judgeReading(tx, state.selection) === 'incomplete';
@@ -1105,15 +1551,16 @@ function send() {
     <p><span class="tag ${r.reading}">${r.reading.toUpperCase()}</span> ${verdict}</p>
     <p>Intuition ${r.intuitionGain ? '+' + r.intuitionGain : '+0'}. Wrong guesses while decoding: ${state.mistakes}.</p>
     ${tx.hint ? `<p><i>Why:</i> ${tx.hint}</p>` : ''}`;
-  $('nextBtn').textContent = txIndex < act.shifts[shiftIndex].transmissions.length - 1 ? 'NEXT MESSAGE ▸' : 'END OF SHIFT: REPLY TO THE AGENTS ▸';
+  $('nextBtn').textContent = txIndex < act.shifts[shiftIndex].transmissions.length - 1 ? 'NEXT MESSAGE ▸' : level ? 'FINISH THE LEVEL ▸' : 'END OF SHIFT: REPLY TO THE AGENTS ▸';
   renderAll();
 }
 
 function next() {
   if (mode === 'reply') return finishShift();
   start = { crew: state.crew, intuition: state.intuition };
-  if (txIndex >= act.shifts[shiftIndex].transmissions.length - 1) return beginReply();
+  if (txIndex >= act.shifts[shiftIndex].transmissions.length - 1) return level ? finishShift() : beginReply();
   txIndex += 1;
+  saveCheckpoint(false);
   begin();
 }
 
@@ -1278,19 +1725,23 @@ function renderMatrix() {
   const id = finding ? state.selected : null;
   const known = (id !== null && state.known[id]) || { row: false, col: false };
   const tried = new Set(id === null ? [] : state.tried[id] ?? []);
+  const view = viewOf(tx);
+  // A half of the cell already found is lit on the edge where it sits in this view (turned over, rows are columns).
+  const rowHit = (label) => id !== null && String(label) === (view.transpose ? known.col && id[1] : known.row && id[0]);
+  const colHit = (label) => id !== null && String(label) === (view.transpose ? known.row && id[0] : known.col && id[1]);
   const t = document.createElement('table');
   t.className = 'matrix';
   const head = document.createElement('tr');
-  head.innerHTML = '<th></th>' + [...'0123456789'].map((c) => `<th class="${known.col && id[1] === c ? 'hit' : ''}">${c}</th>`).join('');
+  head.innerHTML = '<th></th>' + view.colLabels.map((c) => `<th class="${colHit(c) ? 'hit' : ''}">${c}</th>`).join('');
   t.append(head);
-  for (let r = 0; r < 10; r++) {
+  for (const r of view.rowLabels) {
     const tr = document.createElement('tr');
-    tr.innerHTML = `<th class="${known.row && id[0] === String(r) ? 'hit' : ''}">${r}</th>`;
-    for (let c = 0; c < 10; c++) {
-      const cellId = `${r}${c}`;
+    tr.innerHTML = `<th class="${rowHit(r) ? 'hit' : ''}">${r}</th>`;
+    for (const c of view.colLabels) {
+      const cellId = canonicalAt(tx, r, c);
       const cell = cellById(tx, cellId);
       const td = document.createElement('td');
-      td.title = cellId;
+      if (!tx.twists?.length) td.title = cellId;
       if (mode === 'message' && isDone(cellId)) {
         td.className = 'gone'; // decoded: out of the table, nothing left to click
       } else {
@@ -1306,13 +1757,52 @@ function renderMatrix() {
   $('codeTable').replaceChildren(t);
 }
 
+/** The day's rules: the twists of the cipher, and how many wrong guesses the message allows. */
+function renderRules() {
+  const steps = mode === 'message' ? describeTwists(tx) : [];
+  const lines = steps.length >= 2 ? steps.map((l, i) => `${i + 1}. ${l}`) : steps; // several twists: the rules come in the order to apply them
+  const limit = errorLimit(level, shiftIndex);
+  if (mode === 'message' && Number.isFinite(limit)) lines.push(`Limit: ${limit} wrong guesses, then the message is lost.`);
+  $('rules').hidden = lines.length === 0;
+  if (!lines.length) return;
+  $('rules').innerHTML = `<div class="rt">TODAY'S RULES</div>${lines.map((l) => `<div class="rl">${l}</div>`).join('')}`;
+}
+
+/** The cipher wheel: what the signal's letters stand for under the setting the player has dialled in. */
+function renderWheel() {
+  const show = mode === 'message' && Boolean(tx.shift || tx.mirror) && state.phase === 'find';
+  $('wheel').hidden = !show;
+  if (!show) return;
+  const start = receivedMask(tx);
+  const aligned = wheelLetter(state.wheel, start) === (tx.mask ?? MASK);
+  const cells = [...ALPHABET].map((c) =>
+    `<span class="${c === start ? `start${aligned ? ' aligned' : ''}` : ''}"><i>${c}</i><b>${wheelLetter(state.wheel, c)}</b></span>`).join('');
+  $('wheel').innerHTML = '<div class="wt">CIPHER WHEEL · top: what arrives, bottom: what it stands for</div>' +
+    `<div class="wl">${cells}</div>` +
+    '<div class="wb"><button data-turn="-5">⏪ 5</button><button data-turn="-1">◀ 1</button><button data-turn="1">1 ▶</button><button data-turn="5">5 ⏩</button>' +
+    (tx.mirror ? `<button data-turn="flip" class="${state.wheel.mirror ? 'on' : ''}">⇄ FLIP</button>` : '') +
+    `<span class="wturn">turned by ${state.wheel.shift}${state.wheel.mirror ? ', flipped' : ''}</span></div>`;
+}
+
+$('wheel').addEventListener('click', (e) => {
+  const turn = e.target.closest('button[data-turn]')?.dataset.turn;
+  if (!turn || mode !== 'message' || state.phase !== 'find') return;
+  if (turn === 'flip') state.wheel.mirror = !state.wheel.mirror;
+  else state.wheel.shift = (state.wheel.shift + Number(turn) + 26) % 26;
+  renderAll();
+});
+
 /**
- * The key: which letters stand for which digit. While decoding, the letters of the selected group are lit.
+ * The key: which letters stand for which digit. While decoding, the letters of the selected group are lit
+ * (never in the test levels, and not when the signal is mirrored or shifted: that would do the work for the player).
  * While encoding, the letters are buttons, and the ones already sent are struck out.
  */
 function renderKeyCard() {
   const isReply = mode === 'reply';
-  const g = !isReply && state.phase === 'find' && state.selected !== null ? shownOf(tx, state.selected) : null;
+  const g = !isReply && state.phase === 'find' && state.selected !== null && !tx.mirror && !tx.shift && !level ? shownOf(tx, state.selected) : null;
+  const turned = viewOf(tx).transpose;
+  const litVertical = g ? g[turned ? 2 : 1] : undefined;
+  const litHorizontal = g ? g[turned ? 1 : 2] : undefined;
   const used = isReply ? usedLetters() : '';
   const live = (halfName) => isReply && !reply.sent && reply.selected !== null && (halfName === 'rows' || reply.rowLetter !== null);
   const half = (halfName, title, letters, lit) => {
@@ -1325,9 +1815,10 @@ function renderKeyCard() {
     }).join('');
     return `<div class="keyhalf${live(halfName) ? ' live' : ''}"><div class="kt">${title}</div><div class="kr">${cells}</div></div>`;
   };
+  const keys = displayedKeys(tx);
   $('keyCard').innerHTML =
-    half('rows', 'VERTICAL KEY: letter ↔ row digit', tx.key.rows, isReply ? reply.rowLetter : g?.[1]) +
-    half('cols', 'HORIZONTAL KEY: letter ↔ column digit', tx.key.cols, g?.[2]);
+    half('rows', 'VERTICAL KEY: letter ↔ row digit', keys.vertical, isReply ? reply.rowLetter : litVertical) +
+    half('cols', 'HORIZONTAL KEY: letter ↔ column digit', keys.horizontal, litHorizontal);
 }
 
 $('keyCard').addEventListener('click', (e) => {
@@ -1346,7 +1837,7 @@ const PLACES = {
 
 /** The map: a pin for every place, under it the agents who are there, and a red string from each manned place to HQ. */
 function renderWall() {
-  const crewNow = shiftIndex === null ? crewAt(act, Math.min(Object.keys(progress.done).length, act.shifts.length - 1)) : state.crew;
+  const crewNow = shiftIndex === null ? crewAt(baseAct, Math.min(Object.keys(progress.done).length, baseAct.shifts.length - 1)) : state.crew;
   const active = crewNow.filter((m) => m.status === 'ok');
   const out = crewNow.filter((m) => m.status !== 'ok');
   const strings = [];
@@ -1363,6 +1854,46 @@ function renderWall() {
     ${strings.join('')}${pins.join('')}
     <rect class="hq" x="${HQ[0] - 13}" y="${HQ[1] - 11}" width="26" height="22"/><text class="place" x="${HQ[0]}" y="${HQ[1] + 26}">STATION HQ</text>
     ${lostList.join('')}</svg>`;
+}
+
+// ---------- pointing: the room dims, the panel in question stays lit, Pike's card sits beside it ----------
+
+/** Lift the panels `ids` above the dimmed room and put Pike's card next to them. */
+function pointAt(ids) {
+  document.querySelectorAll('.tour-target').forEach((el) => el.classList.remove('tour-target'));
+  const targets = ids.map((id) => $(id)).filter((el) => el && !el.hidden);
+  targets.forEach((el) => el.classList.add('tour-target'));
+  $('dim').hidden = false;
+  placeAdvisor(targets);
+}
+
+function clearPointing() {
+  document.querySelectorAll('.tour-target').forEach((el) => el.classList.remove('tour-target'));
+  $('dim').hidden = true;
+}
+
+/** Put Pike's card beside the lit panels without covering them: right, left, below, above, then the middle and the corners. */
+function placeAdvisor(targets) {
+  const adv = $('advisor');
+  const w = adv.offsetWidth;
+  const h = adv.offsetHeight;
+  const gap = 14;
+  const rects = targets.map((el) => el.getBoundingClientRect());
+  const fit = (x, y) => ({ x: Math.max(10, Math.min(x, innerWidth - w - 10)), y: Math.max(10, Math.min(y, innerHeight - h - 10)) });
+  const spots = [];
+  const near = rects[0];
+  if (near) {
+    const midY = near.top + near.height / 2 - h / 2;
+    const midX = near.left + near.width / 2 - w / 2;
+    spots.push(fit(near.right + gap, midY), fit(near.left - w - gap, midY), fit(midX, near.bottom + gap), fit(midX, near.top - h - gap));
+  }
+  spots.push(fit((innerWidth - w) / 2, (innerHeight - h) / 2), fit(innerWidth, innerHeight), fit(0, innerHeight), fit((innerWidth - w) / 2, 0), fit(0, 0), fit(innerWidth, 0));
+  // What the player is working on stays readable too (the signal, the status line), though it matters less than the lit panels.
+  const working = ['dump', 'status'].map((id) => $(id)).filter((el) => el && !el.hidden && !targets.includes(el)).map((el) => el.getBoundingClientRect());
+  const area = (c, r) => Math.max(0, Math.min(c.x + w, r.right) - Math.max(c.x, r.left)) * Math.max(0, Math.min(c.y + h, r.bottom) - Math.max(c.y, r.top));
+  const covered = (c) => 3 * rects.reduce((sum, r) => sum + area(c, r), 0) + working.reduce((sum, r) => sum + area(c, r), 0);
+  const best = spots.find((c) => covered(c) === 0) ?? spots.reduce((a, c) => (covered(c) < covered(a) ? c : a));
+  Object.assign(adv.style, { left: `${best.x}px`, top: `${best.y}px`, right: 'auto', bottom: 'auto', transform: 'none' });
 }
 
 // ---------- the welcome card and the tour of the folder ----------
@@ -1385,16 +1916,8 @@ function startTour() {
 }
 
 function renderTour() {
-  document.querySelectorAll('.tour-target').forEach((el) => el.classList.remove('tour-target'));
   const step = TOUR[tour.step];
   const last = tour.step === TOUR.length - 1;
-  document.body.dataset.focus = '';
-  $('dim').hidden = false;
-  if (step.target) {
-    const el = $(step.target);
-    el.classList.add('tour-target');
-    el.scrollIntoView({ block: 'nearest' });
-  }
   $('advisor').hidden = false;
   $('advice').textContent = step.text;
   $('adviceOk').hidden = true;
@@ -1404,26 +1927,8 @@ function renderTour() {
   $('tourSkip').hidden = last;
   $('tourStep').hidden = false;
   $('tourStep').textContent = `${tour.step + 1} / ${TOUR.length}`;
-  placeAdvisor(step.target ? $(step.target) : null);
-}
-
-/** Put Pike in a corner that does not cover what he is pointing at. */
-function placeAdvisor(target) {
-  const adv = $('advisor');
-  adv.style.cssText = '';
-  if (!target) return;
-  const t = target.getBoundingClientRect();
-  const w = adv.offsetWidth;
-  const h = adv.offsetHeight;
-  const corners = [{ right: 18, bottom: 18 }, { left: 18, bottom: 18 }, { right: 18, top: 18 }, { left: 18, top: 18 }];
-  const free = corners.find((c) => {
-    const x = c.left !== undefined ? c.left : innerWidth - c.right - w;
-    const y = c.top !== undefined ? c.top : innerHeight - c.bottom - h;
-    return x + w < t.left - 8 || x > t.right + 8 || y + h < t.top - 8 || y > t.bottom + 8;
-  }) ?? corners[0];
-  Object.entries(free).forEach(([side, px]) => { adv.style[side] = `${px}px`; });
-  if (free.left !== undefined) adv.style.right = 'auto';
-  if (free.top !== undefined) adv.style.bottom = 'auto';
+  document.body.dataset.focus = '';
+  pointAt(step.target ? [step.target] : []);
 }
 
 function endTour() {
@@ -1431,9 +1936,7 @@ function endTour() {
   tour = null;
   progress.toured = true;
   saveProgress();
-  document.querySelectorAll('.tour-target').forEach((el) => el.classList.remove('tour-target'));
-  $('dim').hidden = true;
-  $('advisor').style.cssText = '';
+  clearPointing();
   $('adviceOk').hidden = false;
   $('adviceSkip').hidden = false;
   $('tourNext').hidden = true;
@@ -1476,7 +1979,7 @@ const ADVICE = {
   file: 'All five blanks are filled. Read it over and file it.',
   ambiguous: 'One code, two meanings. The cipher cannot tell you which. The agents can: read their cards, then choose. If you really cannot tell, HEDGE and pass on both.',
   sent: 'That is the job. A wrong guess costs you time; a wrong reading costs somebody else more. Next message.',
-  struggle: 'Stop guessing, it only shakes the signal. Second letter of the group, vertical key: that digit is the row. Third letter, horizontal key: the column. If a letter is lost, read the cards before you click.',
+  struggle: 'Stop guessing, it only shakes the signal. The letters of the group give a row and a column: check the key card, and the rules panel if there is one. If a letter is lost, read the cards before you click.',
   reply: 'End of shift. Now the other way round: command wants this sent out. Find each phrase in the table, then give it a letter for its row and a letter for its column. One rule: no letter goes out twice.',
   replyCol: 'Now the column: a letter from the horizontal key. Mind which letters you spend, the later phrases need some too.',
   deadend: 'You have spent the letters a later phrase needs. Take one group back and choose its letters with the others in mind.',
@@ -1496,7 +1999,8 @@ function currentAdvice(guide) {
   }
   if (state.phase === 'find') {
     const tone = state.feedback?.tone;
-    if (tone === 'bad' && state.mistakes >= 3 && state.selected === null) return say(`struggle-${shiftIndex}-${txIndex}`, 'struggle');
+    if (tone === 'bad' && state.mistakes >= 3 && state.selected === null) return say(`struggle-${level ? 'L' : 'S'}${shiftIndex}-${txIndex}`, 'struggle');
+    if (level && (pike.asked || (txIndex === 0 && state.decoded.length === 0 && state.selected === null))) return [`twist-${shiftIndex}`, act.shifts[shiftIndex].advice];
     if (!guide) return null;
     if (state.selected !== null) return lostHalf(tx, state.selected) ? say('lost') : say('selected');
     if (tone === 'bad' && state.feedback.shifted) return say('wrong');
@@ -1510,19 +2014,20 @@ function currentAdvice(guide) {
   return pike.asked ? ['hint', tx.hint] : say('ambiguous');
 }
 
-/** Which panels glow for each piece of advice. */
+/** The panels Pike points at (and lights up) for each piece of advice. */
 const FOCUS = {
   findFirst: 'dump', find: 'dump', wrong: 'dump', stray: 'dump', selected: 'keyCard codeTable', lost: 'keyCard codeTable crewList',
   ok: 'frame', file: 'sendBtn', ambiguous: 'readBox crewList', hint: 'readBox crewList', reply: 'orderPaper keyCard codeTable', replyCol: 'keyCard',
+  twist: 'rules wheel keyCard', struggle: 'keyCard',
 };
 
 function advise() {
   if (!act || tour) return;
-  let advice = currentAdvice(pike.asked || shiftIndex === 0);
+  let advice = currentAdvice(pike.asked || (!level && shiftIndex === 0));
   if (pike.asked && pike.askedId && advice?.[0] !== pike.askedId) { // the moment he was asked about has passed
     pike.asked = false;
     pike.askedId = null;
-    advice = currentAdvice(shiftIndex === 0);
+    advice = currentAdvice(!level && shiftIndex === 0);
   }
   if (pike.asked && advice) pike.askedId = advice[0];
   if (pike.last && pike.last !== advice?.[0]) pike.seen.add(pike.last); // a remark that scrolled by is not repeated
@@ -1530,8 +2035,9 @@ function advise() {
   $('advisor').hidden = !show;
   if (show && pike.last !== advice[0]) logEvent('pike_says', { advice: advice[0], asked: pike.asked });
   pike.last = show ? advice[0] : null;
-  if (show) $('advice').textContent = advice[1];
-  document.body.dataset.focus = show ? FOCUS[advice[0].split('-')[0]] ?? '' : '';
+  if (!show) return clearPointing();
+  $('advice').textContent = advice[1];
+  pointAt((FOCUS[advice[0].split('-')[0]] ?? '').split(' ').filter(Boolean));
 }
 
 $('adviceOk').addEventListener('click', () => {
@@ -1554,6 +2060,97 @@ $('askPike').addEventListener('click', () => {
   pike.asked = true;
   pike.askedId = null;
   advise();
+});
+
+// ---------- saving: automatic after every solved message, and by hand to a file ----------
+
+function noteSaved(text) {
+  $('saveNote').textContent = `${text} ${new Date().toTimeString().slice(0, 5)}`;
+}
+
+/** Remember where this shift or level stands: called after every solved message, and when the reply starts. */
+function saveCheckpoint(toReply) {
+  progress.checkpoints[checkpointKey()] = { txIndex, reply: toReply, crew: start.crew, intuition: start.intuition, shiftLog };
+  saveProgress();
+  noteSaved('Autosaved');
+  logEvent('autosave', { toReply });
+}
+
+function exportProgress() {
+  const stamp = new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
+  const file = new Blob([JSON.stringify({ game: 'unrecoder', saved: new Date().toISOString(), progress }, null, 1)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(file);
+  a.download = `unrecoder-save-${stamp}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+  logEvent('save_file');
+  noteSaved('Saved to a file (up to the last solved message)');
+}
+
+/** Back to the desk with `next` as the progress, nothing in play. */
+function resetTo(next) {
+  progress = next;
+  saveProgress();
+  tour = null;
+  shiftIndex = null;
+  level = false;
+  act = baseAct;
+  pike.seen.clear();
+  pike.last = null;
+  pike.asked = false;
+  clearPointing();
+  $('advisor').hidden = true;
+  $('adviceOk').hidden = false;
+  $('adviceSkip').hidden = false;
+  $('tourNext').hidden = true;
+  $('tourSkip').hidden = true;
+  $('tourStep').hidden = true;
+  openFolder(false);
+}
+
+function importProgress(file) {
+  const reader = new FileReader();
+  reader.onload = () => {
+    try {
+      const data = JSON.parse(reader.result);
+      if (data?.game !== 'unrecoder' || typeof data.progress?.done !== 'object') throw new Error('not a save');
+      resetTo(normalizeProgress(data.progress));
+      logEvent('load_file');
+      noteSaved('Loaded from a file');
+    } catch {
+      noteSaved('That file is not a save of this game.');
+    }
+  };
+  reader.readAsText(file);
+}
+
+let newGameTimer = null;
+function disarmNewGame() {
+  clearTimeout(newGameTimer);
+  newGameTimer = null;
+  $('newGame').textContent = 'NEW GAME';
+  $('newGame').classList.remove('armed');
+}
+$('newGame').addEventListener('click', () => {
+  if (!newGameTimer) { // the first click only asks; a second click within a few seconds starts over
+    $('newGame').textContent = 'SURE? CLICK AGAIN';
+    $('newGame').classList.add('armed');
+    newGameTimer = setTimeout(disarmNewGame, 4000);
+    return;
+  }
+  disarmNewGame();
+  logEvent('new_game');
+  resetTo(normalizeProgress({ muted: progress.muted }));
+  $('intro').hidden = false;
+  noteSaved('New game started');
+});
+$('saveGame').addEventListener('click', exportProgress);
+$('saveTab').addEventListener('click', exportProgress);
+$('loadGame').addEventListener('click', () => $('loadFile').click());
+$('loadFile').addEventListener('change', (e) => {
+  if (e.target.files[0]) importProgress(e.target.files[0]);
+  e.target.value = '';
 });
 
 $('sendBtn').addEventListener('click', send);
