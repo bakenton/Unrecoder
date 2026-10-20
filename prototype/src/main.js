@@ -11,7 +11,7 @@ const LOG_LIMIT = 4000; // events kept; the oldest are dropped first
 const $ = (id) => document.getElementById(id);
 
 let act;
-let progress = loadProgress(); // {done: {shift: {read, mistakes, replyMistakes}}, muted}: what survives between sessions
+let progress = loadProgress(); // {done: {shift: {read, mistakes, replyMistakes}}, muted, introduced, toured}: what survives between sessions
 let shiftIndex = null; // the shift in progress, or null while the player is only at the desk
 let shiftLog; // per message of the shift in progress: {reading, mistakes}
 let mode; // 'message': decoding what the agents sent; 'reply': encoding an order from command, at the end of the shift
@@ -24,9 +24,9 @@ let start; // {crew, intuition} at the start of the current message, for Replay
 function loadProgress() {
   try {
     const saved = JSON.parse(localStorage.getItem(SAVE_KEY));
-    if (saved && typeof saved.done === 'object') return { done: saved.done, muted: Boolean(saved.muted) };
+    if (saved && typeof saved.done === 'object') return { done: saved.done, muted: Boolean(saved.muted), introduced: Boolean(saved.introduced), toured: Boolean(saved.toured) };
   } catch { /* no storage, or nothing saved: start fresh */ }
-  return { done: {}, muted: false };
+  return { done: {}, muted: false, introduced: false, toured: false };
 }
 
 function saveProgress() {
@@ -84,6 +84,10 @@ async function boot() {
   state = { crew: crewAt(act, 0) }; // enough to draw the map before any shift is open
   logEvent('session_start', { shiftsFiled: Object.keys(progress.done).length });
   openFolder(false);
+  if (!progress.introduced && Object.keys(progress.done).length === 0) {
+    $('intro').hidden = false;
+    logEvent('intro_shown');
+  }
 }
 
 function showFatal(message) {
@@ -162,6 +166,7 @@ function begin() {
   logEvent('message_start', { id: tx.id });
   renderAll();
   openFolder(true);
+  if (shiftIndex === 0 && txIndex === 0 && !progress.toured) startTour();
 }
 
 function beginReply() {
@@ -247,6 +252,7 @@ function renderDump() {
   root.replaceChildren();
   root.classList.toggle('shuffled', state.shuffled);
   const finding = state.phase === 'find';
+  const nudged = finding && isFirstMessage() && state.decoded.length === 0 && state.selected === null ? firstGroupStart() : -1;
   for (let row = 0; row * tx.cols < tx.dump.length; row++) {
     const rowEl = document.createElement('div');
     rowEl.className = 'dline';
@@ -265,11 +271,23 @@ function renderDump() {
         cell.disabled = true;
       } else if (id && id === state.selected && finding) {
         cell.classList.add('anchor'); // a group shows as a group only once it has been clicked
+      } else if (finding && i === nudged) {
+        cell.classList.add('nudge');
       }
       rowEl.append(cell);
     }
     root.append(rowEl);
   }
+}
+
+/** The very first message of the game: one group glows, so the first click is never a guess about what to click. */
+function isFirstMessage() {
+  return shiftIndex === 0 && txIndex === 0;
+}
+
+/** Position of the Z of the first real (not stray) group in the signal. */
+function firstGroupStart() {
+  return tx.dump.findIndex((ch, i) => ch === MASK && tx.cipher.includes(groupIdAt(tx, i)));
 }
 
 // Delegated listener: the signal is re-rendered on state changes only, never on hover.
@@ -747,6 +765,98 @@ function renderWall() {
     ${lostList.join('')}</svg>`;
 }
 
+// ---------- the welcome card and the tour of the folder ----------
+
+const TOUR = [
+  { target: 'dump', text: 'This is the SIGNAL: what the radio caught. It looks like noise, but the pieces of one message are scattered in it, in no order. Each piece is a group of three letters: a Z and the two letters after it.' },
+  { target: 'frame', text: 'This is the GOAL. Every message says one thing: who, where, what they did, in what state, with what result. Five blanks, one for each. Decode a group and its phrase drops into the blank of its colour.' },
+  { target: 'keyCard', text: "This is TODAY'S KEY. It turns letters into digits: the vertical key gives a row, the horizontal key gives a column. It changes with every message." },
+  { target: 'codeTable', text: 'This is the CODE TABLE. Every cell is a phrase. A row digit and a column digit from the key point at one cell. Colours show the kind of phrase and match the blanks.' },
+  { target: 'crewList', text: 'These are your AGENTS: who they are and where they are. When one code can mean two things, they tell you which. The map on the wall shows the same people.' },
+  { target: null, text: 'Your turn. One Z in the signal will glow. Click it, and I will take you through it step by step.' },
+];
+
+let tour = null; // {step} while the tour is on
+
+function startTour() {
+  tour = { step: 0 };
+  logEvent('tour_start');
+  renderTour();
+}
+
+function renderTour() {
+  document.querySelectorAll('.tour-target').forEach((el) => el.classList.remove('tour-target'));
+  const step = TOUR[tour.step];
+  const last = tour.step === TOUR.length - 1;
+  document.body.dataset.focus = '';
+  $('dim').hidden = false;
+  if (step.target) {
+    const el = $(step.target);
+    el.classList.add('tour-target');
+    el.scrollIntoView({ block: 'nearest' });
+  }
+  $('advisor').hidden = false;
+  $('advice').textContent = step.text;
+  $('adviceOk').hidden = true;
+  $('adviceSkip').hidden = true;
+  $('tourNext').hidden = false;
+  $('tourNext').textContent = last ? "LET'S GO ▸" : 'NEXT ▸';
+  $('tourSkip').hidden = last;
+  $('tourStep').hidden = false;
+  $('tourStep').textContent = `${tour.step + 1} / ${TOUR.length}`;
+  placeAdvisor(step.target ? $(step.target) : null);
+}
+
+/** Put Pike in a corner that does not cover what he is pointing at. */
+function placeAdvisor(target) {
+  const adv = $('advisor');
+  adv.style.cssText = '';
+  if (!target) return;
+  const t = target.getBoundingClientRect();
+  const w = adv.offsetWidth;
+  const h = adv.offsetHeight;
+  const corners = [{ right: 18, bottom: 18 }, { left: 18, bottom: 18 }, { right: 18, top: 18 }, { left: 18, top: 18 }];
+  const free = corners.find((c) => {
+    const x = c.left !== undefined ? c.left : innerWidth - c.right - w;
+    const y = c.top !== undefined ? c.top : innerHeight - c.bottom - h;
+    return x + w < t.left - 8 || x > t.right + 8 || y + h < t.top - 8 || y > t.bottom + 8;
+  }) ?? corners[0];
+  Object.entries(free).forEach(([side, px]) => { adv.style[side] = `${px}px`; });
+  if (free.left !== undefined) adv.style.right = 'auto';
+  if (free.top !== undefined) adv.style.bottom = 'auto';
+}
+
+function endTour() {
+  logEvent('tour_end', { step: tour.step + 1 });
+  tour = null;
+  progress.toured = true;
+  saveProgress();
+  document.querySelectorAll('.tour-target').forEach((el) => el.classList.remove('tour-target'));
+  $('dim').hidden = true;
+  $('advisor').style.cssText = '';
+  $('adviceOk').hidden = false;
+  $('adviceSkip').hidden = false;
+  $('tourNext').hidden = true;
+  $('tourSkip').hidden = true;
+  $('tourStep').hidden = true;
+  advise();
+}
+
+$('tourNext').addEventListener('click', () => {
+  if (tour.step >= TOUR.length - 1) return endTour();
+  tour.step += 1;
+  renderTour();
+});
+$('tourSkip').addEventListener('click', endTour);
+$('tourBtn').addEventListener('click', () => { if (!tour && mode === 'message') startTour(); });
+$('introGo').addEventListener('click', () => {
+  $('intro').hidden = true;
+  progress.introduced = true;
+  saveProgress();
+  logEvent('intro_done');
+  onShiftFolder(0);
+});
+
 // ---------- Mr. Pike: the advisor ----------
 //
 // Pike talks the player through the first shift step by step, and in any shift speaks up when the player is
@@ -756,6 +866,7 @@ const pike = { seen: new Set(), last: null, asked: false, askedId: null };
 
 const ADVICE = {
   home: 'New here? I am Pike, I run this room. Agents report in cipher, you turn it back into words. Open the first folder on your desk.',
+  findFirst: 'A message came in. It looks like random letters, but a few of them hide the message. Look for the glowing letter: it is a Z. A Z and the two letters after it make a group, and that is a piece of the message. Click the glowing Z. In later messages nothing will glow.',
   find: 'A message came in. Somewhere in these letters are groups of three: a Z and the two letters after it. Nothing will point them out for you. Find one and click it.',
   selected: 'Good, that is a group. Forget the Z. Find its second letter in the vertical key: that digit is the row. Find the third in the horizontal key: the column. Click the cell where they cross.',
   lost: 'A letter was lost on the air. You still have one line of the table. Look along it for a colour that a blank still needs. If more than one fits, think: the map on the wall and the cards say who is where.',
@@ -776,7 +887,7 @@ const ADVICE = {
 function currentAdvice(guide) {
   const say = (id, key = id) => [id, ADVICE[key]];
   if (!document.body.classList.contains('folder-open')) {
-    return shiftIndex === null && Object.keys(progress.done).length === 0 ? say('home') : null;
+    return null; // the welcome card says what the game is; Pike speaks up once a folder is open
   }
   if (mode === 'reply') {
     if (reply.stuck && !reply.sent) return say(`deadend-${shiftIndex}`, 'deadend');
@@ -791,7 +902,7 @@ function currentAdvice(guide) {
     if (tone === 'bad' && state.feedback.shifted) return say('wrong');
     if (tone === 'stray') return say('stray');
     if (tone === 'ok') return say('ok');
-    return say('find');
+    return isFirstMessage() && state.decoded.length === 0 ? say('findFirst') : say('find');
   }
   if (!guide) return null;
   if (state.phase === 'sent') return say('sent');
@@ -799,8 +910,14 @@ function currentAdvice(guide) {
   return pike.asked ? ['hint', tx.hint] : say('ambiguous');
 }
 
+/** Which panels glow for each piece of advice. */
+const FOCUS = {
+  findFirst: 'dump', find: 'dump', wrong: 'dump', stray: 'dump', selected: 'keyCard codeTable', lost: 'keyCard codeTable crewList',
+  ok: 'frame', file: 'sendBtn', ambiguous: 'readBox crewList', hint: 'readBox crewList', reply: 'orderPaper keyCard codeTable', replyCol: 'keyCard',
+};
+
 function advise() {
-  if (!act) return;
+  if (!act || tour) return;
   let advice = currentAdvice(pike.asked || shiftIndex === 0);
   if (pike.asked && pike.askedId && advice?.[0] !== pike.askedId) { // the moment he was asked about has passed
     pike.asked = false;
@@ -814,6 +931,7 @@ function advise() {
   if (show && pike.last !== advice[0]) logEvent('pike_says', { advice: advice[0], asked: pike.asked });
   pike.last = show ? advice[0] : null;
   if (show) $('advice').textContent = advice[1];
+  document.body.dataset.focus = show ? FOCUS[advice[0].split('-')[0]] ?? '' : '';
 }
 
 $('adviceOk').addEventListener('click', () => {

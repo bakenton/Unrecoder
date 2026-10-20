@@ -30,7 +30,8 @@
       <div class="tabs">
         <span class="tab on" id="tabLabel"></span>
         <span class="tab info">INTUITION <span class="intuition" id="intuition" title="Intuition Points"></span></span>
-        <button id="askPike" class="tab ask" type="button">ASK PIKE</button>
+        <button id="tourBtn" class="tab ask" type="button">HOW TO PLAY</button>
+        <button id="askPike" class="tab" type="button">ASK PIKE</button>
         <button id="closeFolder" class="tab close" type="button">BACK TO THE DESK ✕</button>
       </div>
       <div class="pages">
@@ -76,6 +77,22 @@
       </div>
     </section>
 
+    <div class="dim" id="dim" hidden></div>
+
+    <div class="intro" id="intro" hidden>
+      <div class="introcard">
+        <div class="introhead">STATION HQ — CIPHER ROOM</div>
+        <p class="lead">You are the new cipher clerk. Agents out in the city radio in secret messages. You are the one who can read them.</p>
+        <ol>
+          <li><b>Decode.</b> A message arrives as a field of random letters. Hidden in it are the pieces of one sentence. Find them, and turn them into words with the code table and today's key.</li>
+          <li><b>Read with care.</b> Sometimes one code means two things. The agents' cards and the map on the wall tell you which one the agent meant.</li>
+          <li><b>Reply.</b> At the end of the shift command gives you an order. You encode it and send it back.</li>
+        </ol>
+        <p class="note">A wrong guess only costs time. A wrong reading costs an agent. Mr. Pike, head of the room, will show you around.</p>
+        <button id="introGo" type="button" class="send">OPEN THE FIRST FOLDER ▸</button>
+      </div>
+    </div>
+
     <aside class="advisor" id="advisor" aria-live="polite" hidden>
       <svg class="avatar" viewBox="0 0 64 76" role="img" aria-label="Mr. Pike">
         <rect width="64" height="76" fill="#cbbd92"/>
@@ -94,7 +111,10 @@
         <p id="advice"></p>
         <div class="advisor-actions">
           <button id="adviceOk" type="button" class="send">GOT IT</button>
+          <button id="tourNext" type="button" class="send" hidden>NEXT ▸</button>
+          <span id="tourStep" class="tourstep" hidden></span>
           <button id="adviceSkip" type="button">Skip his advice</button>
+          <button id="tourSkip" type="button" hidden>Skip the tour</button>
         </div>
       </div>
     </aside>
