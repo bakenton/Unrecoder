@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Signal sketches</title>
+<style>
+  :root { --bg: #efe9dc; --paper: #fbf8f1; --ink: #1f1d1a; --muted: #8a8478; --line: #d8d0bf; --pick: #2f5d8a; --ok: #2e7d4f; --bad: #c0392b; --card: #5b4a36; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.4 "Courier New", monospace; }
+  main { max-width: 980px; margin: 0 auto; padding: 16px 16px 60px; display: grid; gap: 28px; }
+  h1 { margin: 0; font-size: 18px; letter-spacing: 3px; }
+  section { background: var(--paper); border: 1px solid var(--line); border-radius: 6px; padding: 16px; display: grid; gap: 12px; }
+  h2 { margin: 0; font-size: 16px; letter-spacing: 2px; }
+  .how { color: var(--muted); margin: -6px 0 0; }
+  .row { display: flex; gap: 20px; align-items: flex-start; flex-wrap: wrap; }
+  button { font: inherit; padding: 5px 12px; cursor: pointer; border: 2px solid var(--ink); background: var(--paper); border-radius: 4px; }
+  button:hover { background: #fff; }
+  .caught { min-height: 1.6em; font-size: 18px; letter-spacing: 3px; }
+  .caught b { color: var(--ok); margin-right: 14px; }
+  .done { color: var(--ok); font-weight: bold; }
+  .miss { animation: miss .5s; }
+  @keyframes miss { 0%, 60% { background: var(--bad); color: #fff; } }
+
+  /* 1. grille */
+  .mat { display: grid; grid-template-columns: repeat(12, 30px); grid-auto-rows: 30px; gap: 1px; background: var(--line); padding: 1px; user-select: none; }
+  .mat span { display: grid; place-items: center; background: var(--paper); font-size: 18px; }
+  .mat span.cover { background: var(--card); color: transparent; }
+  .mat span.hole { background: #fff; outline: 2px solid var(--card); outline-offset: -2px; font-weight: bold; }
+  .mat.solved span.hole { outline-color: var(--ok); color: var(--ok); }
+  .pad { display: grid; grid-template-columns: repeat(3, 44px); gap: 4px; }
+  .pad button { padding: 6px 0; }
+
+  /* 2. ticker */
+  .tape { position: relative; overflow: hidden; height: 54px; background: #fff; border: 2px solid var(--ink); border-radius: 4px; user-select: none; }
+  .strip { position: absolute; top: 0; left: 0; display: flex; height: 100%; }
+  .strip span { width: 32px; display: grid; place-items: center; font-size: 24px; cursor: pointer; }
+  .strip span.gone { color: var(--line); }
+  .tape::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, #fff 0, transparent 8%, transparent 92%, #fff 100%); }
+
+  /* 3. stream */
+  .stream { display: flex; flex-wrap: wrap; gap: 2px; max-width: 640px; user-select: none; }
+  .stream span { width: 30px; height: 36px; display: grid; place-items: center; font-size: 22px; background: #fff; border: 1px solid var(--line); cursor: pointer; border-radius: 3px; }
+  .stream span:hover { border-color: var(--pick); }
+  .stream span.got { background: var(--ok); color: #fff; border-color: var(--ok); }
+  .key { display: grid; grid-template-columns: auto auto; gap: 24px; }
+  .key h3 { margin: 0 0 4px; font-size: 13px; letter-spacing: 2px; color: var(--muted); }
+  .krow { display: grid; grid-template-columns: 18px 1fr; gap: 0 8px; font-size: 16px; }
+  .krow b { color: var(--muted); text-align: right; }
+  .krow span { letter-spacing: 3px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>THREE WAYS TO GET THE GROUPS OUT</h1>
+
+  <section id="grille">
+    <h2>1 · GRILLE</h2>
+    <p class="how">Slide and turn the card over the signal (buttons or arrow keys, R to turn). In the right spot every slot shows a Z and two letters.</p>
+    <div class="row">
+      <div class="mat" id="mat"></div>
+      <div>
+        <div class="pad">
+          <span></span><button data-move="up">↑</button><span></span>
+          <button data-move="left">←</button><button data-move="turn">⟳</button><button data-move="right">→</button>
+          <span></span><button data-move="down">↓</button><span></span>
+        </div>
+      </div>
+    </div>
+    <div class="caught" id="grilleOut"></div>
+  </section>
+
+  <section id="ticker">
+    <h2>2 · TELETYPE TAPE</h2>
+    <p class="how">The signal runs past. Click a group while it goes by. Missed ones come round again.</p>
+    <div class="tape" id="tape"><div class="strip" id="strip"></div></div>
+    <div class="caught" id="tickerOut"></div>
+  </section>
+
+  <section id="stream">
+    <h2>3 · NO Z</h2>
+    <p class="how">No Z, and extra letters thrown in. A group is two letters side by side: a ROW-key letter, then a COLUMN-key letter. Click its first letter.</p>
+    <div class="row">
+      <div class="stream" id="streamLine"></div>
+      <div class="key">
+        <div><h3>ROW KEY</h3><div class="krow" id="rowKey"></div></div>
+        <div><h3>COLUMN KEY</h3><div class="krow" id="colKey"></div></div>
+      </div>
+    </div>
+    <div class="caught" id="streamOut"></div>
+  </section>
+</main>
+<script>
+// Sketches only: three ways a message could be pulled out of the signal, to see and feel them side by side.
+// None of them goes on to the code table.
+
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXY';
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const shuffle = (arr) => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+const $ = (id) => document.getElementById(id);
+const group = () => 'Z' + pick([...LETTERS]) + pick([...LETTERS]);
+const flash = (el) => { el.classList.remove('miss'); void el.offsetWidth; el.classList.add('miss'); };
+const showCaught = (id, groups, total, next) => {
+  $(id).innerHTML = groups.map((g) => `<b>${g}</b>`).join('') + (groups.length === total ? '<span class="done">ALL FIVE </span>' : '');
+  if (groups.length === total) {
+    const b = document.createElement('button');
+    b.textContent = 'NEXT ▸';
+    b.onclick = next;
+    $(id).append(b);
+  }
+};
+
+// ---------- 1. the grille: a 6x6 card with five slots of three, slid and turned over a 12x8 signal ----------
+
+const W = 12, H = 8, CARD = 6;
+let gr; // {letters, slots: [[r, c]], pose: {x, y, turn}, truth, solved}
+
+/** Card cell (r, c) after `turn` quarter turns clockwise. */
+const turned = (r, c, turn) => { for (let k = 0; k < turn; k++) [r, c] = [c, CARD - 1 - r]; return [r, c]; };
+/** The signal positions the slots fall on in `pose`, each slot in reading order. */
+const slotCells = (slots, pose) => slots.map(([r, c]) => [0, 1, 2].map((d) => { const [rr, cc] = turned(r, c + d, pose.turn); return (pose.y + rr) * W + pose.x + cc; }));
+const poses = () => { const all = []; for (let turn = 0; turn < 4; turn++) for (let y = 0; y <= H - CARD; y++) for (let x = 0; x <= W - CARD; x++) all.push({ x, y, turn }); return all; };
+const zCount = (letters, slots, pose) => slotCells(slots, pose).filter((cells) => letters[cells[0]] === 'Z').length;
+
+function newGrille() {
+  for (;;) {
+    const slots = shuffle([0, 1, 2, 3, 4, 5]).slice(0, 5).map((r) => [r, Math.floor(Math.random() * (CARD - 2))]);
+    const truth = pick(poses());
+    // Z is common in the noise, so most spots show a Z or two through the slots: only one shows five
+    const letters = Array.from({ length: W * H }, () => (Math.random() < 0.14 ? 'Z' : pick([...LETTERS])));
+    slotCells(slots, truth).forEach((cells) => [...group()].forEach((ch, d) => { letters[cells[d]] = ch; }));
+    if (poses().filter((p) => zCount(letters, slots, p) === 5).length !== 1) continue;
+    gr = { letters, slots, truth, pose: { x: 3, y: 1, turn: 0 }, solved: false };
+    break;
+  }
+  renderGrille();
+}
+
+function renderGrille() {
+  const cells = slotCells(gr.slots, gr.pose);
+  const holes = new Set(cells.flat());
+  const covered = new Set();
+  for (let r = 0; r < CARD; r++) for (let c = 0; c < CARD; c++) { const [rr, cc] = turned(r, c, gr.pose.turn); covered.add((gr.pose.y + rr) * W + gr.pose.x + cc); }
+  gr.solved = zCount(gr.letters, gr.slots, gr.pose) === 5;
+  $('mat').classList.toggle('solved', gr.solved);
+  $('mat').replaceChildren(...gr.letters.map((ch, i) => Object.assign(document.createElement('span'), { textContent: ch, className: holes.has(i) ? 'hole' : covered.has(i) ? 'cover' : '' })));
+  showCaught('grilleOut', gr.solved ? cells.map((c) => c.map((i) => gr.letters[i]).join('')) : [], 5, newGrille);
+}
+
+function moveGrille(move) {
+  if (gr.solved) return;
+  const p = { ...gr.pose };
+  if (move === 'left') p.x -= 1; if (move === 'right') p.x += 1; if (move === 'up') p.y -= 1; if (move === 'down') p.y += 1;
+  if (move === 'turn') p.turn = (p.turn + 1) % 4;
+  if (p.x < 0 || p.y < 0 || p.x > W - CARD || p.y > H - CARD) return flash($('mat'));
+  gr.pose = p;
+  renderGrille();
+}
+
+document.querySelector('.pad').onclick = (e) => { const m = e.target.dataset.move; if (m) moveGrille(m); };
+document.addEventListener('keydown', (e) => {
+  const m = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', r: 'turn', R: 'turn' }[e.key];
+  if (!m || !$('grille').matches(':hover')) return; // the keys move the card only while the mouse is over its section
+  e.preventDefault();
+  moveGrille(m);
+});
+
+// ---------- 2. the tape: the signal runs past in a loop, groups are caught with a click ----------
+
+const TAPE = 90, CELL = 32, SPEED = 3; // letters, px per letter, letters per second
+let tk; // {letters, groups: [{at, text, caught}], offset}
+
+function newTicker() {
+  const letters = Array.from({ length: TAPE }, () => pick([...LETTERS]));
+  const groups = [];
+  while (groups.length < 5) {
+    const at = Math.floor(Math.random() * (TAPE - 3));
+    if (groups.some((g) => Math.abs(g.at - at) < 8)) continue;
+    groups.push({ at, text: group(), caught: false });
+  }
+  groups.forEach((g) => [...g.text].forEach((ch, d) => { letters[g.at + d] = ch; }));
+  tk = { letters, groups, offset: 0 };
+  showCaught('tickerOut', [], 5, newTicker);
+}
+
+let last = performance.now();
+function tick(now) {
+  const all = tk.groups.every((g) => g.caught);
+  if (!all) tk.offset = (tk.offset + ((now - last) / 1000) * SPEED) % TAPE;
+  last = now;
+  const first = Math.floor(tk.offset);
+  const shown = Math.ceil($('tape').clientWidth / CELL) + 1;
+  const strip = $('strip');
+  strip.style.transform = `translateX(${-(tk.offset - first) * CELL}px)`;
+  strip.replaceChildren(...Array.from({ length: shown }, (_, k) => {
+    const i = (first + k) % TAPE;
+    const g = tk.groups.find((o) => i >= o.at && i < o.at + 3);
+    return Object.assign(document.createElement('span'), { textContent: g?.caught ? '·' : tk.letters[i], className: g?.caught ? 'gone' : '' });
+  }));
+  [...strip.children].forEach((s, k) => { s.dataset.i = (first + k) % TAPE; });
+}
+
+$('strip').addEventListener('mousedown', (e) => {
+  const span = e.target.closest('span');
+  if (!span) return;
+  const i = Number(span.dataset.i);
+  const g = tk.groups.find((o) => !o.caught && i >= o.at && i < o.at + 3);
+  if (!g) return flash($('tape'));
+  g.caught = true;
+  showCaught('tickerOut', tk.groups.filter((o) => o.caught).map((o) => o.text), 5, newTicker);
+});
+
+// ---------- 3. no Z: pairs of a row letter and a column letter, with extra letters in between ----------
+
+let st; // {key: {rows, cols}, letters, starts, got}
+
+/** `letters` spread over ten digits, at least one each. */
+function spread(letters) {
+  const buckets = Array.from({ length: 10 }, (_, d) => [letters[d]]);
+  letters.slice(10).forEach((ch) => pick(buckets).push(ch));
+  return buckets.map((b) => b.sort().join(''));
+}
+
+function newStream() {
+  const all = shuffle([...LETTERS]);
+  const key = { rows: spread(all.slice(0, 13)), cols: spread(all.slice(13)) };
+  const rowLetters = all.slice(0, 13), colLetters = all.slice(13);
+  const letters = [];
+  const starts = [];
+  // at most one extra letter between two groups, so the stream reads one way only
+  for (let n = 0; n < 5; n++) {
+    if (Math.random() < 0.75) letters.push(pick(Math.random() < 0.5 ? rowLetters : colLetters));
+    starts.push(letters.length);
+    letters.push(pick(rowLetters), pick(colLetters));
+  }
+  if (Math.random() < 0.5) letters.push(pick(rowLetters));
+  st = { key, letters, starts, got: [] };
+  const keyRows = (half) => half.flatMap((ls, d) => [Object.assign(document.createElement('b'), { textContent: d }), Object.assign(document.createElement('span'), { textContent: ls })]);
+  $('rowKey').replaceChildren(...keyRows(key.rows));
+  $('colKey').replaceChildren(...keyRows(key.cols));
+  renderStream();
+}
+
+function renderStream() {
+  const got = new Set(st.got.flatMap((i) => [i, i + 1]));
+  $('streamLine').replaceChildren(...st.letters.map((ch, i) => {
+    const s = Object.assign(document.createElement('span'), { textContent: ch, className: got.has(i) ? 'got' : '' });
+    s.onclick = () => {
+      if (got.has(i)) return;
+      if (!st.starts.includes(i)) return flash(s);
+      st.got.push(i);
+      renderStream();
+    };
+    return s;
+  }));
+  showCaught('streamOut', [...st.got].sort((a, b) => a - b).map((i) => st.letters[i] + st.letters[i + 1]), 5, newStream);
+}
+
+newGrille();
+newTicker();
+setInterval(() => tick(performance.now()), 30);
+newStream();
+</script>
+</body>
+</html>

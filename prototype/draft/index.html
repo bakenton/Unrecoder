@@ -1,0 +1,376 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unrecoder draft</title>
+<style>
+  :root {
+    --bg: #efe9dc; --paper: #fbf8f1; --ink: #1f1d1a; --muted: #8a8478; --line: #d8d0bf;
+    --pick: #2f5d8a; --ok: #2e7d4f; --bad: #c0392b; --card: #5b4a36;
+    --who: #e8d27a; --place: #9ec7e8; --action: #e8a98f; --state: #b9d99a; --result: #cdb3e3; --other: #e7e2d6;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.4 "Courier New", monospace; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
+  header { display: flex; justify-content: space-between; align-items: baseline; }
+  header h1 { margin: 0; font-size: 18px; letter-spacing: 3px; }
+  header .score { color: var(--muted); }
+  .hint { color: var(--muted); margin: -8px 0 0; }
+
+  .desk { display: grid; grid-template-columns: auto auto 1fr; gap: 18px; align-items: start; }
+
+  .mat { display: grid; grid-template-columns: repeat(12, 32px); grid-auto-rows: 32px; gap: 1px; background: var(--line); padding: 1px; user-select: none; border-radius: 3px; }
+  .mat span { display: grid; place-items: center; background: var(--paper); font-size: 18px; }
+  .mat span.cover { background: var(--card); color: transparent; }
+  .mat span.hole { background: #fff; outline: 2px solid var(--card); outline-offset: -2px; font-weight: bold; cursor: pointer; }
+  .mat span.hole:hover { background: #e9e1cf; }
+  .mat span.hole.sel { background: var(--pick); color: #fff; }
+  .mat span.hole.done { cursor: default; }
+  .mat.bump { animation: bump .3s; }
+  @keyframes bump { 30% { transform: translateX(-4px); } 70% { transform: translateX(4px); } }
+  .pad { display: grid; grid-template-columns: repeat(3, 44px); gap: 4px; }
+  .pad button { font: inherit; font-size: 18px; padding: 6px 0; cursor: pointer; border: 2px solid var(--ink); background: var(--paper); border-radius: 4px; }
+  .pad button:hover { background: #fff; }
+  .pad button:disabled { opacity: .3; cursor: default; }
+  .padnote { color: var(--muted); font-size: 12px; margin-top: 6px; max-width: 140px; }
+
+  .picked { color: var(--muted); min-height: 1.4em; }
+  .picked b { color: var(--pick); font-size: 18px; letter-spacing: 3px; }
+
+  .sentence { background: var(--paper); border: 1px solid var(--line); padding: 14px 16px; font-size: 18px; border-radius: 4px; }
+  .blank { display: inline-block; min-width: 90px; border-bottom: 2px solid var(--muted); text-align: center; padding: 0 6px; margin: 0 2px; color: var(--muted); }
+  .blank.filled { color: var(--ink); border-bottom-color: transparent; border-radius: 3px; }
+  .blank.pop { animation: pop .35s ease-out; }
+  @keyframes pop { from { transform: scale(1.25); } to { transform: scale(1); } }
+
+  .key { background: var(--paper); border: 1px solid var(--line); padding: 12px; border-radius: 4px; display: grid; grid-template-columns: auto auto; gap: 24px; }
+  .key h2 { margin: 0 0 6px; font-size: 13px; letter-spacing: 2px; color: var(--muted); }
+  .krow { display: grid; grid-template-columns: 22px 1fr; gap: 2px 8px; font-size: 17px; }
+  .krow b { text-align: right; color: var(--muted); }
+  .krow span { letter-spacing: 3px; }
+
+  table { border-collapse: collapse; width: 100%; table-layout: fixed; background: var(--paper); }
+  th { font-size: 15px; color: var(--muted); padding: 4px; }
+  th.hot { color: var(--ink); background: #e9e1cf; }
+  td { border: 1px solid var(--line); height: 40px; padding: 2px; text-align: center; font-size: 11px; line-height: 1.15; cursor: pointer; word-break: break-word; }
+  td:hover { outline: 2px solid var(--pick); outline-offset: -2px; }
+  td.kind-other { background: var(--other); color: var(--muted); }
+  .miss { animation: miss .5s; }
+  @keyframes miss { 0%, 60% { background: var(--bad); color: #fff; } }
+  td.gone { visibility: hidden; }
+  .kind-who { background: var(--who); } .kind-place { background: var(--place); } .kind-action { background: var(--action); }
+  .kind-state { background: var(--state); } .kind-result { background: var(--result); }
+  .mat span.hole.done.kind-who { background: var(--who); } .mat span.hole.done.kind-place { background: var(--place); }
+  .mat span.hole.done.kind-action { background: var(--action); } .mat span.hole.done.kind-state { background: var(--state); }
+  .mat span.hole.done.kind-result { background: var(--result); }
+
+  .flash { position: fixed; inset: 0; display: grid; place-items: center; pointer-events: none; font-size: 40px; letter-spacing: 6px; color: var(--ok); opacity: 0; }
+  .flash.on { animation: flash 1.1s ease-out; }
+  @keyframes flash { 20% { opacity: 1; } 100% { opacity: 0; } }
+
+  .points { display: inline-block; margin-left: 12px; padding: 2px 10px; border: 2px solid var(--ink); color: var(--ink); font-size: 18px; border-radius: 4px; }
+  .points.hit { animation: hit .6s; }
+  @keyframes hit { 0%, 50% { background: var(--bad); color: #fff; border-color: var(--bad); } }
+  .points.gain { animation: gain .8s; }
+  @keyframes gain { 0%, 50% { background: var(--ok); color: #fff; border-color: var(--ok); } }
+  .over { position: fixed; inset: 0; background: rgba(31, 29, 26, .55); display: grid; place-items: center; }
+  .over[hidden] { display: none; }
+  .over > div { background: var(--paper); padding: 28px 36px; border-radius: 6px; text-align: center; }
+  .over h2 { margin: 0 0 8px; letter-spacing: 4px; }
+  .over button { font: inherit; font-size: 18px; padding: 8px 22px; margin-top: 10px; cursor: pointer; }
+
+  @media (max-width: 900px) { .desk { grid-template-columns: auto auto; } .key { grid-column: 1 / -1; } td { font-size: 9px; height: 38px; } }
+</style>
+</head>
+<body>
+<main>
+  <header><h1>UNRECODER · DRAFT</h1><div class="score"><span id="score"></span> <b class="points" id="points"></b></div></header>
+  <p class="hint" id="hint">Slide and turn the card over the signal until every slot shows a Z and two letters. Click a slot to take its group: the 2nd letter is a row, the 3rd a column. Click the cell where they cross.</p>
+  <div class="desk">
+    <div class="mat" id="mat"></div>
+    <div>
+      <div class="pad" id="pad">
+        <span></span><button data-move="up">↑</button><span></span>
+        <button data-move="left">←</button><button data-move="turn">⟳</button><button data-move="right">→</button>
+        <span></span><button data-move="down">↓</button><span></span>
+      </div>
+      <div class="padnote">arrow keys move, R turns</div>
+    </div>
+    <div class="key">
+      <div><h2>ROW KEY</h2><div class="krow" id="rowKey"></div></div>
+      <div><h2>COLUMN KEY</h2><div class="krow" id="colKey"></div></div>
+    </div>
+  </div>
+  <div class="sentence" id="sentence"></div>
+  <div class="picked" id="picked"></div>
+  <table id="table"></table>
+</main>
+<div class="flash" id="flash">DECODED</div>
+<div class="over" id="over" hidden><div><h2>OFF THE AIR</h2><p id="overText"></p><button id="again">AGAIN</button></div></div>
+<script>
+// A bare draft of the core. The message is hidden in a grid of letters; a card with five slots, slid and turned over
+// it, shows the five groups "Z + two letters" in one spot only. The key turns a group's letters into a row and a
+// column, and the cell where they cross is the word. Mistakes cost points; at zero you are off the air.
+
+const WORDS = {
+  who: ['courier', 'resident', 'watcher', 'radio operator', 'contact', 'informer', 'driver', 'cipher clerk', 'stranger', 'patrol', 'source', 'double agent'],
+  place: ['harbour', 'station', 'embassy', 'safe house', 'border', 'bridge', 'hotel', 'market', 'church', 'airfield', 'warehouse', 'cafe', 'park', 'post office'],
+  action: ['left the package', 'picked up the package', 'met the contact', 'was followed', 'was searched', 'burned the papers', 'crossed over',
+    'missed the meeting', 'changed the route', 'saw the patrol', 'sent the film', 'lost the tail', 'was stopped', 'waited in vain'],
+  state: ['burned', 'arrested', 'guarded', 'unharmed', 'wounded', 'watched', 'intact', 'exposed', 'closed', 'quiet', 'secure', 'lost'],
+  result: ['awaiting pickup', 'requests extraction', 'going silent', 'meeting cancelled', 'next contact in two days', 'needs new papers', 'needs money',
+    'switching to backup', 'will try again', 'operation continues', 'send no one', 'awaiting orders'],
+  other: ['radio check', 'say again', 'understood', 'no reply', 'stand by', 'over', 'out', 'end of message', 'number', 'spell', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'],
+};
+const KINDS = ['who', 'place', 'action', 'state', 'result'];
+const PATTERN = ['The ', 'who', ' at the ', 'place', ' ', 'action', '. Status: ', 'state', '. Next: ', 'result', '.'];
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXY'; // Z only starts a group
+
+const START_POINTS = 10;
+const COST_JUNK = 2; // a slot taken while the card is not in place: whatever it shows is not the message
+const COST_CELL = 3; // a wrong cell in the table
+const CLEAN_BONUS = 3; // a message decoded without a single mistake
+
+const W = 12, H = 8, CARD = 6; // the signal, and the card that slides over it
+const Z_NOISE = 0.14; // Z is common in the noise, so most spots show a Z or two through the slots
+
+function rng(seed) { // mulberry32: the table is the same every time, so it can be learned
+  return () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const shuffle = (arr, r = Math.random) => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const $ = (id) => document.getElementById(id);
+const restart = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }; // replay a CSS animation
+
+const cells = shuffle(Object.entries(WORDS).flatMap(([kind, list]) => list.map((text) => ({ kind, text }))), rng(42)); // cell "rc" = cells[r * 10 + c]
+
+/** 25 letters over 10 digits, 2 or 3 each. */
+function keyHalf() {
+  const letters = shuffle([...LETTERS]);
+  let at = 0;
+  return shuffle([3, 3, 3, 3, 3, 2, 2, 2, 2, 2]).map((n) => letters.slice(at, (at += n)).sort().join(''));
+}
+
+// ---------- the card ----------
+
+/** Card cell (r, c) after `turn` quarter turns clockwise. */
+const turned = (r, c, turn) => { for (let k = 0; k < turn; k++) [r, c] = [c, CARD - 1 - r]; return [r, c]; };
+const at = (pose, r, c) => { const [rr, cc] = turned(r, c, pose.turn); return (pose.y + rr) * W + pose.x + cc; };
+/** The signal positions each slot falls on in `pose`, in reading order. */
+const slotCells = (slots, pose) => slots.map(([r, c]) => [0, 1, 2].map((d) => at(pose, r, c + d)));
+const allPoses = () => { const all = []; for (let turn = 0; turn < 4; turn++) for (let y = 0; y <= H - CARD; y++) for (let x = 0; x <= W - CARD; x++) all.push({ x, y, turn }); return all; };
+const zCount = (letters, slots, pose) => slotCells(slots, pose).filter((c) => letters[c[0]] === 'Z').length;
+const samePose = (a, b) => a.x === b.x && a.y === b.y && a.turn === b.turn;
+
+// ---------- a message ----------
+
+let msg; // {key, words, groups: [{text, cell, kind, slot}], letters, slots, truth, pose, filled, selected: slot index, misses}
+let score;
+let busy = false; // between messages, or off the air
+
+function newMessage() {
+  const key = { rows: keyHalf(), cols: keyHalf() };
+  const words = {};
+  for (const kind of KINDS) words[kind] = pick(cells.map((c, i) => (c.kind === kind ? i : -1)).filter((i) => i >= 0));
+  const used = new Set();
+  const groups = shuffle(KINDS.map((kind) => {
+    const cell = words[kind];
+    let text;
+    do text = 'Z' + pick([...key.rows[Math.floor(cell / 10)]]) + pick([...key.cols[cell % 10]]); while (used.has(text));
+    used.add(text);
+    return { text, cell, kind };
+  }));
+  for (;;) { // only one spot of the card may show five Zs
+    const slots = shuffle([0, 1, 2, 3, 4, 5]).slice(0, 5).map((r) => [r, Math.floor(Math.random() * (CARD - 2))]);
+    const truth = pick(allPoses());
+    const letters = Array.from({ length: W * H }, () => (Math.random() < Z_NOISE ? 'Z' : pick([...LETTERS])));
+    slotCells(slots, truth).forEach((c, k) => [...groups[k].text].forEach((ch, d) => { letters[c[d]] = ch; }));
+    if (allPoses().filter((p) => zCount(letters, slots, p) === 5).length !== 1) continue;
+    let pose;
+    do pose = { x: 3, y: 1, turn: Math.floor(Math.random() * 4) }; while (samePose(pose, truth));
+    groups.forEach((g, k) => { g.slot = k; });
+    msg = { key, words, groups, letters, slots, truth, pose, filled: {}, selected: null, misses: 0 };
+    break;
+  }
+  busy = false;
+  render();
+}
+
+const locked = () => samePose(msg.pose, msg.truth);
+
+function move(dir) {
+  if (busy) return;
+  const p = { ...msg.pose };
+  if (dir === 'left') p.x -= 1;
+  if (dir === 'right') p.x += 1;
+  if (dir === 'up') p.y -= 1;
+  if (dir === 'down') p.y += 1;
+  if (dir === 'turn') p.turn = (p.turn + 1) % 4;
+  if (p.x < 0 || p.y < 0 || p.x > W - CARD || p.y > H - CARD) return restart($('mat'), 'bump');
+  msg.pose = p;
+  msg.selected = null;
+  render();
+}
+
+/** A slot clicked. In place, it gives its group. Anywhere else, whatever it shows is noise, and taking it costs. */
+function takeSlot(k, el) {
+  if (busy) return;
+  if (!locked()) {
+    msg.misses += 1;
+    restart(el, 'miss');
+    return pay(COST_JUNK);
+  }
+  if (msg.filled[msg.groups[k].kind]) return;
+  msg.selected = msg.selected === k ? null : k;
+  render();
+}
+
+/** A cell clicked for the group taken. Wrong: it costs, and the group is let go. */
+function guess(i) {
+  if (busy || msg.selected === null) return;
+  const g = msg.groups[msg.selected];
+  if (i !== g.cell) {
+    msg.misses += 1;
+    msg.selected = null;
+    pay(COST_CELL);
+    if (busy) return;
+    render();
+    $('table').rows[Math.floor(i / 10) + 1].cells[(i % 10) + 1].classList.add('miss');
+    return;
+  }
+  msg.filled[g.kind] = 'new';
+  msg.selected = null;
+  if (KINDS.every((k) => msg.filled[k])) {
+    score.messages += 1;
+    busy = true;
+    render();
+    const clean = msg.misses === 0;
+    if (clean) {
+      score.clean += 1;
+      score.points += CLEAN_BONUS;
+      bump('gain');
+    }
+    $('flash').textContent = clean ? `CLEAN +${CLEAN_BONUS}` : 'DECODED';
+    restart($('flash'), 'on');
+    setTimeout(newMessage, 1200);
+    return;
+  }
+  render();
+}
+
+// ---------- points ----------
+
+function pay(cost) {
+  score.points -= cost;
+  bump('hit');
+  if (score.points <= 0) {
+    busy = true;
+    $('overText').textContent = `Messages decoded: ${score.messages}, ${score.clean} of them clean.`;
+    $('over').hidden = false;
+  }
+}
+
+function bump(cls) {
+  $('points').textContent = `POINTS ${Math.max(0, score.points)}`;
+  $('points').classList.remove('hit', 'gain');
+  restart($('points'), cls);
+}
+
+function newGame() {
+  score = { messages: 0, clean: 0, points: START_POINTS };
+  $('over').hidden = true;
+  newMessage();
+}
+
+// ---------- drawing ----------
+
+function render() {
+  $('score').textContent = `messages ${score.messages}`;
+  $('points').textContent = `POINTS ${Math.max(0, score.points)}`;
+  $('hint').hidden = score.messages > 0;
+  renderCard();
+
+  const sel = msg.groups[msg.selected];
+  $('picked').innerHTML = sel ? `group <b>${sel.text}</b>` : '';
+
+  $('sentence').replaceChildren(...PATTERN.map((part) => {
+    if (!KINDS.includes(part)) return document.createTextNode(part);
+    const s = document.createElement('span');
+    const done = msg.filled[part];
+    s.className = 'blank' + (done ? ` filled kind-${part}` : '') + (done === 'new' ? ' pop' : '');
+    s.textContent = done ? cells[msg.words[part]].text : part;
+    if (done === 'new') msg.filled[part] = true;
+    return s;
+  }));
+
+  const keyRows = (half) => half.flatMap((letters, d) => [Object.assign(document.createElement('b'), { textContent: d }), Object.assign(document.createElement('span'), { textContent: letters })]);
+  $('rowKey').replaceChildren(...keyRows(msg.key.rows));
+  $('colKey').replaceChildren(...keyRows(msg.key.cols));
+
+  const t = $('table');
+  t.replaceChildren();
+  const head = t.insertRow();
+  head.append(document.createElement('th'));
+  for (let c = 0; c < 10; c++) head.append(Object.assign(document.createElement('th'), { textContent: c }));
+  const solved = new Set(KINDS.filter((k) => msg.filled[k]).map((k) => msg.words[k]));
+  for (let r = 0; r < 10; r++) {
+    const tr = t.insertRow();
+    tr.append(Object.assign(document.createElement('th'), { textContent: r }));
+    for (let c = 0; c < 10; c++) {
+      const i = r * 10 + c;
+      const td = tr.insertCell();
+      td.className = `kind-${cells[i].kind}` + (solved.has(i) ? ' gone' : '');
+      td.textContent = cells[i].text;
+      td.onclick = () => guess(i);
+      td.onmouseenter = () => cross(r, c);
+      td.onmouseleave = () => cross(-1, -1);
+    }
+  }
+}
+
+/** The signal with the card on it: covered under the card, open in the slots, plain around it. */
+function renderCard() {
+  const slotOf = new Map();
+  slotCells(msg.slots, msg.pose).forEach((c, k) => c.forEach((i) => slotOf.set(i, k)));
+  const covered = new Set();
+  for (let r = 0; r < CARD; r++) for (let c = 0; c < CARD; c++) covered.add(at(msg.pose, r, c));
+  const open = locked(); // nothing on screen says so: the five Zs are for the player to see
+  $('mat').replaceChildren(...msg.letters.map((ch, i) => {
+    const s = Object.assign(document.createElement('span'), { textContent: ch });
+    if (slotOf.has(i)) {
+      const k = slotOf.get(i);
+      const g = msg.groups[k];
+      s.className = 'hole' + (open && msg.filled[g.kind] ? ` done kind-${g.kind}` : '') + (open && msg.selected === k ? ' sel' : '');
+      s.onclick = () => takeSlot(k, s);
+    } else if (covered.has(i)) {
+      s.className = 'cover';
+    }
+    return s;
+  }));
+}
+
+/** Light the row and column headers of the cell under the mouse: following a row and a column is the whole game. */
+function cross(r, c) {
+  const rows = $('table').rows;
+  [...rows[0].cells].forEach((th, j) => th.classList.toggle('hot', j === c + 1));
+  [...rows].slice(1).forEach((tr, j) => tr.cells[0].classList.toggle('hot', j === r));
+}
+
+$('pad').onclick = (e) => { const m = e.target.dataset.move; if (m) move(m); };
+document.addEventListener('keydown', (e) => {
+  const m = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', r: 'turn', R: 'turn', 'к': 'turn', 'К': 'turn' }[e.key];
+  if (!m) return;
+  e.preventDefault();
+  move(m);
+});
+$('again').onclick = newGame;
+newGame();
+</script>
+</body>
+</html>
