@@ -1,74 +1,55 @@
 <!doctype html>
-<html lang="en">
+<html lang="ru">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Unrecoder draft</title>
 <style>
-  :root {
-    --bg: #efe9dc; --paper: #fbf8f1; --ink: #1f1d1a; --muted: #8a8478; --line: #d8d0bf;
-    --pick: #2f5d8a; --ok: #2e7d4f; --bad: #c0392b; --card: #5b4a36;
-    --who: #e8d27a; --place: #9ec7e8; --action: #e8a98f; --state: #b9d99a; --result: #cdb3e3; --other: #e7e2d6;
-  }
+  :root { --bg: #efe9dc; --paper: #fbf8f1; --ink: #1f1d1a; --muted: #8a8478; --line: #d8d0bf; --pick: #2f5d8a; --ok: #2e7d4f; --bad: #c0392b; --same: #e9e1cf; }
   * { box-sizing: border-box; }
   body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.4 "Courier New", monospace; }
-  main { max-width: 1100px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
+  main { max-width: 1000px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
   header { display: flex; justify-content: space-between; align-items: baseline; }
   header h1 { margin: 0; font-size: 18px; letter-spacing: 3px; }
   header .score { color: var(--muted); }
   .hint { color: var(--muted); margin: -8px 0 0; }
+  .sheet { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 16px 18px; }
 
-  .desk { display: grid; grid-template-columns: auto auto 1fr; gap: 18px; align-items: start; }
+  .text { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px 22px; user-select: none; }
+  .word { display: inline-flex; align-items: flex-end; gap: 2px; padding: 2px 3px; border-radius: 4px; }
+  .word.locked { background: #e4efdf; }
+  .word.miss { animation: miss .7s; }
+  @keyframes miss { 0%, 60% { background: var(--bad); } }
+  .stop { font-size: 24px; margin-left: 2px; }
 
-  .mat { display: grid; grid-template-columns: repeat(12, 32px); grid-auto-rows: 32px; gap: 1px; background: var(--line); padding: 1px; user-select: none; border-radius: 3px; }
-  .mat span { display: grid; place-items: center; background: var(--paper); font-size: 18px; }
-  .mat span.cover { background: var(--card); color: transparent; }
-  .mat span.hole { background: #fff; outline: 2px solid var(--card); outline-offset: -2px; font-weight: bold; cursor: pointer; }
-  .mat span.hole:hover { background: #e9e1cf; }
-  .mat span.hole.sel { background: var(--pick); color: #fff; }
-  .mat span.hole.done { cursor: default; }
-  .mat.bump { animation: bump .3s; }
+  .g { display: inline-flex; flex-direction: column; align-items: center; cursor: pointer; border-radius: 3px; padding: 2px 1px 0; }
+  .g svg { height: 40px; display: block; }
+  .g svg * { stroke: var(--ink); stroke-width: 2.2; fill: none; stroke-linecap: square; }
+  .g svg .dot { fill: var(--ink); stroke: none; }
+  .g b { display: block; width: 22px; height: 24px; margin-top: 3px; text-align: center; font-size: 19px; line-height: 22px; border-bottom: 2px solid var(--line); color: var(--pick); font-weight: normal; }
+  .g b.conf { color: var(--ink); font-weight: bold; border-bottom-color: transparent; }
+  .g.same { background: var(--same); }
+  .g.cur { background: var(--pick); }
+  .g.cur svg * { stroke: #fff; } .g.cur svg .dot { fill: #fff; stroke: none; }
+  .g.cur b { color: #fff; border-bottom-color: #fff; }
+  .g.fixed { cursor: default; }
+
+  .bar { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .bar button, .over button { font: inherit; font-size: 18px; padding: 8px 22px; cursor: pointer; border: 2px solid var(--ink); background: var(--paper); border-radius: 4px; letter-spacing: 2px; }
+  .bar button:hover { background: #fff; }
+  .bar .note { color: var(--muted); }
+
+  .abc { display: grid; gap: 10px; }
+  .abc .row { display: flex; flex-wrap: wrap; gap: 4px 16px; }
+  .abc .pair { display: inline-flex; gap: 1px; }
+  .abc .g svg { height: 30px; }
+  .abc .g b { height: 20px; font-size: 16px; line-height: 18px; }
+  .abc.bump { animation: bump .3s; }
   @keyframes bump { 30% { transform: translateX(-4px); } 70% { transform: translateX(4px); } }
-  .pad { display: grid; grid-template-columns: repeat(3, 44px); gap: 4px; }
-  .pad button { font: inherit; font-size: 18px; padding: 6px 0; cursor: pointer; border: 2px solid var(--ink); background: var(--paper); border-radius: 4px; }
-  .pad button:hover { background: #fff; }
-  .pad button:disabled { opacity: .3; cursor: default; }
-  .padnote { color: var(--muted); font-size: 12px; margin-top: 6px; max-width: 140px; }
-
-  .picked { color: var(--muted); min-height: 1.4em; }
-  .picked b { color: var(--pick); font-size: 18px; letter-spacing: 3px; }
-
-  .sentence { background: var(--paper); border: 1px solid var(--line); padding: 14px 16px; font-size: 18px; border-radius: 4px; }
-  .blank { display: inline-block; min-width: 90px; border-bottom: 2px solid var(--muted); text-align: center; padding: 0 6px; margin: 0 2px; color: var(--muted); }
-  .blank.filled { color: var(--ink); border-bottom-color: transparent; border-radius: 3px; }
-  .blank.pop { animation: pop .35s ease-out; }
-  @keyframes pop { from { transform: scale(1.25); } to { transform: scale(1); } }
-
-  .key { background: var(--paper); border: 1px solid var(--line); padding: 12px; border-radius: 4px; display: grid; grid-template-columns: auto auto; gap: 24px; }
-  .key h2 { margin: 0 0 6px; font-size: 13px; letter-spacing: 2px; color: var(--muted); }
-  .krow { display: grid; grid-template-columns: 22px 1fr; gap: 2px 8px; font-size: 17px; }
-  .krow b { text-align: right; color: var(--muted); }
-  .krow span { letter-spacing: 3px; }
-
-  table { border-collapse: collapse; width: 100%; table-layout: fixed; background: var(--paper); }
-  th { font-size: 15px; color: var(--muted); padding: 4px; }
-  th.hot { color: var(--ink); background: #e9e1cf; }
-  td { border: 1px solid var(--line); height: 40px; padding: 2px; text-align: center; font-size: 11px; line-height: 1.15; cursor: pointer; word-break: break-word; }
-  td:hover { outline: 2px solid var(--pick); outline-offset: -2px; }
-  td.kind-other { background: var(--other); color: var(--muted); }
-  .miss { animation: miss .5s; }
-  @keyframes miss { 0%, 60% { background: var(--bad); color: #fff; } }
-  td.gone { visibility: hidden; }
-  .kind-who { background: var(--who); } .kind-place { background: var(--place); } .kind-action { background: var(--action); }
-  .kind-state { background: var(--state); } .kind-result { background: var(--result); }
-  .mat span.hole.done.kind-who { background: var(--who); } .mat span.hole.done.kind-place { background: var(--place); }
-  .mat span.hole.done.kind-action { background: var(--action); } .mat span.hole.done.kind-state { background: var(--state); }
-  .mat span.hole.done.kind-result { background: var(--result); }
 
   .flash { position: fixed; inset: 0; display: grid; place-items: center; pointer-events: none; font-size: 40px; letter-spacing: 6px; color: var(--ok); opacity: 0; }
   .flash.on { animation: flash 1.1s ease-out; }
   @keyframes flash { 20% { opacity: 1; } 100% { opacity: 0; } }
-
   .points { display: inline-block; margin-left: 12px; padding: 2px 10px; border: 2px solid var(--ink); color: var(--ink); font-size: 18px; border-radius: 4px; }
   .points.hit { animation: hit .6s; }
   @keyframes hit { 0%, 50% { background: var(--bad); color: #fff; border-color: var(--bad); } }
@@ -78,297 +59,229 @@
   .over[hidden] { display: none; }
   .over > div { background: var(--paper); padding: 28px 36px; border-radius: 6px; text-align: center; }
   .over h2 { margin: 0 0 8px; letter-spacing: 4px; }
-  .over button { font: inherit; font-size: 18px; padding: 8px 22px; margin-top: 10px; cursor: pointer; }
-
-  @media (max-width: 900px) { .desk { grid-template-columns: auto auto; } .key { grid-column: 1 / -1; } td { font-size: 9px; height: 38px; } }
 </style>
 </head>
 <body>
 <main>
   <header><h1>UNRECODER · DRAFT</h1><div class="score"><span id="score"></span> <b class="points" id="points"></b></div></header>
-  <p class="hint" id="hint">Slide and turn the card over the signal until every slot shows a Z and two letters. Click a slot to take its group: the 2nd letter is a row, the 3rd a column. Click the cell where they cross.</p>
-  <div class="desk">
-    <div class="mat" id="mat"></div>
-    <div>
-      <div class="pad" id="pad">
-        <span></span><button data-move="up">↑</button><span></span>
-        <button data-move="left">←</button><button data-move="turn">⟳</button><button data-move="right">→</button>
-        <span></span><button data-move="down">↓</button><span></span>
-      </div>
-      <div class="padnote">arrow keys move, R turns</div>
-    </div>
-    <div class="key">
-      <div><h2>ROW KEY</h2><div class="krow" id="rowKey"></div></div>
-      <div><h2>COLUMN KEY</h2><div class="krow" id="colKey"></div></div>
-    </div>
-  </div>
-  <div class="sentence" id="sentence"></div>
-  <div class="picked" id="picked"></div>
-  <table id="table"></table>
+  <p class="hint" id="hint">Клик по знаку, затем буква с клавиатуры: она встанет под этот знак везде. Никто не скажет, верна ли она. ОТПРАВИТЬ проверяет дописанные слова: каждое неверное стоит очко.</p>
+  <div class="sheet"><div class="text" id="text"></div></div>
+  <div class="bar"><span class="note" id="note"></span><button id="send">ОТПРАВИТЬ</button></div>
+  <div class="sheet"><div class="abc" id="abc"></div></div>
 </main>
-<div class="flash" id="flash">DECODED</div>
-<div class="over" id="over" hidden><div><h2>OFF THE AIR</h2><p id="overText"></p><button id="again">AGAIN</button></div></div>
+<div class="flash" id="flash"></div>
+<div class="over" id="over" hidden><div><h2>СВЯЗЬ ПОТЕРЯНА</h2><p id="overText"></p><button id="again">ЗАНОВО</button></div></div>
 <script>
-// A bare draft of the core. The message is hidden in a grid of letters; a card with five slots, slid and turned over
-// it, shows the five groups "Z + two letters" in one spot only. The key turns a group's letters into a row and a
-// column, and the cell where they cross is the word. Mistakes cost points; at zero you are off the air.
-
-const WORDS = {
-  who: ['courier', 'resident', 'watcher', 'radio operator', 'contact', 'informer', 'driver', 'cipher clerk', 'stranger', 'patrol', 'source', 'double agent'],
-  place: ['harbour', 'station', 'embassy', 'safe house', 'border', 'bridge', 'hotel', 'market', 'church', 'airfield', 'warehouse', 'cafe', 'park', 'post office'],
-  action: ['left the package', 'picked up the package', 'met the contact', 'was followed', 'was searched', 'burned the papers', 'crossed over',
-    'missed the meeting', 'changed the route', 'saw the patrol', 'sent the film', 'lost the tail', 'was stopped', 'waited in vain'],
-  state: ['burned', 'arrested', 'guarded', 'unharmed', 'wounded', 'watched', 'intact', 'exposed', 'closed', 'quiet', 'secure', 'lost'],
-  result: ['awaiting pickup', 'requests extraction', 'going silent', 'meeting cancelled', 'next contact in two days', 'needs new papers', 'needs money',
-    'switching to backup', 'will try again', 'operation continues', 'send no one', 'awaiting orders'],
-  other: ['radio check', 'say again', 'understood', 'no reply', 'stand by', 'over', 'out', 'end of message', 'number', 'spell', ...'ABCDEFGHIJKLMNOPQRSTUVWXYZ'],
-};
-const KINDS = ['who', 'place', 'action', 'state', 'result'];
-const PATTERN = ['The ', 'who', ' at the ', 'place', ' ', 'action', '. Status: ', 'state', '. Next: ', 'result', '.'];
-const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXY'; // Z only starts a group
+// A bare draft of the core. An intercept is written in an invented script: one sign for each Russian letter. A few
+// signs are known from the start. The player reads what can be read, guesses the words, and writes a letter under a
+// sign: it goes under that sign everywhere. Nothing says whether a letter is right; a wrong one quietly spoils other
+// words. Sending checks the words written in full: a right one is confirmed with its letters, a wrong one costs a point. The alphabet
+// stays from message to message. At zero points the link is lost.
 
 const START_POINTS = 10;
-const COST_JUNK = 2; // a slot taken while the card is not in place: whatever it shows is not the message
-const COST_CELL = 3; // a wrong cell in the table
-const CLEAN_BONUS = 3; // a message decoded without a single mistake
+const COST_WORD = 1; // each word sent wrong; unfinished words are not sent
+const REWARD = 4; // a message decoded in full
+const START_KNOWN = 'оеатнр'; // the signs known from the start
 
-const W = 12, H = 8, CARD = 6; // the signal, and the card that slides over it
-const Z_NOISE = 0.14; // Z is common in the noise, so most spots show a Z or two through the slots
+const WHO = ['курьер', 'резидент', 'связной', 'радист', 'агент', 'шофёр', 'наблюдатель', 'информатор', 'шифровальщик', 'незнакомец'];
+const ACTION = ['оставил пакет', 'забрал пакет', 'ждал напрасно', 'сжёг бумаги', 'заметил слежку', 'ушёл от хвоста', 'сменил маршрут', 'передал плёнку',
+  'пропустил встречу', 'перешёл границу'];
+const PLACE = ['в гавани', 'на вокзале', 'у посольства', 'на мосту', 'в гостинице', 'на рынке', 'у церкви', 'на аэродроме', 'на складе', 'в кафе', 'в парке', 'на почте'];
+const STATE = ['явка провалена', 'он арестован', 'он ранен', 'он цел', 'за ним следят', 'всё тихо', 'дом под охраной', 'связь потеряна'];
+const RESULT = ['ждём указаний', 'просим эвакуацию', 'уходим в тишину', 'встреча отменена', 'нужны новые документы', 'нужны деньги', 'переходим на запасной канал',
+  'никого не присылать', 'операция продолжается', 'следующая связь через два дня'];
 
-function rng(seed) { // mulberry32: the table is the same every time, so it can be learned
-  return () => {
-    seed = (seed + 0x6d2b79f5) | 0;
-    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
-    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
-    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
-  };
-}
-const shuffle = (arr, r = Math.random) => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
 const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
 const $ = (id) => document.getElementById(id);
-const restart = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); }; // replay a CSS animation
+const el = (tag, props = {}) => Object.assign(document.createElement(tag), props);
+const restart = (node, cls) => { node.classList.remove(cls); void node.offsetWidth; node.classList.add(cls); }; // replay a CSS animation
 
-const cells = shuffle(Object.entries(WORDS).flatMap(([kind, list]) => list.map((text) => ({ kind, text }))), rng(42)); // cell "rc" = cells[r * 10 + c]
+// ---------- the script ----------
+// Paired sounds share a shape, and the voiced one carries a bar across the stem: п/б, т/д, к/г, с/з, ш/ж, ф/в; щ is a
+// marked ч. Vowels have no stem and pair the same way with a dot: а/я, о/ё, у/ю, э/е, ы/и. One sign is a clue to its pair.
 
-/** 25 letters over 10 digits, 2 or 3 each. */
-function keyHalf() {
-  const letters = shuffle([...LETTERS]);
-  let at = 0;
-  return shuffle([3, 3, 3, 3, 3, 2, 2, 2, 2, 2]).map((n) => letters.slice(at, (at += n)).sort().join(''));
+const CONS = { п: [0, 0], б: [0, 1], т: [1, 0], д: [1, 1], к: [2, 0], г: [2, 1], с: [3, 0], з: [3, 1], ш: [4, 0], ж: [4, 1], ф: [5, 0], в: [5, 1],
+  м: [6, 0], н: [7, 0], л: [8, 0], р: [9, 0], х: [10, 0], ц: [11, 0], ч: [12, 0], щ: [12, 1], й: [13, 0] };
+const VOW = { а: [0, 0], я: [0, 1], о: [1, 0], ё: [1, 1], у: [2, 0], ю: [2, 1], э: [3, 0], е: [3, 1], ы: [4, 0], и: [4, 1] };
+const SIGN = { ь: 0, ъ: 1 };
+const C_SHAPE = [
+  [[10, 2, 18, 2]], [[2, 2, 18, 2]], [[10, 15, 18, 6], [10, 15, 18, 24]], [[10, 2, 18, 10]], [[10, 10, 18, 2], [10, 19, 18, 11]],
+  [[10, 8, 17, 14], [17, 14, 10, 20], [10, 8, 3, 14], [3, 14, 10, 20]], [[10, 2, 2, 12], [10, 2, 18, 12]], [[3, 14, 17, 14]],
+  [[10, 28, 2, 18]], [[10, 2, 18, 8], [18, 8, 10, 14]], [[3, 8, 17, 20], [17, 8, 3, 20]], [[10, 28, 18, 28], [18, 28, 18, 21]],
+  [[10, 16, 2, 6], [10, 16, 18, 6]], [[10, 14, 18, 14], [18, 14, 18, 26]],
+];
+const V_SHAPE = [
+  [[3, 21, 10, 11], [10, 11, 17, 21]], [[10, 9, 17, 16], [17, 16, 10, 23], [10, 23, 3, 16], [3, 16, 10, 9]],
+  [[3, 11, 10, 21], [10, 21, 17, 11]], [[16, 9, 4, 16], [4, 16, 16, 23]], [[4, 9, 16, 16], [16, 16, 4, 23]],
+];
+const strokes = (segs) => segs.map(([a, b, c, d]) => `<path d="M${a} ${b}L${c} ${d}"/>`).join('');
+function sign(ch) {
+  let w = 20, body;
+  if (ch in CONS) { const [i, v] = CONS[ch]; body = strokes([[10, 2, 10, 28], ...C_SHAPE[i], ...(v ? [[5, 24, 15, 24]] : [])]); }
+  else if (ch in VOW) { const [i, v] = VOW[ch]; body = strokes(V_SHAPE[i]) + (v ? '<circle class="dot" cx="10" cy="3" r="2"/>' : ''); }
+  else { w = 12; body = strokes([[6, 19, 6, 28], ...(SIGN[ch] ? [[2, 19, 10, 19]] : [])]); }
+  return `<svg viewBox="0 0 ${w} 32">${body}</svg>`;
 }
+// The player's table of signs, pairs side by side. The order of the pairs is not the order of the alphabet.
+const ABC = [['тд', 'шж', 'пб', 'фв', 'кг', 'сз', 'чщ'], ['р', 'х', 'м', 'й', 'ц', 'л', 'н'], ['ую', 'ая', 'ыи', 'оё', 'эе', 'ь', 'ъ']];
 
-// ---------- the card ----------
+// ---------- state ----------
 
-/** Card cell (r, c) after `turn` quarter turns clockwise. */
-const turned = (r, c, turn) => { for (let k = 0; k < turn; k++) [r, c] = [c, CARD - 1 - r]; return [r, c]; };
-const at = (pose, r, c) => { const [rr, cc] = turned(r, c, pose.turn); return (pose.y + rr) * W + pose.x + cc; };
-/** The signal positions each slot falls on in `pose`, in reading order. */
-const slotCells = (slots, pose) => slots.map(([r, c]) => [0, 1, 2].map((d) => at(pose, r, c + d)));
-const allPoses = () => { const all = []; for (let turn = 0; turn < 4; turn++) for (let y = 0; y <= H - CARD; y++) for (let x = 0; x <= W - CARD; x++) all.push({ x, y, turn }); return all; };
-const zCount = (letters, slots, pose) => slotCells(slots, pose).filter((c) => letters[c[0]] === 'Z').length;
-const samePose = (a, b) => a.x === b.x && a.y === b.y && a.turn === b.turn;
-
-// ---------- a message ----------
-
-let msg; // {key, words, groups: [{text, cell, kind, slot}], letters, slots, truth, pose, filled, selected: slot index, misses}
+let confirmed; // letters whose signs are known for sure
+let guess; // sign (named by its true letter) -> the letter the player wrote under it
+let msg; // {words: [{text, stop, locked, miss}], spots: [{w, ch}]}
+let sel = null; // the sign picked, by its true letter
+let spot = -1; // and where in the message it was picked, to step on from there
 let score;
-let busy = false; // between messages, or off the air
+let busy = false;
+
+const shown = (ch) => (confirmed.has(ch) ? ch : guess[ch] || '');
 
 function newMessage() {
-  const key = { rows: keyHalf(), cols: keyHalf() };
-  const words = {};
-  for (const kind of KINDS) words[kind] = pick(cells.map((c, i) => (c.kind === kind ? i : -1)).filter((i) => i >= 0));
-  const used = new Set();
-  const groups = shuffle(KINDS.map((kind) => {
-    const cell = words[kind];
-    let text;
-    do text = 'Z' + pick([...key.rows[Math.floor(cell / 10)]]) + pick([...key.cols[cell % 10]]); while (used.has(text));
-    used.add(text);
-    return { text, cell, kind };
-  }));
-  for (;;) { // only one spot of the card may show five Zs
-    const slots = shuffle([0, 1, 2, 3, 4, 5]).slice(0, 5).map((r) => [r, Math.floor(Math.random() * (CARD - 2))]);
-    const truth = pick(allPoses());
-    const letters = Array.from({ length: W * H }, () => (Math.random() < Z_NOISE ? 'Z' : pick([...LETTERS])));
-    slotCells(slots, truth).forEach((c, k) => [...groups[k].text].forEach((ch, d) => { letters[c[d]] = ch; }));
-    if (allPoses().filter((p) => zCount(letters, slots, p) === 5).length !== 1) continue;
-    let pose;
-    do pose = { x: 3, y: 1, turn: Math.floor(Math.random() * 4) }; while (samePose(pose, truth));
-    groups.forEach((g, k) => { g.slot = k; });
-    msg = { key, words, groups, letters, slots, truth, pose, filled: {}, selected: null, misses: 0 };
-    break;
-  }
+  const text = `${pick(WHO)} ${pick(ACTION)} ${pick(PLACE)}. ${pick(STATE)}. ${pick(RESULT)}.`;
+  const words = text.split(' ').map((t) => ({ text: t.replace('.', ''), stop: t.endsWith('.'), locked: false }));
+  msg = { words, spots: words.flatMap((w, k) => [...w.text].map((ch) => ({ w: k, ch }))) };
+  lockRead();
   busy = false;
+  sel = null;
+  spot = -1;
   render();
 }
 
-const locked = () => samePose(msg.pose, msg.truth);
+/** A word made only of signs known for sure needs no sending. */
+function lockRead() { for (const w of msg.words) if ([...w.text].every((ch) => confirmed.has(ch))) w.locked = true; }
 
-function move(dir) {
-  if (busy) return;
-  const p = { ...msg.pose };
-  if (dir === 'left') p.x -= 1;
-  if (dir === 'right') p.x += 1;
-  if (dir === 'up') p.y -= 1;
-  if (dir === 'down') p.y += 1;
-  if (dir === 'turn') p.turn = (p.turn + 1) % 4;
-  if (p.x < 0 || p.y < 0 || p.x > W - CARD || p.y > H - CARD) return restart($('mat'), 'bump');
-  msg.pose = p;
-  msg.selected = null;
+function select(ch, at) {
+  if (busy || confirmed.has(ch)) return;
+  sel = ch;
+  spot = at;
   render();
 }
 
-/** A slot clicked. In place, it gives its group. Anywhere else, whatever it shows is noise, and taking it costs. */
-function takeSlot(k, el) {
-  if (busy) return;
-  if (!locked()) {
-    msg.misses += 1;
-    restart(el, 'miss');
-    return pay(COST_JUNK);
+/** Write `letter` under the sign picked. A letter sits under one sign only. */
+function write(letter) {
+  if (busy || sel === null) return;
+  if (confirmed.has(letter)) return restart($('abc'), 'bump'); // that letter's sign is known, and it is another one
+  for (const k of Object.keys(guess)) if (guess[k] === letter) delete guess[k];
+  guess[sel] = letter;
+  for (let n = 1; n <= msg.spots.length && spot >= 0; n++) { // step on to the next sign with nothing under it
+    const p = (spot + n) % msg.spots.length;
+    if (!shown(msg.spots[p].ch)) { sel = msg.spots[p].ch; spot = p; break; }
   }
-  if (msg.filled[msg.groups[k].kind]) return;
-  msg.selected = msg.selected === k ? null : k;
   render();
 }
 
-/** A cell clicked for the group taken. Wrong: it costs, and the group is let go. */
-function guess(i) {
-  if (busy || msg.selected === null) return;
-  const g = msg.groups[msg.selected];
-  if (i !== g.cell) {
-    msg.misses += 1;
-    msg.selected = null;
-    pay(COST_CELL);
-    if (busy) return;
-    render();
-    $('table').rows[Math.floor(i / 10) + 1].cells[(i % 10) + 1].classList.add('miss');
-    return;
+function erase() {
+  if (busy || sel === null) return;
+  delete guess[sel];
+  render();
+}
+
+function step(by) {
+  if (busy || spot < 0) return;
+  for (let n = 1; n <= msg.spots.length; n++) {
+    const p = (spot + by * n + msg.spots.length * n) % msg.spots.length;
+    if (!confirmed.has(msg.spots[p].ch)) { sel = msg.spots[p].ch; spot = p; break; }
   }
-  msg.filled[g.kind] = 'new';
-  msg.selected = null;
-  if (KINDS.every((k) => msg.filled[k])) {
-    score.messages += 1;
-    busy = true;
+  render();
+}
+
+/** Check the words written in full. Right ones are confirmed with their letters; each wrong one costs. */
+function send() {
+  if (busy) return;
+  let wrong = 0;
+  for (const w of msg.words) {
+    if (w.locked || ![...w.text].every(shown)) continue; // an unfinished word is not sent
+    if ([...w.text].every((ch) => shown(ch) === ch)) {
+      w.locked = true;
+      for (const ch of w.text) { confirmed.add(ch); delete guess[ch]; }
+    } else { wrong += 1; w.miss = true; }
+  }
+  lockRead();
+  sel = null;
+  spot = -1;
+  if (wrong) {
+    score.points -= wrong * COST_WORD;
     render();
-    const clean = msg.misses === 0;
-    if (clean) {
-      score.clean += 1;
-      score.points += CLEAN_BONUS;
-      bump('gain');
+    restart($('points'), 'hit');
+    if (score.points <= 0) {
+      busy = true;
+      $('overText').textContent = `Сообщений расшифровано: ${score.messages}. Знаков известно: ${confirmed.size} из 33.`;
+      $('over').hidden = false;
     }
-    $('flash').textContent = clean ? `CLEAN +${CLEAN_BONUS}` : 'DECODED';
-    restart($('flash'), 'on');
-    setTimeout(newMessage, 1200);
     return;
   }
+  if (!msg.words.every((w) => w.locked)) return render();
+  score.messages += 1;
+  score.points += REWARD;
+  busy = true;
   render();
-}
-
-// ---------- points ----------
-
-function pay(cost) {
-  score.points -= cost;
-  bump('hit');
-  if (score.points <= 0) {
-    busy = true;
-    $('overText').textContent = `Messages decoded: ${score.messages}, ${score.clean} of them clean.`;
-    $('over').hidden = false;
-  }
-}
-
-function bump(cls) {
-  $('points').textContent = `POINTS ${Math.max(0, score.points)}`;
-  $('points').classList.remove('hit', 'gain');
-  restart($('points'), cls);
+  restart($('points'), 'gain');
+  $('flash').textContent = `ПРИНЯТО +${REWARD}`;
+  restart($('flash'), 'on');
+  setTimeout(newMessage, 1400);
 }
 
 function newGame() {
-  score = { messages: 0, clean: 0, points: START_POINTS };
+  confirmed = new Set(START_KNOWN);
+  guess = {};
+  score = { messages: 0, points: START_POINTS };
   $('over').hidden = true;
   newMessage();
 }
 
 // ---------- drawing ----------
 
+function signEl(ch, at) {
+  const fixed = confirmed.has(ch);
+  const g = el('span', { className: 'g' + (fixed ? ' fixed' : '') + (sel === ch ? (at === spot ? ' cur' : ' same') : ''), innerHTML: sign(ch) });
+  g.append(el('b', { textContent: shown(ch), className: fixed ? 'conf' : '' }));
+  g.onclick = () => select(ch, at);
+  return g;
+}
+
 function render() {
-  $('score').textContent = `messages ${score.messages}`;
-  $('points').textContent = `POINTS ${Math.max(0, score.points)}`;
+  $('score').textContent = `сообщений ${score.messages}`;
+  $('points').textContent = `ОЧКИ ${Math.max(0, score.points)}`;
+  $('points').classList.remove('hit', 'gain');
   $('hint').hidden = score.messages > 0;
-  renderCard();
+  $('note').textContent = `знаков известно ${confirmed.size} из 33`;
 
-  const sel = msg.groups[msg.selected];
-  $('picked').innerHTML = sel ? `group <b>${sel.text}</b>` : '';
-
-  $('sentence').replaceChildren(...PATTERN.map((part) => {
-    if (!KINDS.includes(part)) return document.createTextNode(part);
-    const s = document.createElement('span');
-    const done = msg.filled[part];
-    s.className = 'blank' + (done ? ` filled kind-${part}` : '') + (done === 'new' ? ' pop' : '');
-    s.textContent = done ? cells[msg.words[part]].text : part;
-    if (done === 'new') msg.filled[part] = true;
-    return s;
+  let at = 0;
+  $('text').replaceChildren(...msg.words.map((w) => {
+    const span = el('span', { className: 'word' + (w.locked ? ' locked' : '') + (w.miss ? ' miss' : '') });
+    w.miss = false;
+    for (const ch of w.text) span.append(signEl(ch, at++));
+    if (w.stop) span.append(el('span', { className: 'stop', textContent: '.' }));
+    return span;
   }));
 
-  const keyRows = (half) => half.flatMap((letters, d) => [Object.assign(document.createElement('b'), { textContent: d }), Object.assign(document.createElement('span'), { textContent: letters })]);
-  $('rowKey').replaceChildren(...keyRows(msg.key.rows));
-  $('colKey').replaceChildren(...keyRows(msg.key.cols));
-
-  const t = $('table');
-  t.replaceChildren();
-  const head = t.insertRow();
-  head.append(document.createElement('th'));
-  for (let c = 0; c < 10; c++) head.append(Object.assign(document.createElement('th'), { textContent: c }));
-  const solved = new Set(KINDS.filter((k) => msg.filled[k]).map((k) => msg.words[k]));
-  for (let r = 0; r < 10; r++) {
-    const tr = t.insertRow();
-    tr.append(Object.assign(document.createElement('th'), { textContent: r }));
-    for (let c = 0; c < 10; c++) {
-      const i = r * 10 + c;
-      const td = tr.insertCell();
-      td.className = `kind-${cells[i].kind}` + (solved.has(i) ? ' gone' : '');
-      td.textContent = cells[i].text;
-      td.onclick = () => guess(i);
-      td.onmouseenter = () => cross(r, c);
-      td.onmouseleave = () => cross(-1, -1);
+  $('abc').replaceChildren(...ABC.map((row) => {
+    const div = el('div', { className: 'row' });
+    for (const pair of row) {
+      const p = el('span', { className: 'pair' });
+      for (const ch of pair) p.append(signEl(ch, -1));
+      div.append(p);
     }
-  }
-}
-
-/** The signal with the card on it: covered under the card, open in the slots, plain around it. */
-function renderCard() {
-  const slotOf = new Map();
-  slotCells(msg.slots, msg.pose).forEach((c, k) => c.forEach((i) => slotOf.set(i, k)));
-  const covered = new Set();
-  for (let r = 0; r < CARD; r++) for (let c = 0; c < CARD; c++) covered.add(at(msg.pose, r, c));
-  const open = locked(); // nothing on screen says so: the five Zs are for the player to see
-  $('mat').replaceChildren(...msg.letters.map((ch, i) => {
-    const s = Object.assign(document.createElement('span'), { textContent: ch });
-    if (slotOf.has(i)) {
-      const k = slotOf.get(i);
-      const g = msg.groups[k];
-      s.className = 'hole' + (open && msg.filled[g.kind] ? ` done kind-${g.kind}` : '') + (open && msg.selected === k ? ' sel' : '');
-      s.onclick = () => takeSlot(k, s);
-    } else if (covered.has(i)) {
-      s.className = 'cover';
-    }
-    return s;
+    return div;
   }));
 }
 
-/** Light the row and column headers of the cell under the mouse: following a row and a column is the whole game. */
-function cross(r, c) {
-  const rows = $('table').rows;
-  [...rows[0].cells].forEach((th, j) => th.classList.toggle('hot', j === c + 1));
-  [...rows].slice(1).forEach((tr, j) => tr.cells[0].classList.toggle('hot', j === r));
-}
-
-$('pad').onclick = (e) => { const m = e.target.dataset.move; if (m) move(m); };
+// The letter keys by where they sit, so typing works in the English layout too.
+const KEYS = { KeyQ: 'й', KeyW: 'ц', KeyE: 'у', KeyR: 'к', KeyT: 'е', KeyY: 'н', KeyU: 'г', KeyI: 'ш', KeyO: 'щ', KeyP: 'з', BracketLeft: 'х', BracketRight: 'ъ',
+  KeyA: 'ф', KeyS: 'ы', KeyD: 'в', KeyF: 'а', KeyG: 'п', KeyH: 'р', KeyJ: 'о', KeyK: 'л', KeyL: 'д', Semicolon: 'ж', Quote: 'э',
+  KeyZ: 'я', KeyX: 'ч', KeyC: 'с', KeyV: 'м', KeyB: 'и', KeyN: 'т', KeyM: 'ь', Comma: 'б', Period: 'ю', Backquote: 'ё' };
 document.addEventListener('keydown', (e) => {
-  const m = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', r: 'turn', R: 'turn', 'к': 'turn', 'К': 'turn' }[e.key];
-  if (!m) return;
-  e.preventDefault();
-  move(m);
+  if (e.ctrlKey || e.metaKey || e.altKey) return;
+  const key = e.key.toLowerCase();
+  const letter = /^[а-яё]$/.test(key) ? key : KEYS[e.code];
+  if (letter) { e.preventDefault(); return write(letter); }
+  if (e.key === 'Backspace' || e.key === 'Delete') { e.preventDefault(); return erase(); }
+  if (e.key === 'ArrowLeft') { e.preventDefault(); return step(-1); }
+  if (e.key === 'ArrowRight') { e.preventDefault(); return step(1); }
+  if (e.key === 'Escape') { sel = null; spot = -1; render(); }
 });
+$('send').onclick = send;
 $('again').onclick = newGame;
 newGame();
 </script>

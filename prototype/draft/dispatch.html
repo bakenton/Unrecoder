@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unrecoder: рассылка</title>
+<style>
+  :root {
+    --bg: #efe9dc; --paper: #fbf8f1; --ink: #1f1d1a; --muted: #8a8478; --line: #d8d0bf; --pick: #2f5d8a; --ok: #2e7d4f; --bad: #c0392b;
+    --watch: #e8d27a; --link: #9ec7e8; --break: #e8a98f; --exfil: #b9d99a; --other: #e7e2d6;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.4 "Courier New", monospace; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
+  header { display: flex; justify-content: space-between; align-items: baseline; }
+  header h1 { margin: 0; font-size: 18px; letter-spacing: 3px; }
+  header .score { color: var(--muted); }
+  .hint { color: var(--muted); margin: -8px 0 0; }
+  .kind-watch { background: var(--watch); } .kind-link { background: var(--link); } .kind-break { background: var(--break); }
+  .kind-exfil { background: var(--exfil); } .kind-other { background: var(--other); color: var(--muted); }
+
+  .tasks { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+  .task { background: var(--paper); border: 2px solid var(--line); border-radius: 6px; padding: 8px; display: grid; gap: 6px; grid-template-rows: auto 1fr auto auto; min-height: 150px; cursor: pointer; }
+  .task.sel { border-color: var(--pick); box-shadow: 0 0 0 2px var(--pick); }
+  .task.over { border-color: var(--ink); }
+  .task .group { font-size: 22px; letter-spacing: 6px; font-weight: bold; text-align: center; }
+  .task .what { display: grid; place-items: center; text-align: center; border-radius: 4px; padding: 6px; min-height: 48px; }
+  .task .what.closed { border: 2px dashed var(--line); color: var(--muted); font-size: 22px; }
+  .task .slot { min-height: 34px; display: grid; place-items: center; border-top: 1px solid var(--line); padding-top: 6px; color: var(--muted); }
+  .task .note { font-size: 12px; color: var(--muted); text-align: center; min-height: 1.3em; }
+  .task .stamp { text-align: center; font-weight: bold; letter-spacing: 3px; }
+  .stamp.ok { color: var(--ok); } .stamp.fail { color: var(--bad); } .stamp.none { color: var(--muted); }
+  .report .task { cursor: default; }
+
+  .bench { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .pool { display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px; flex: 1; padding: 6px; border: 2px dashed transparent; border-radius: 6px; }
+  .pool.over { border-color: var(--line); }
+  .agent { display: inline-flex; flex-direction: column; align-items: center; padding: 3px 12px; border: 2px solid var(--ink); border-radius: 4px; cursor: grab; color: var(--ink); line-height: 1.2; user-select: none; }
+  .agent small { font-size: 11px; }
+  .agent.sel { box-shadow: 0 0 0 3px var(--pick); }
+  .agent.out { opacity: .35; cursor: default; border-style: dashed; }
+  .bench button { font: inherit; font-size: 18px; padding: 8px 22px; cursor: pointer; border: 2px solid var(--ink); background: var(--paper); border-radius: 4px; letter-spacing: 2px; }
+  .bench button:hover { background: #fff; }
+
+  .key { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 8px 12px; display: grid; gap: 4px; }
+  .strip { display: grid; grid-template-columns: 90px repeat(10, 1fr); align-items: baseline; }
+  .strip h2 { margin: 0; font-size: 12px; letter-spacing: 1px; color: var(--muted); font-weight: normal; }
+  .strip span { font-size: 16px; letter-spacing: 2px; white-space: nowrap; }
+  .strip span b { color: var(--muted); margin-right: 5px; font-weight: normal; font-size: 13px; }
+
+  table { border-collapse: collapse; width: 100%; table-layout: fixed; background: var(--paper); }
+  th { font-size: 15px; color: var(--muted); padding: 4px; width: 28px; }
+  th.hot { color: var(--ink); background: #e9e1cf; }
+  td { border: 1px solid var(--line); height: 40px; padding: 2px; text-align: center; font-size: 11px; line-height: 1.15; word-break: break-word; }
+  .picking td { cursor: pointer; }
+  .picking td:hover { outline: 2px solid var(--pick); outline-offset: -2px; }
+  @media (max-width: 900px) { td { font-size: 9px; } .strip { grid-template-columns: 60px repeat(10, 1fr); } .strip span { font-size: 12px; letter-spacing: 0; } }
+</style>
+</head>
+<body>
+<main>
+  <header><h1>UNRECODER · РАССЫЛКА</h1><div class="score" id="score"></div></header>
+  <p class="hint" id="hint">Клик по задаче, затем по клетке таблицы: первая буква группы даёт строку, вторая столбец. Перетащите агентов на задачи и отправьте. Что вы прочли, никто не проверяет.</p>
+  <div class="tasks" id="tasks"></div>
+  <div class="bench"><div class="pool" id="pool"></div><button id="go"></button></div>
+  <div class="key">
+    <div class="strip" id="rowKey"></div>
+    <div class="strip" id="colKey"></div>
+  </div>
+  <table id="table"></table>
+</main>
+<script>
+// A sketch of one turn of dispatch. Tasks arrive closed, each with a group of two letters. The key turns the letters
+// into a row and a column of the table, and the cell where they cross is the task; its colour is the kind of task.
+// Nothing checks what the player read: a task is labelled with whatever cell was clicked. Agents have a speciality of
+// one of the four kinds and are put on tasks freely, a closed task too. Sent, they report in clear: the right
+// speciality does the task, the wrong one may fail it and then sits out a turn. A task with no agent is dropped.
+
+const AGENTS = 4; // how many agents; specialities go round the four kinds
+const TASKS = 4; // tasks each turn; their kinds are random, so two of a kind already means a shortage
+const OFF_CHANCE = 0.4; // an agent of the wrong speciality still does the task this often
+const REST_TURNS = 1; // turns an agent sits out after a failure
+
+const KINDS = { watch: 'наблюдение', link: 'связь', break: 'вскрытие', exfil: 'вывоз' };
+const WORDS = {
+  watch: ['следить за складом', 'следить за посольством', 'наблюдать за портом', 'проверить явку', 'сфотографировать гостя', 'установить слежку', 'считать вагоны',
+    'следить за курьером', 'наблюдать за мостом', 'выяснить маршрут патруля', 'следить за гостиницей', 'опознать связного', 'сторожить тайник', 'следить за аэродромом', 'записать номера машин'],
+  link: ['передать плёнку', 'забрать пакет', 'заложить тайник', 'встретить связного', 'доставить деньги', 'передать шифр', 'выйти в эфир', 'забрать письма',
+    'отнести рацию', 'передать приказ', 'вынуть закладку', 'доставить документы', 'сменить частоту', 'передать пароль', 'принять радиограмму'],
+  break: ['вскрыть сейф', 'снять копию ключа', 'достать чертежи', 'проникнуть в архив', 'вскрыть почту', 'поставить микрофон', 'достать списки', 'взломать шкаф',
+    'вскрыть кабинет', 'подменить папку', 'снять печать', 'достать пропуск', 'вынести карту', 'скопировать журнал', 'вскрыть склад'],
+  exfil: ['вывезти агента', 'увести от слежки', 'перевести через границу', 'спрятать радиста', 'вывезти семью', 'достать паспорта', 'увезти раненого', 'сменить квартиру',
+    'вывезти архив', 'встретить на вокзале', 'переправить морем', 'укрыть беглеца', 'подготовить машину', 'вывезти курьера', 'дать убежище'],
+  other: ['приём', 'конец связи', 'повторите', 'ждите', 'понял', 'нет ответа', 'проверка связи', 'цифра', 'по буквам', 'отбой', ...'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЫЭЮЯЙ'],
+};
+const NAMES = ['Грач', 'Сова', 'Лис', 'Ёж', 'Барс', 'Чиж', 'Крот', 'Волк'];
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXY';
+
+function rng(seed) { // mulberry32: the table is the same every time, so it can be learned
+  return () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const shuffle = (arr, r = Math.random) => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const $ = (id) => document.getElementById(id);
+const el = (tag, props = {}) => Object.assign(document.createElement(tag), props);
+
+const cells = shuffle(Object.entries(WORDS).flatMap(([kind, list]) => list.map((text) => ({ kind, text }))), rng(42)); // cell "rc" = cells[r * 10 + c]
+
+/** 25 letters over 10 digits, 2 or 3 each. */
+function keyHalf() {
+  const letters = shuffle([...LETTERS]);
+  let at = 0;
+  return shuffle([3, 3, 3, 3, 3, 2, 2, 2, 2, 2]).map((n) => letters.slice(at, (at += n)).sort().join(''));
+}
+
+// ---------- state ----------
+
+const agents = Array.from({ length: AGENTS }, (_, i) => ({ name: NAMES[i % NAMES.length], spec: Object.keys(KINDS)[i % 4], rest: 0, out: false }));
+const score = { turn: 0, done: 0, total: 0 };
+let key, tasks; // tasks: [{cell, group, read: cell index or null, agent: index or null, outcome}]
+let phase; // 'plan' or 'report'
+let selTask = null, selAgent = null;
+
+function newTurn() {
+  score.turn += 1;
+  key = { rows: keyHalf(), cols: keyHalf() };
+  for (const a of agents) { a.out = a.rest > 0; if (a.rest > 0) a.rest -= 1; }
+  tasks = Array.from({ length: TASKS }, () => {
+    const kind = pick(Object.keys(KINDS));
+    const cell = pick(cells.map((c, i) => (c.kind === kind ? i : -1)).filter((i) => i >= 0));
+    return { cell, group: pick([...key.rows[Math.floor(cell / 10)]]) + pick([...key.cols[cell % 10]]), read: null, agent: null, outcome: null };
+  });
+  phase = 'plan';
+  selTask = selAgent = null;
+  render();
+}
+
+/** Label the task picked with the cell clicked. Right or wrong, it is what the player believes. */
+function read(i) {
+  if (phase !== 'plan' || selTask === null) return;
+  tasks[selTask].read = i;
+  selTask = null;
+  render();
+}
+
+function assign(a, k) {
+  if (phase !== 'plan' || agents[a].out) return;
+  for (const t of tasks) if (t.agent === a) t.agent = null;
+  if (k !== null) tasks[k].agent = a;
+  selAgent = selTask = null;
+  render();
+}
+
+function clickTask(k) {
+  if (phase !== 'plan') return;
+  if (selAgent !== null) return assign(selAgent, k);
+  selTask = selTask === k ? null : k;
+  render();
+}
+
+function clickAgent(a, k) {
+  if (phase !== 'plan' || agents[a].out) return;
+  if (k !== null) return assign(a, null); // on a task: back to the bench
+  selAgent = selAgent === a ? null : a;
+  selTask = null;
+  render();
+}
+
+function send() {
+  for (const t of tasks) {
+    score.total += 1;
+    if (t.agent === null) { t.outcome = 'none'; continue; }
+    const a = agents[t.agent];
+    const ok = a.spec === cells[t.cell].kind || Math.random() < OFF_CHANCE;
+    t.outcome = ok ? 'ok' : 'fail';
+    if (ok) score.done += 1; else a.rest = REST_TURNS;
+  }
+  phase = 'report';
+  selTask = selAgent = null;
+  render();
+}
+
+// ---------- drawing ----------
+
+function agentEl(a, k) {
+  const ag = agents[a];
+  const chip = el('span', { className: `agent kind-${ag.spec}` + (selAgent === a ? ' sel' : '') + (ag.out ? ' out' : ''), draggable: phase === 'plan' && !ag.out });
+  chip.append(el('b', { textContent: ag.name }), el('small', { textContent: ag.out ? 'выбыл на ход' : KINDS[ag.spec] }));
+  chip.onclick = (e) => { e.stopPropagation(); clickAgent(a, k); };
+  chip.ondragstart = (e) => e.dataTransfer.setData('text/plain', String(a));
+  return chip;
+}
+
+/** Let agents be dropped on `node`: onto task k, or back to the bench with k = null. */
+function dropZone(node, k) {
+  node.ondragover = (e) => { if (phase === 'plan') { e.preventDefault(); node.classList.add('over'); } };
+  node.ondragleave = () => node.classList.remove('over');
+  node.ondrop = (e) => { e.preventDefault(); const a = Number(e.dataTransfer.getData('text/plain')); if (Number.isInteger(a) && agents[a]) assign(a, k); };
+}
+
+function render() {
+  $('score').textContent = `ход ${score.turn} · выполнено ${score.done} из ${score.total}`;
+  $('hint').hidden = score.turn > 1;
+  $('go').textContent = phase === 'plan' ? 'ОТПРАВИТЬ' : 'ДАЛЬШЕ';
+
+  $('tasks').className = 'tasks' + (phase === 'report' ? ' report' : '');
+  $('tasks').replaceChildren(...tasks.map((t, k) => {
+    const card = el('div', { className: 'task' + (selTask === k ? ' sel' : '') });
+    const seen = phase === 'report' ? cells[t.cell] : t.read === null ? null : cells[t.read];
+    card.append(
+      el('div', { className: 'group', textContent: t.group }),
+      el('div', { className: 'what ' + (seen ? `kind-${seen.kind}` : 'closed'), textContent: seen ? seen.text : '?' }),
+    );
+    if (phase === 'report') {
+      const mine = t.read === null ? 'не прочитано' : t.read === t.cell ? '' : `прочитано: ${cells[t.read].text}`;
+      card.append(el('div', { className: 'note', textContent: mine }));
+    }
+    const slot = el('div', { className: 'slot' });
+    if (t.agent !== null) slot.append(agentEl(t.agent, k)); else slot.textContent = '—';
+    card.append(slot);
+    if (phase === 'report') card.append(el('div', { className: `stamp ${t.outcome}`, textContent: { ok: 'УСПЕХ', fail: 'ПРОВАЛ', none: 'БРОШЕНА' }[t.outcome] }));
+    card.onclick = () => clickTask(k);
+    dropZone(card, k);
+    return card;
+  }));
+
+  const busy = new Set(tasks.map((t) => t.agent));
+  $('pool').replaceChildren(...agents.map((_, a) => a).filter((a) => !busy.has(a)).map((a) => agentEl(a, null)));
+  dropZone($('pool'), null);
+
+  const strip = (title, half) => [el('h2', { textContent: title }), ...half.map((letters, d) => el('span', { innerHTML: `<b>${d}</b>${letters}` }))];
+  $('rowKey').replaceChildren(...strip('СТРОКА', key.rows));
+  $('colKey').replaceChildren(...strip('СТОЛБЕЦ', key.cols));
+
+  const t = $('table');
+  t.className = selTask !== null ? 'picking' : '';
+  t.replaceChildren();
+  const head = t.insertRow();
+  head.append(el('th'));
+  for (let c = 0; c < 10; c++) head.append(el('th', { textContent: c }));
+  for (let r = 0; r < 10; r++) {
+    const tr = t.insertRow();
+    tr.append(el('th', { textContent: r }));
+    for (let c = 0; c < 10; c++) {
+      const i = r * 10 + c;
+      const td = el('td', { textContent: cells[i].text, className: `kind-${cells[i].kind}` });
+      td.onclick = () => read(i);
+      td.onmouseenter = () => cross(r, c);
+      td.onmouseleave = () => cross(-1, -1);
+      tr.append(td);
+    }
+  }
+}
+
+/** Light the row and column headers of the cell under the mouse. */
+function cross(r, c) {
+  const rows = $('table').rows;
+  [...rows[0].cells].forEach((th, j) => th.classList.toggle('hot', j === c + 1));
+  [...rows].slice(1).forEach((tr, j) => tr.cells[0].classList.toggle('hot', j === r));
+}
+
+$('go').onclick = () => (phase === 'plan' ? send() : newTurn());
+newTurn();
+</script>
+</body>
+</html>
