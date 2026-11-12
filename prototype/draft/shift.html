@@ -1,0 +1,430 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Unrecoder: смена</title>
+<style>
+  :root {
+    --bg: #efe9dc; --paper: #fbf8f1; --ink: #1f1d1a; --muted: #8a8478; --line: #d8d0bf; --pick: #2f5d8a; --ok: #2e7d4f; --bad: #c0392b;
+    --watch: #e8d27a; --link: #9ec7e8; --break: #e8a98f; --exfil: #b9d99a; --other: #e7e2d6;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink); font: 15px/1.4 "Courier New", monospace; }
+  main { max-width: 1100px; margin: 0 auto; padding: 16px 16px 40px; display: grid; gap: 12px; }
+  header { display: flex; justify-content: space-between; align-items: baseline; }
+  header h1 { margin: 0; font-size: 18px; letter-spacing: 3px; }
+  header .score { color: var(--muted); }
+  .hint { color: var(--muted); margin: -8px 0 0; }
+  .legend { color: var(--muted); font-size: 13px; }
+  .kind-watch { background: var(--watch); } .kind-link { background: var(--link); } .kind-break { background: var(--break); }
+  .kind-exfil { background: var(--exfil); } .kind-other { background: var(--other); color: var(--muted); }
+
+  .goalbar { display: flex; flex-wrap: wrap; gap: 6px 18px; align-items: baseline; border: 2px solid var(--ink); border-radius: 6px; padding: 8px 12px; }
+  .goalbar b { letter-spacing: 2px; }
+  .goalbar .price { font-size: 20px; font-weight: bold; }
+  .goalbar .why { color: var(--ink); font-size: 13px; opacity: .75; }
+  .verdict { text-align: center; font-size: 20px; font-weight: bold; letter-spacing: 4px; padding: 8px; border: 2px solid; border-radius: 6px; background: var(--paper); }
+  .verdict.ok { color: var(--ok); } .verdict.fail { color: var(--bad); }
+
+  .tasks { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 10px; }
+  .task { background: var(--paper); border: 2px solid var(--line); border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 6px; min-height: 170px; cursor: pointer; }
+  .task.sel { border-color: var(--pick); box-shadow: 0 0 0 2px var(--pick); }
+  .task.over { border-color: var(--ink); }
+  .task .group { font-size: 22px; letter-spacing: 6px; font-weight: bold; text-align: center; }
+  .task .what { flex: 1; display: grid; place-items: center; text-align: center; border-radius: 4px; padding: 6px; min-height: 48px; }
+  .task .what.closed { border: 2px dashed var(--line); color: var(--muted); font-size: 22px; }
+  .task .what small { display: block; font-size: 12px; opacity: .8; }
+  .task .slot { min-height: 34px; display: grid; place-items: center; gap: 2px; border-top: 1px solid var(--line); padding-top: 6px; color: var(--muted); }
+  .task .cost { font-size: 12px; color: var(--muted); } .task .cost.bad { color: var(--bad); }
+  .task .note { font-size: 12px; color: var(--muted); text-align: center; min-height: 1.3em; }
+  .task .stamp { text-align: center; font-weight: bold; letter-spacing: 3px; }
+  .task .after { text-align: center; font-size: 12px; color: var(--bad); } .task .after.good { color: var(--ok); }
+  .stamp.ok { color: var(--ok); } .stamp.short { color: var(--bad); } .stamp.none { color: var(--muted); }
+  .report .task { cursor: default; }
+
+  .bench { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+  .pool { display: flex; flex-wrap: wrap; gap: 8px; min-height: 40px; flex: 1; padding: 6px; border: 2px dashed transparent; border-radius: 6px; }
+  .pool.over { border-color: var(--line); }
+  .agent { display: inline-flex; flex-direction: column; align-items: center; padding: 3px 12px; border: 2px solid var(--ink); border-radius: 4px; cursor: grab; color: var(--ink); line-height: 1.2; user-select: none; }
+  .agent small { font-size: 11px; }
+  .agent .sta { font-size: 13px; letter-spacing: 2px; }
+  .agent.sel { box-shadow: 0 0 0 3px var(--pick); }
+  .agent.out { opacity: .4; cursor: default; border-style: dashed; }
+  .bench button { font: inherit; font-size: 18px; padding: 8px 22px; cursor: pointer; border: 2px solid var(--ink); background: var(--paper); border-radius: 4px; letter-spacing: 2px; }
+  .bench button:hover { background: #fff; }
+
+  .key { background: var(--paper); border: 1px solid var(--line); border-radius: 4px; padding: 8px 12px; display: grid; gap: 4px; }
+  .strip { display: grid; grid-template-columns: 90px repeat(10, 1fr); align-items: baseline; }
+  .strip h2 { margin: 0; font-size: 12px; letter-spacing: 1px; color: var(--muted); font-weight: normal; }
+  .strip span { font-size: 16px; letter-spacing: 2px; white-space: nowrap; }
+  .strip span b { color: var(--muted); margin-right: 5px; font-weight: normal; font-size: 13px; }
+
+  table { border-collapse: collapse; width: 100%; table-layout: fixed; background: var(--paper); }
+  th { font-size: 15px; color: var(--muted); padding: 4px; width: 28px; }
+  th.hot { color: var(--ink); background: #e9e1cf; }
+  td { border: 1px solid var(--line); height: 40px; padding: 2px; text-align: center; font-size: 11px; line-height: 1.15; word-break: break-word; }
+  td i { font-style: normal; font-weight: bold; margin-right: 3px; }
+  .picking td { cursor: pointer; }
+  .picking td:hover { outline: 2px solid var(--pick); outline-offset: -2px; }
+  @media (max-width: 900px) { td { font-size: 9px; } .strip { grid-template-columns: 60px repeat(10, 1fr); } .strip span { font-size: 12px; letter-spacing: 0; } }
+</style>
+</head>
+<body>
+<main>
+  <header><h1>UNRECODER · СМЕНА</h1><div class="score" id="score"></div></header>
+  <p class="hint" id="hint">Клик по задаче, затем по клетке таблицы: первая буква группы даёт строку, вторая столбец. Своя задача стоит агенту 1 очко, чужая на 1 дороже. Вместо несделанного шага придёт запасная задача. Что вы прочли, никто не проверяет.</p>
+  <div class="goalbar" id="goalbar"></div>
+  <div class="verdict" id="verdict" hidden></div>
+  <div class="tasks" id="tasks"></div>
+  <div class="bench"><div class="pool" id="pool"></div><button id="go"></button></div>
+  <div class="key">
+    <div class="strip" id="rowKey"></div>
+    <div class="strip" id="colKey"></div>
+  </div>
+  <div class="legend">★ цель · ■ шаг · ↻ подготовка · + подспорье</div>
+  <table id="table"></table>
+</main>
+<script>
+// A sketch of one shift. A shift is four operations of four tasks, sent to four agents, and has one goal the player
+// knows from the start. Tasks arrive closed, each with a group of two letters; the key turns the letters into a row
+// and a column of the table, and the cell where they cross is the task. The cell tells the task's type (its colour,
+// which agent it suits) and its role (the mark: goal, step, preparation, help). Nothing checks what the player read.
+// An agent goes out once an operation and pays stamina: the price of the task, one more if it is not of the agent's
+// type. There is no chance: an agent who can pay does the task, one who cannot does not.
+// A task left undone acts by its role: a preparation comes back, a step is replaced next operation by a fallback
+// task the player has not seen, a help is lost. A step and its fallback both undone close a branch, and the goal
+// gets dearer. The shift succeeds if the goal is done in the last operation.
+
+const START = 2; // stamina of each agent at the start of the shift
+const REGEN_BEFORE = [2, 4]; // every agent gets +1 before these operations; stamina piles up with no cap
+const OFF_EXTRA = 1; // a task of another type costs this much more
+const PREP_EXTRA = 1; // a step whose preparation is not done costs this much more
+const ALT_PRICE = 2; // price of a fallback task
+const GOAL_PRICE = 2; // price of the goal with nothing closed and no help
+const CLOSED_EXTRA = 2; // each closed branch adds this to the price of the goal
+const BONUS_CUT = 1; // each help done takes this off the price of the goal; the price never drops below 1
+
+const KINDS = { watch: 'наблюдение', link: 'связь', break: 'вскрытие', exfil: 'вывоз' };
+const WORDS = {
+  watch: ['следить за складом', 'следить за посольством', 'наблюдать за портом', 'проверить явку', 'сфотографировать гостя', 'установить слежку', 'подсмотреть код',
+    'следить за курьером', 'наблюдать за мостом', 'выяснить маршрут патруля', 'следить за гостиницей', 'опознать связного', 'сторожить тайник', 'следить за аэродромом', 'записать номера машин'],
+  link: ['передать плёнку', 'забрать пакет', 'заложить тайник', 'встретить связного', 'доставить деньги', 'передать шифр', 'выйти в эфир', 'забрать письма',
+    'отнести рацию', 'передать приказ', 'вынуть закладку', 'доставить документы', 'найти проводника', 'передать пароль', 'принять радиограмму'],
+  break: ['вскрыть сейф', 'снять копию ключа', 'достать чертежи', 'проникнуть в архив', 'вскрыть почту', 'поставить микрофон', 'достать списки', 'взломать шкаф',
+    'вскрыть кабинет', 'подменить папку', 'снять печать', 'достать пропуск', 'вынести карту', 'скопировать журнал', 'вскрыть склад'],
+  exfil: ['вывезти агента', 'увести от слежки', 'перевести через границу', 'спрятать радиста', 'вывезти семью', 'достать паспорта', 'увезти раненого', 'сменить квартиру',
+    'вывезти архив', 'встретить на вокзале', 'вынести ключи', 'укрыть беглеца', 'подготовить машину', 'вывезти курьера', 'дать убежище'],
+  other: ['приём', 'конец связи', 'повторите', 'ждите', 'понял', 'нет ответа', 'проверка связи', 'цифра', 'по буквам', 'отбой', ...'АБВГДЕЖЗИКЛМНОПРСТУФХЦЧШЩЫЭЮЯЙ'],
+};
+const NAMES = ['Грач', 'Сова', 'Лис', 'Ёж'];
+const LETTERS = 'ABCDEFGHIJKLMNOPQRSTUVWXY';
+const MARK = { goal: '★', step: '■', alt: '■', prep: '↻', bonus: '+' };
+
+// The shift, written by hand. `ops` lists the tasks each operation starts with. Roles: 'prep' makes the step `for`
+// cheaper, 'step' has a fallback `alt` (none in the last operation), 'bonus' is a help, 'goal' ends the shift,
+// 'alt' is a fallback and arrives only when its step was left undone. `text` must be a phrase of the table.
+const SHIFT = {
+  goal: 'safe',
+  ops: [['embassy', 'patrol', 'packet', 'passports'], ['keycopy', 'pass', 'contact', 'car'], ['guard', 'office', 'radio', 'flat'], ['safe', 'exit', 'cache', 'air']],
+  tasks: {
+    embassy: { text: 'следить за посольством', role: 'prep', for: 'keycopy' },
+    patrol: { text: 'выяснить маршрут патруля', role: 'prep', for: 'pass' },
+    packet: { text: 'забрать пакет', role: 'step', alt: 'store' },
+    passports: { text: 'достать паспорта', role: 'prep', for: 'car' },
+    keycopy: { text: 'снять копию ключа', role: 'step', alt: 'keys' },
+    pass: { text: 'достать пропуск', role: 'step', alt: 'money' },
+    contact: { text: 'встретить связного', role: 'bonus' },
+    car: { text: 'подготовить машину', role: 'step', alt: 'guide' },
+    guard: { text: 'установить слежку', role: 'prep', for: 'exit' },
+    office: { text: 'вскрыть кабинет', role: 'step', alt: 'code' },
+    radio: { text: 'принять радиограмму', role: 'bonus' },
+    flat: { text: 'сменить квартиру', role: 'bonus' },
+    safe: { text: 'вскрыть сейф', role: 'goal' },
+    exit: { text: 'вывезти агента', role: 'step' },
+    cache: { text: 'сторожить тайник', role: 'step' },
+    air: { text: 'выйти в эфир', role: 'step' },
+    store: { text: 'вскрыть склад', role: 'alt' },
+    keys: { text: 'вынести ключи', role: 'alt' },
+    money: { text: 'доставить деньги', role: 'alt' },
+    guide: { text: 'найти проводника', role: 'alt' },
+    code: { text: 'подсмотреть код', role: 'alt' },
+  },
+};
+
+function rng(seed) { // mulberry32: the table is the same every time, so it can be learned
+  return () => {
+    seed = (seed + 0x6d2b79f5) | 0;
+    let t = Math.imul(seed ^ (seed >>> 15), 1 | seed);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+const shuffle = (arr, r = Math.random) => { for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; } return arr; };
+const pick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+const $ = (id) => document.getElementById(id);
+const el = (tag, props = {}) => Object.assign(document.createElement(tag), props);
+
+const cells = shuffle(Object.entries(WORDS).flatMap(([kind, list]) => list.map((text) => ({ kind, text }))), rng(42)); // cell "rc" = cells[r * 10 + c]
+
+// Every task cell carries a role mark, the cells of this shift their own and the rest a made-up one, so a mark
+// does not give away which cells the shift uses.
+const LAST = SHIFT.ops.length - 1;
+const opOf = {}; // task id -> index of the operation it starts in
+const prepOf = {}; // step id -> id of its preparation
+const cellOf = {}; // task id -> cell index
+const taskAt = {}; // cell index -> task id
+SHIFT.ops.forEach((ids, op) => ids.forEach((id) => { opOf[id] = op; }));
+for (const [id, def] of Object.entries(SHIFT.tasks)) {
+  if (def.role === 'prep') prepOf[def.for] = id;
+  cellOf[id] = cells.findIndex((c) => c.text === def.text);
+  taskAt[cellOf[id]] = id;
+}
+const markRng = rng(7);
+cells.forEach((c, i) => {
+  if (c.kind === 'other') return;
+  c.role = taskAt[i] ? SHIFT.tasks[taskAt[i]].role : ['step', 'prep', 'bonus'][Math.floor(markRng() * 3)];
+});
+
+/** 25 letters over 10 digits, 2 or 3 each. */
+function keyHalf() {
+  const letters = shuffle([...LETTERS]);
+  let at = 0;
+  return shuffle([3, 3, 3, 3, 3, 2, 2, 2, 2, 2]).map((n) => letters.slice(at, (at += n)).sort().join(''));
+}
+
+// ---------- state ----------
+
+const agents = NAMES.map((name, i) => ({ name, spec: Object.keys(KINDS)[i % 4], sta: START }));
+let op; // index of the operation being played
+let done; // done[id]: the task was done
+let gone; // gone[id]: the step was done or missed, so its preparation is of no use any more
+let alts; // alts[op]: fallback tasks that arrive in that operation
+let closed, bonus; // branches closed and helps done: together they set the price of the goal
+let won; // the outcome of the goal, set when the last operation is sent
+let key, tasks; // tasks: [{id, cell, group, read: cell index or null, agent: index or null, outcome, after, good}]
+let phase; // 'plan' or 'report'
+let selTask = null, selAgent = null;
+
+const goalPrice = () => Math.max(1, GOAL_PRICE + CLOSED_EXTRA * closed - BONUS_CUT * bonus);
+
+/** What the task costs an agent of its own type. */
+function price(id) {
+  const def = SHIFT.tasks[id];
+  if (def.role === 'goal') return goalPrice();
+  if (def.role === 'alt') return ALT_PRICE;
+  if (def.role === 'step' && prepOf[id] && !done[prepOf[id]]) {
+    // While planning, a preparation with an agent on it counts as done: preparations are resolved before steps.
+    const planned = phase === 'plan' && tasks.some((t) => t.id === prepOf[id] && t.agent !== null);
+    if (!planned) return 1 + PREP_EXTRA;
+  }
+  return 1;
+}
+/** What the cell would cost by the same rule: this is what a card shows for the cell the player read. */
+const cellPrice = (i) => (taskAt[i] ? price(taskAt[i]) : 1);
+
+function newShift() {
+  op = -1;
+  done = {};
+  gone = {};
+  alts = SHIFT.ops.map(() => []);
+  closed = bonus = 0;
+  won = null;
+  for (const a of agents) a.sta = START;
+  newOp();
+}
+
+function newOp() {
+  op += 1;
+  if (REGEN_BEFORE.includes(op + 1)) for (const a of agents) a.sta += 1;
+  key = { rows: keyHalf(), cols: keyHalf() };
+  const back = Object.keys(SHIFT.tasks).filter((id) => SHIFT.tasks[id].role === 'prep' && opOf[id] < op && !done[id] && !gone[SHIFT.tasks[id].for]);
+  tasks = shuffle([...SHIFT.ops[op], ...back, ...alts[op]]).map((id) => {
+    const cell = cellOf[id];
+    return { id, cell, group: pick([...key.rows[Math.floor(cell / 10)]]) + pick([...key.cols[cell % 10]]), read: null, agent: null, outcome: null, after: null, good: false };
+  });
+  phase = 'plan';
+  selTask = selAgent = null;
+  render();
+}
+
+/** Label the task picked with the cell clicked. Right or wrong, it is what the player believes. */
+function read(i) {
+  if (phase !== 'plan' || selTask === null) return;
+  tasks[selTask].read = i;
+  selTask = null;
+  render();
+}
+
+function assign(a, k) {
+  if (phase !== 'plan' || agents[a].sta < 1) return;
+  for (const t of tasks) if (t.agent === a) t.agent = null;
+  if (k !== null) tasks[k].agent = a;
+  selAgent = selTask = null;
+  render();
+}
+
+function clickTask(k) {
+  if (phase !== 'plan') return;
+  if (selAgent !== null) return assign(selAgent, k);
+  selTask = selTask === k ? null : k;
+  render();
+}
+
+function clickAgent(a, k) {
+  if (phase !== 'plan' || agents[a].sta < 1) return;
+  if (k !== null) return assign(a, null); // on a task: back to the bench
+  selAgent = selAgent === a ? null : a;
+  selTask = null;
+  render();
+}
+
+function send() {
+  phase = 'send';
+  // Preparations first, so one done now already makes its step cheaper; the goal last, so its own operation can
+  // still change its price.
+  const turn = (t) => ({ prep: 0, goal: 2 }[SHIFT.tasks[t.id].role] ?? 1);
+  for (const t of [...tasks].sort((a, b) => turn(a) - turn(b))) {
+    const def = SHIFT.tasks[t.id];
+    let ok = false;
+    if (t.agent !== null) {
+      const a = agents[t.agent];
+      const cost = price(t.id) + (a.spec === cells[t.cell].kind ? 0 : OFF_EXTRA);
+      ok = a.sta >= cost; // an agent who cannot pay keeps the stamina and leaves the task undone
+      if (ok) a.sta -= cost;
+    }
+    t.outcome = ok ? 'ok' : t.agent === null ? 'none' : 'short';
+    if (def.role === 'goal') { won = ok; continue; }
+    if (def.role === 'step') gone[t.id] = true;
+    if (ok) {
+      done[t.id] = true;
+      if (def.role === 'bonus') { bonus += 1; t.after = `цель −${BONUS_CUT}`; t.good = true; }
+      continue;
+    }
+    if (def.role === 'bonus') t.after = 'пропало';
+    else if (def.role === 'prep') continue; // its line depends on its step, resolved later: see below
+    else if (def.role === 'step' && def.alt && op < LAST) { alts[op + 1].push(def.alt); t.after = 'придёт запасная'; }
+    else { closed += 1; t.after = `ветка закрыта: цель +${CLOSED_EXTRA}`; }
+  }
+  for (const t of tasks) {
+    const def = SHIFT.tasks[t.id];
+    if (def.role === 'prep' && t.outcome !== 'ok') t.after = gone[def.for] ? 'уже не нужна' : 'вернётся';
+  }
+  phase = 'report';
+  selTask = selAgent = null;
+  render();
+}
+
+// ---------- drawing ----------
+
+function agentEl(a, k) {
+  const ag = agents[a];
+  const out = ag.sta < 1;
+  const chip = el('span', { className: `agent kind-${ag.spec}` + (selAgent === a ? ' sel' : '') + (out ? ' out' : ''), draggable: phase === 'plan' && !out });
+  chip.append(el('b', { textContent: ag.name }), el('small', { textContent: KINDS[ag.spec] }), el('small', { className: 'sta', textContent: out ? 'пусто' : '●'.repeat(ag.sta) }));
+  chip.onclick = (e) => { e.stopPropagation(); clickAgent(a, k); };
+  chip.ondragstart = (e) => e.dataTransfer.setData('text/plain', String(a));
+  return chip;
+}
+
+/** Let agents be dropped on `node`: onto task k, or back to the bench with k = null. */
+function dropZone(node, k) {
+  node.ondragover = (e) => { if (phase === 'plan') { e.preventDefault(); node.classList.add('over'); } };
+  node.ondragleave = () => node.classList.remove('over');
+  node.ondrop = (e) => { e.preventDefault(); const a = Number(e.dataTransfer.getData('text/plain')); if (Number.isInteger(a) && agents[a]) assign(a, k); };
+}
+
+function render() {
+  const over = phase === 'report' && op === LAST;
+  $('score').textContent = `операция ${op + 1} из ${LAST + 1}`;
+  $('hint').hidden = op > 0;
+  $('go').textContent = phase === 'plan' ? 'ОТПРАВИТЬ' : over ? 'ЗАНОВО' : 'ДАЛЬШЕ';
+  $('verdict').hidden = !over;
+  $('verdict').className = 'verdict ' + (won ? 'ok' : 'fail');
+  $('verdict').textContent = won ? 'СЕЙФ ВСКРЫТ' : 'СМЕНА СОРВАНА';
+
+  const goalCell = cells[cellOf[SHIFT.goal]];
+  $('goalbar').className = `goalbar kind-${goalCell.kind}`;
+  $('goalbar').replaceChildren(
+    el('b', { textContent: 'ЦЕЛЬ СМЕНЫ' }),
+    el('span', { textContent: `${goalCell.text} · ${KINDS[goalCell.kind]}` }),
+    el('span', { className: 'price', textContent: `цена ${goalPrice()}` }),
+    el('span', { className: 'why', textContent: `закрыто веток: ${closed} · подспорий: ${bonus}` }),
+  );
+
+  $('tasks').className = 'tasks' + (phase === 'report' ? ' report' : '');
+  $('tasks').replaceChildren(...tasks.map((t, k) => {
+    const card = el('div', { className: 'task' + (selTask === k ? ' sel' : '') });
+    const shown = phase === 'report' ? t.cell : t.read; // in the report the truth, before it what the player read
+    const seen = shown === null ? null : cells[shown];
+    const what = el('div', { className: 'what ' + (seen ? `kind-${seen.kind}` : 'closed') });
+    if (!seen) what.textContent = '?';
+    else if (seen.kind === 'other') what.textContent = seen.text;
+    else what.append(el('span', { textContent: `${MARK[seen.role]} ${seen.text}` }), el('small', { textContent: `цена ${cellPrice(shown)}` }));
+    card.append(el('div', { className: 'group', textContent: t.group }), what);
+    if (phase === 'report') {
+      const mine = t.read === null ? 'не прочитано' : t.read === t.cell ? '' : `прочитано: ${cells[t.read].text}`;
+      card.append(el('div', { className: 'note', textContent: mine }));
+    }
+    const slot = el('div', { className: 'slot' });
+    if (t.agent === null) slot.textContent = '—';
+    else {
+      slot.append(agentEl(t.agent, k));
+      if (phase === 'plan' && seen && seen.kind !== 'other') { // the cost as the player believes it
+        const a = agents[t.agent];
+        const cost = cellPrice(shown) + (a.spec === seen.kind ? 0 : OFF_EXTRA);
+        slot.append(el('div', { className: 'cost' + (cost > a.sta ? ' bad' : ''), textContent: cost > a.sta ? `нужно ${cost}, не хватит` : `−${cost}` }));
+      }
+    }
+    card.append(slot);
+    if (phase === 'report') {
+      card.append(el('div', { className: `stamp ${t.outcome}`, textContent: { ok: 'СДЕЛАНА', short: 'НЕ ХВАТИЛО', none: 'БРОШЕНА' }[t.outcome] }));
+      if (t.after) card.append(el('div', { className: 'after' + (t.good ? ' good' : ''), textContent: t.after }));
+    }
+    card.onclick = () => clickTask(k);
+    dropZone(card, k);
+    return card;
+  }));
+
+  const busy = new Set(tasks.map((t) => t.agent));
+  $('pool').replaceChildren(...agents.map((_, a) => a).filter((a) => !busy.has(a)).map((a) => agentEl(a, null)));
+  dropZone($('pool'), null);
+
+  const strip = (title, half) => [el('h2', { textContent: title }), ...half.map((letters, d) => el('span', { innerHTML: `<b>${d}</b>${letters}` }))];
+  $('rowKey').replaceChildren(...strip('СТРОКА', key.rows));
+  $('colKey').replaceChildren(...strip('СТОЛБЕЦ', key.cols));
+
+  const t = $('table');
+  t.className = selTask !== null ? 'picking' : '';
+  t.replaceChildren();
+  const head = t.insertRow();
+  head.append(el('th'));
+  for (let c = 0; c < 10; c++) head.append(el('th', { textContent: c }));
+  for (let r = 0; r < 10; r++) {
+    const tr = t.insertRow();
+    tr.append(el('th', { textContent: r }));
+    for (let c = 0; c < 10; c++) {
+      const i = r * 10 + c;
+      const td = el('td', { className: `kind-${cells[i].kind}` });
+      if (cells[i].role) td.append(el('i', { textContent: MARK[cells[i].role] }));
+      td.append(cells[i].text);
+      td.onclick = () => read(i);
+      td.onmouseenter = () => cross(r, c);
+      td.onmouseleave = () => cross(-1, -1);
+      tr.append(td);
+    }
+  }
+}
+
+/** Light the row and column headers of the cell under the mouse. */
+function cross(r, c) {
+  const rows = $('table').rows;
+  [...rows[0].cells].forEach((th, j) => th.classList.toggle('hot', j === c + 1));
+  [...rows].slice(1).forEach((tr, j) => tr.cells[0].classList.toggle('hot', j === r));
+}
+
+$('go').onclick = () => (phase === 'plan' ? send() : op === LAST ? newShift() : newOp());
+newShift();
+</script>
+</body>
+</html>
